@@ -298,14 +298,18 @@ export function computeConsensus(witnesses: WitnessAssessment[]): Consensus {
   }
 
   const k = agreeing.reduce((s, w) => s + w.discrimination, 0);
+  const ewc = effectiveWitnesses(k, rho);
   const distinctStances = new Set(witnesses.filter((w) => w.stance).map((w) => w.stance));
+  const round = (n: number) => Math.round(n * 100) / 100;
 
   return {
     nominalAgree: agreeing.length,
     respondents,
     majorityStance: majority,
-    effectiveWitnesses: Math.round(effectiveWitnesses(k, rho) * 100) / 100,
-    meanAnchorOverlap: Math.round(rho * 100) / 100,
+    effectiveWitnesses: round(ewc),
+    lostToEcho: round(agreeing.length - k),
+    lostToRedundancy: round(k - ewc),
+    meanAnchorOverlap: round(rho),
     overlapMeasured,
     contested: distinctStances.size > 1,
     dissenters: witnesses.filter((w) => w.stance && w.stance !== majority).map((w) => w.modelId),
@@ -345,7 +349,14 @@ export function computeVerdict(witnesses: WitnessAssessment[], consensus: Consen
   const band = Math.round(50 * (1 - shrink));
 
   const label = labelFor(truthScore, ewc);
-  return { truthScore, band, label, headline: headlineFor(label, consensus) };
+  return {
+    truthScore,
+    balance: Math.round(balance * 100) / 100,
+    shrink: Math.round(shrink * 100) / 100,
+    band,
+    label,
+    headline: headlineFor(label, consensus),
+  };
 }
 
 function labelFor(score: number, ewc: number): VerdictLabel {

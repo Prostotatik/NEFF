@@ -222,11 +222,13 @@ export function Report({ run }: { run: VerificationRun }) {
 }
 
 function VerdictCard({ run }: { run: VerificationRun }) {
-  const { verdict, consensus } = run;
-  const panelSize = Math.max(consensus.respondents, 1);
-  const nominalPct = (consensus.nominalAgree / panelSize) * 100;
-  const effectivePct = (consensus.effectiveWitnesses / panelSize) * 100;
+  const { verdict, consensus, witnesses } = run;
+  // Both gauges are drawn against the same denominator — the size of the panel —
+  // so the sodium bar can be read directly against the steel one. Scaling them
+  // separately would make an echo look like corroboration.
+  const panelSize = Math.max(witnesses.length, 1);
   const lost = consensus.nominalAgree - consensus.effectiveWitnesses;
+  const echoed = witnesses.filter((w) => w.discriminationVerdict === "echo");
 
   return (
     <section className={s.section}>
@@ -242,6 +244,22 @@ function VerdictCard({ run }: { run: VerificationRun }) {
           </div>
           <div className={s.scoreBand}>± {verdict.band} credible band</div>
           <div className={`${s.scoreLabel} ${LABEL_CLASS[verdict.label]}`}>{verdict.label}</div>
+
+          <div className={s.derivation}>
+            <span className="eyebrow">its own arithmetic</span>
+            <div className={s.derivationRow}>
+              <span>stance balance</span>
+              <span>{verdict.balance >= 0 ? `+${verdict.balance.toFixed(2)}` : verdict.balance.toFixed(2)}</span>
+            </div>
+            <div className={s.derivationRow}>
+              <span>evidence weight, {consensus.effectiveWitnesses.toFixed(1)} / ({consensus.effectiveWitnesses.toFixed(1)} + 1)</span>
+              <span>{verdict.shrink.toFixed(2)}</span>
+            </div>
+            <div className={s.derivationRow}>
+              <span>50 + 50 × balance × weight</span>
+              <span className={s.derivationTotal}>{verdict.truthScore}</span>
+            </div>
+          </div>
         </div>
 
         <div className={s.collapse}>
@@ -252,14 +270,10 @@ function VerdictCard({ run }: { run: VerificationRun }) {
                 {consensus.nominalAgree}/{consensus.respondents}
               </span>
             </div>
-            <div className={s.track}>
-              <div
-                className={s.fillNominal}
-                style={{
-                  width: `${nominalPct}%`,
-                  ["--seg" as string]: `${100 / panelSize}%`,
-                }}
-              />
+            <div className={s.slots} aria-hidden="true">
+              {Array.from({ length: panelSize }, (_, i) => (
+                <div key={i} className={i < consensus.nominalAgree ? s.slotOn : s.slot} />
+              ))}
             </div>
           </div>
 
@@ -271,20 +285,48 @@ function VerdictCard({ run }: { run: VerificationRun }) {
               </span>
             </div>
             <div className={s.track}>
-              <div className={s.fillEffective} style={{ width: `${effectivePct}%` }} />
+              <div
+                className={s.fillEffective}
+                style={{ width: `${(consensus.effectiveWitnesses / panelSize) * 100}%` }}
+              />
             </div>
             {lost > 0.05 ? (
               <span className={s.lost}>
-                {lost.toFixed(1)} of {consensus.nominalAgree} apparent witnesses were echo —{" "}
-                {Math.round(consensus.meanAnchorOverlap * 100)}%{" "}
-                {consensus.overlapMeasured ? "measured" : "assumed"} evidence overlap between the
-                models that agree
-                {consensus.overlapMeasured
-                  ? ""
-                  : " (at least one named no source, so independence could not be observed)"}
+                {lost.toFixed(1)} of {consensus.nominalAgree} apparent witnesses did not survive:{" "}
+                {consensus.lostToEcho > 0.05 ? (
+                  <>
+                    {consensus.lostToEcho.toFixed(1)} to echo, a model that answered the claim and
+                    its negation the same way
+                    {consensus.lostToRedundancy > 0.05 ? "; " : ""}
+                  </>
+                ) : null}
+                {consensus.lostToRedundancy > 0.05 ? (
+                  <>
+                    {consensus.lostToRedundancy.toFixed(1)} to redundancy,{" "}
+                    {Math.round(consensus.meanAnchorOverlap * 100)}%{" "}
+                    {consensus.overlapMeasured ? "measured" : "assumed"} overlap in the evidence the
+                    agreeing models lean on
+                    {consensus.overlapMeasured
+                      ? ""
+                      : ", because at least one named no source and its independence could not be observed"}
+                  </>
+                ) : null}
               </span>
             ) : null}
           </div>
+
+          {echoed.length > 0 ? (
+            <div className={s.excluded}>
+              <span className={s.excludedLabel}>Vote thrown out</span>
+              <p className={s.excludedBody}>
+                {echoed.map((w) => labelFor(w.modelId)).join(" and ")}{" "}
+                {echoed.length === 1 ? "answered" : "answered"} the claim and its negation the same
+                way{echoed.length === 1 && echoed[0].stance ? ` — ${echoed[0].stance} to both` : ""}.
+                That is a model reading the shape of the sentence rather than the fact, so its vote
+                carries no information and is excluded from the count.
+              </p>
+            </div>
+          ) : null}
 
           <p className={s.headline}>{verdict.headline}</p>
         </div>

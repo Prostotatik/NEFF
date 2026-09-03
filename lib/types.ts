@@ -73,6 +73,17 @@ export interface Consensus {
    * named no sources, and the documented prior was used instead.
    */
   overlapMeasured: boolean;
+  /**
+   * Witnesses lost because a model gave the same answer to the claim and to its
+   * negation. These are votes that carried no information at all.
+   */
+  lostToEcho: number;
+  /**
+   * Witnesses lost because models that agree are leaning on the same evidence.
+   * These votes were informative individually but are not independent of
+   * each other.
+   */
+  lostToRedundancy: number;
   /** True when the panel is split rather than agreeing. */
   contested: boolean;
   /** Models on the minority side, when contested. */
@@ -82,6 +93,13 @@ export interface Consensus {
 export interface Verdict {
   /** 0–100, as the brief requires. */
   truthScore: number;
+  /**
+   * Weighted balance of stances across the panel, -1 (refuted) to +1
+   * (supported). Kept on the verdict so the report can show its own arithmetic.
+   */
+  balance: number;
+  /** EWC / (EWC + 1): how much of the way to certainty the evidence can move. */
+  shrink: number;
   /** Half-width of the credible band, in truth-score points. */
   band: number;
   label: VerdictLabel;

@@ -33,8 +33,18 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         <p className="eyebrow">
           Report {run.id} · {new Date(run.createdAt).toISOString().replace("T", " ").slice(0, 16)} UTC
         </p>
-        <h1 className={s.thesis}>{run.verdict.label}</h1>
-        <p className={s.subthesis}>{run.verdict.headline}</p>
+        <h1 className={s.thesis}>
+          {run.verdict.label}
+          <em>
+            {" "}
+            on {run.consensus.effectiveWitnesses.toFixed(1)} witness
+            {run.consensus.effectiveWitnesses === 1 ? "" : "es"}
+          </em>
+        </h1>
+        <p className={s.subthesis}>
+          A panel of {run.consensus.respondents} models on the Gonka Network, probed{" "}
+          {run.totals.calls} times. Every inference below is traceable to the node that served it.
+        </p>
       </header>
       <Report run={run} />
       <Footer />

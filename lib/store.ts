@@ -16,6 +16,13 @@ import type { VerificationRun } from "./types";
 const RUN_DIR = path.join(process.cwd(), ".runs");
 const MAX_RUNS = 200;
 
+/**
+ * Bump whenever the shape of a stored run changes. A report written by an older
+ * build is served as "not found" rather than rendered from fields that no longer
+ * exist — a 404 on a stale link is honest; a half-rendered verdict is not.
+ */
+const SCHEMA = 2;
+
 const ID_PATTERN = /^[a-z2-9]{6,16}$/;
 
 export function isValidRunId(id: string): boolean {
@@ -24,7 +31,11 @@ export function isValidRunId(id: string): boolean {
 
 export async function saveRun(run: VerificationRun): Promise<void> {
   await mkdir(RUN_DIR, { recursive: true });
-  await writeFile(path.join(RUN_DIR, `${run.id}.json`), JSON.stringify(run), "utf8");
+  await writeFile(
+    path.join(RUN_DIR, `${run.id}.json`),
+    JSON.stringify({ schema: SCHEMA, run }),
+    "utf8",
+  );
   await prune();
 }
 
@@ -32,7 +43,9 @@ export async function loadRun(id: string): Promise<VerificationRun | null> {
   if (!isValidRunId(id)) return null;
   try {
     const raw = await readFile(path.join(RUN_DIR, `${id}.json`), "utf8");
-    return JSON.parse(raw) as VerificationRun;
+    const stored = JSON.parse(raw) as { schema?: number; run?: VerificationRun };
+    if (stored.schema !== SCHEMA || !stored.run) return null;
+    return stored.run;
   } catch {
     return null;
   }

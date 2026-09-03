@@ -413,6 +413,7 @@
   padding: clamp(1.5rem, 3vw, 2.25rem);
   border-right: 1px solid var(--rule);
   display: grid;
+  grid-template-rows: auto auto auto 1fr;
   align-content: start;
   gap: 0.35rem;
 }
@@ -478,6 +479,30 @@
   color: var(--sodium);
 }
 
+/* the score showing its working — a truth score nobody can audit is a number,
+   not a fact check */
+.derivation {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  display: grid;
+  gap: 0.35rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--paper-faint);
+}
+
+.derivationRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.35rem;
+}
+
+.derivationTotal {
+  color: var(--sodium);
+}
+
 /* the collapse: nominal consensus vs what it is actually worth */
 
 .collapse {
@@ -524,28 +549,36 @@
 }
 
 .track {
-  height: 0.625rem;
+  height: 0.75rem;
   background: var(--ink-800);
   position: relative;
   overflow: hidden;
 }
 
-.fillNominal {
-  height: 100%;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--steel) 0,
-    var(--steel) calc(var(--seg) - 2px),
-    transparent calc(var(--seg) - 2px),
-    transparent var(--seg)
-  );
-  animation: grow 520ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+/* the nominal reading: one discrete slot per model on the panel */
+.slots {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+  height: 0.75rem;
+}
+
+.slot {
+  background: var(--ink-800);
+}
+
+.slotOn {
+  background: var(--steel);
+  animation: grow 420ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  transform-origin: left center;
 }
 
 .fillEffective {
   height: 100%;
   background: var(--sodium);
-  animation: grow 900ms 260ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  animation: grow 900ms 320ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  transform-origin: left center;
 }
 
 @keyframes grow {
@@ -557,15 +590,34 @@
   }
 }
 
-.fillNominal,
-.fillEffective {
-  transform-origin: left center;
-}
-
 .lost {
   font-family: var(--mono);
   font-size: 0.75rem;
+  line-height: 1.55;
   color: var(--sodium);
+}
+
+/* the moment the whole product exists for: a vote that had to be thrown out */
+.excluded {
+  border: 1px solid var(--sodium-deep);
+  background: rgba(237, 161, 60, 0.07);
+  padding: 0.85rem 1rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.excludedLabel {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sodium);
+}
+
+.excludedBody {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--paper);
 }
 
 .headline {
