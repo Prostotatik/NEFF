@@ -24,3 +24,6 @@ build/
 npm-debug.log*
 .claude/ralph-loop.local.md
 .claude/settings.local.json
+
+# stored verification runs (regenerated at runtime)
+.runs/

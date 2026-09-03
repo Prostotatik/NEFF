@@ -1,0 +1,139 @@
+/*
+  Quorum's design system.
+
+  The point of view is a forensic instrument, not a SaaS product: this is a tool
+  that reports measurements about a panel of witnesses, so the surface reads like
+  a lab bench and a ledger rather than a marketing page. Warm ink ground, bone
+  paper text, hairline rules instead of boxes, and exactly two signal colours
+  that carry the whole argument:
+
+    steel  — the nominal consensus. The number every other fact checker prints.
+    sodium — the effective witness count. The number that is actually true.
+
+  Those two colours are never used decoratively. Wherever the interface is steel
+  it is showing you the naive reading; wherever it is sodium it is showing you
+  what the evidence supports once the echo is priced out.
+*/
+
+:root {
+  --ink-950: #0a0a0b;
+  --ink-900: #0e0e10;
+  --ink-850: #131316;
+  --ink-800: #191a1e;
+  --ink-700: #22232a;
+
+  --paper: #ece8e1;
+  --paper-dim: #a8a49d;
+  --paper-faint: #6e6b66;
+
+  --steel: #7fa8c9;
+  --steel-dim: #3f5a72;
+  --sodium: #eda13c;
+  --sodium-deep: #b4761f;
+
+  --verify: #6bbd88;
+  --refute: #d95f45;
+  --neutral: #9b96b8;
+
+  --rule: rgba(236, 232, 225, 0.1);
+  --rule-strong: rgba(236, 232, 225, 0.2);
+
+  --display: var(--font-display), "Iowan Old Style", Georgia, serif;
+  --ui: var(--font-ui), "Helvetica Neue", Arial, sans-serif;
+  --mono: var(--font-mono), "SFMono-Regular", Consolas, monospace;
+
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --measure: 68ch;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background:
+    radial-gradient(120rem 60rem at 50% -20rem, #16171c 0%, transparent 60%),
+    var(--ink-950);
+  color: var(--paper);
+  font-family: var(--ui);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--sodium);
+  color: var(--ink-950);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* --- shared primitives --------------------------------------------------- */
+
+.shell {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+}
+
+.rule {
+  height: 1px;
+  background: var(--rule);
+  border: 0;
+  margin: 0;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-variant-ligatures: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
