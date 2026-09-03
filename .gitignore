@@ -1,4 +1,26 @@
+# --- secrets (never commit) ---
+.env
+.env.local
+.env.*.local
+
+# --- source material handed to us, not part of the submission ---
 goal.md
 GONKA_TRACK.md
 gonka-ai.md
 Hackathon_Challenge_AI-for-Society.md
+PROMT.md
+
+# --- build / deps ---
+node_modules/
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+.vercel
+
+# --- misc ---
+.DS_Store
+npm-debug.log*
+.claude/ralph-loop.local.md
+.claude/settings.local.json

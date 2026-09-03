@@ -1,0 +1,150 @@
+{
+  "project": "Quorum — independence-weighted fact verification on Gonka",
+  "rule": "passes flips to true ONLY after qa-tester exercises the capability end-to-end against the running app. Never on code review alone.",
+  "features": [
+    {
+      "id": "F1",
+      "criterion": "C4",
+      "action": "User pastes a plain-text claim into the input on the home screen and presses Verify.",
+      "expected": "The app accepts it, shows a live verification run, and reaches a final verdict without error.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F2",
+      "criterion": "C4",
+      "action": "User pastes a public article URL instead of text and presses Verify.",
+      "expected": "The server fetches the page, extracts the central checkable claim, displays the extracted claim back to the user for confirmation, and verifies that claim.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F3",
+      "criterion": "C1",
+      "action": "Any verification is run.",
+      "expected": "100% of inference calls go to api.gonkarouter.io. No other model provider is called anywhere in the codebase. Verifiable by grep and by the receipt ledger.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F4",
+      "criterion": "C2",
+      "action": "User runs a verification and opens the panel view.",
+      "expected": "All three Gonka models (DeepSeek-V4-Flash, MiniMax-M2.7, Kimi-K2.6) return a direct verdict, each shown separately with its own stance and confidence.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F5",
+      "criterion": "C3",
+      "action": "User runs a verification on a claim all models agree on.",
+      "expected": "The app reports nominal consensus (e.g. 3/3) AND a separately computed Effective Witness Count below the nominal count, with the discount explained in plain language.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F6",
+      "criterion": "C3",
+      "action": "User inspects a model that failed the mirror probe.",
+      "expected": "The UI shows that the model affirmed both the claim and its negation, quotes both answers side by side, and shows that model's vote weight discounted toward zero as a result.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F7",
+      "criterion": "C3",
+      "action": "User inspects the evidence-anchor breakdown.",
+      "expected": "The app lists the concrete sources each model leaned on, marks anchors shared across models, and shows the shared-source penalty applied to the Effective Witness Count.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F8",
+      "criterion": "C3",
+      "action": "User runs a verification where the models disagree with each other.",
+      "expected": "The app does not average the disagreement away: it names the split, identifies the specific point of contention, and lowers confidence rather than reporting a misleading mid-range score.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F9",
+      "criterion": "C5",
+      "action": "User reads the final report.",
+      "expected": "A Truth Score from 0 to 100 is displayed with an explicit verdict label and an uncertainty band derived from the Effective Witness Count.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F10",
+      "criterion": "C5",
+      "action": "User opens the reasoning trace.",
+      "expected": "Every inference step is listed in order — probe type, model, prompt intent, and the model's own reasoning — readable end to end without opening devtools.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F11",
+      "criterion": "C5+C3",
+      "action": "User looks for what would change the verdict.",
+      "expected": "The report names the single load-bearing fact the verdict depends on and states explicitly what evidence would flip it.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F12",
+      "criterion": "C6",
+      "action": "User opens the Receipt Ledger.",
+      "expected": "Every Gonka inference in the run is listed with its Gonka Request ID, serving devshard node ID, model, latency and token usage. IDs are copyable.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F13",
+      "criterion": "C6",
+      "action": "User clicks a single receipt row.",
+      "expected": "The exact request sent and the raw response received for that Gonka Request ID are shown, so the verdict is auditable step by step.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F14",
+      "criterion": "C6",
+      "action": "User watches a verification while it runs.",
+      "expected": "Probe results and receipts stream in live as each Gonka node responds, rather than appearing all at once at the end.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F15",
+      "criterion": "C1+C3",
+      "action": "One Gonka model is unreachable or times out during a run.",
+      "expected": "The run completes on the remaining models, the failure is shown honestly in the ledger, and the Effective Witness Count drops to reflect the lost verifier.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F16",
+      "criterion": "C12",
+      "action": "A judge lands on the app for the first time with no explanation.",
+      "expected": "The screen states what the tool does and why it is different within one sentence, offers a one-click example claim, and does not require reading docs to produce a result.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F17",
+      "criterion": "C9",
+      "action": "A stranger clones the repo and runs ./init.sh.",
+      "expected": "Dependencies install, Gonka connectivity is confirmed against the live gateway, the dev server starts, and the app is usable — with a clear error if GONKA_API_KEY is missing.",
+      "passes": false,
+      "evidence": null
+    },
+    {
+      "id": "F18",
+      "criterion": "C10",
+      "action": "A judge shares a completed verification.",
+      "expected": "The report is addressable by a permanent URL that renders the same verdict, ledger and probe evidence.",
+      "passes": false,
+      "evidence": null
+    }
+  ]
+}
