@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --experimental-strip-types \"test/**/*.test.ts\""
+    "test": "node --test --experimental-strip-types \"test/*.test.ts\"",
+    "test:live": "node --conditions=react-server --env-file-if-exists=.env --test --experimental-strip-types \"test/live/*.test.ts\""
   },
   "dependencies": {
     "next": "^16.3.4",

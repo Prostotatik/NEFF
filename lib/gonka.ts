@@ -87,13 +87,15 @@ export interface GonkaCallResult {
 }
 
 export class GonkaError extends Error {
-  constructor(
-    message: string,
-    readonly receipt: GonkaReceipt,
-    readonly retryable = false,
-  ) {
+  readonly receipt: GonkaReceipt;
+  /** True when the gateway was busy rather than the request being wrong. */
+  readonly retryable: boolean;
+
+  constructor(message: string, receipt: GonkaReceipt, retryable = false) {
     super(message);
     this.name = "GonkaError";
+    this.receipt = receipt;
+    this.retryable = retryable;
   }
 }
 
