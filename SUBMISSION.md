@@ -46,14 +46,19 @@ git push -u origin main
 
 > *"A 2-minute video showing a 'Live Fact-Check' in action."*
 
+**Already recorded: `evidence/pitch/pitch.mp4`** — 1 minute 45, two live fact-checks against the
+Gonka Router, ending on a unanimous panel that Quorum scores at zero effective witnesses.
+
+To record a fresh take:
+
 ```bash
 ./init.sh                 # terminal 1
-npm run record:pitch      # terminal 2 — writes evidence/pitch/pitch.mp4
+npm run record:pitch      # terminal 2 — rewrites evidence/pitch/pitch.mp4
 ```
 
-This records the real app: it drives Chrome, runs live verifications against the Gonka Router, and
-holds each shot for exactly as long as its narration line takes to speak. Nothing in it is staged or
-animated.
+It drives Chrome, runs live verifications against the router, and holds each shot for exactly as long
+as its narration line takes to speak. Nothing in it is staged or animated, and it checks its own take
+against what the page ended up showing.
 
 The narration is synthesised by the system voice, which is serviceable and obviously not a person. If
 you would rather have a human read it — and you should, it is worth the ten minutes — the same run

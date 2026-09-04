@@ -19,7 +19,7 @@
  */
 
 import { spawn, spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync, readdirSync, rmSync } from "node:fs";
+import { copyFileSync, mkdirSync, writeFileSync, readdirSync, rmSync } from "node:fs";
 import { setTimeout as sleep } from "node:timers/promises";
 import path from "node:path";
 import { SEGMENTS } from "./pitch-script.mjs";
@@ -260,17 +260,28 @@ await send("Page.startScreencast", { format: "png", everyNthFrame: 1 });
 capturing = true;
 
 const timeline = [];
+const mismatches = [];
+let firstFrame = 0;
 const started = Date.now();
 for (const segment of plan) {
   const at = Date.now();
   await act(segment);
+
+  // A pre-recorded line must not talk over a screen showing something else.
+  if (segment.expect) {
+    const present = await evaluate(
+      `document.body.innerText.includes(${JSON.stringify(segment.expect)})`,
+    );
+    if (!present) mismatches.push({ id: segment.id, expected: segment.expect });
+  }
   // A wait segment takes as long as the router takes; its line is written to
   // cover that, and any remaining silence is padded in at the mux.
   const elapsed = (Date.now() - at) / 1000;
   const remaining = segment.seconds - elapsed;
   if (remaining > 0) await sleep(remaining * 1000);
   const actual = (Date.now() - at) / 1000;
-  timeline.push({ ...segment, actual });
+  timeline.push({ ...segment, actual, firstFrame, lastFrame: frameIndex });
+  firstFrame = frameIndex;
   console.log(`  ${segment.id.padEnd(12)} planned ${segment.seconds.toFixed(1)}s, actual ${actual.toFixed(1)}s`);
 }
 
@@ -285,29 +296,66 @@ console.log(`captured ${frames} frames over ${wall.toFixed(1)}s`);
 if (frames === 0) throw new Error("no frames captured");
 
 // --- 3. assemble -----------------------------------------------------------
-// Frames arrive only when the page repaints, so they are not evenly spaced.
-// Rather than guess, the whole sequence is laid down at a constant rate and the
-// audio is padded to the same length: a segment whose shot ran long simply
-// holds, which is what a viewer expects anyway.
+//
+// Each segment gets exactly as many frames as its narration is long, so the
+// picture and the words end together and the finished cut is the length of the
+// script rather than the length of whatever the router did today.
+//
+// A segment that ran long is sampled evenly across its own frames rather than
+// truncated: you still watch the probe grid fill, just faster. In practice only
+// the two waiting stretches are ever compressed, and the counter on screen
+// ("N of 11 inferences returned") tells the viewer exactly what is happening.
+// A segment that ran short holds on its last frame. Every other second is real
+// time. VIDEO_PITCH.md says so too.
 
 const silentPath = path.join(outDir, "silent.mp4");
 const audioListPath = path.join(outDir, "audio.txt");
 const narrationPath = path.join(outDir, "narration.wav");
 const finalPath = path.join(outDir, "pitch.mp4");
-
-const rate = frames / wall;
-console.log(`assembling at ${rate.toFixed(2)} fps to match the ${wall.toFixed(1)}s capture…`);
+const cutDir = path.join(outDir, "cut");
 
 function run(cmd, args) {
   const r = spawnSync(cmd, args, { encoding: "utf8" });
   if (r.status !== 0) throw new Error(`${cmd} failed: ${r.stderr?.slice(-800)}`);
 }
 
+rmSync(cutDir, { recursive: true, force: true });
+mkdirSync(cutDir, { recursive: true });
+
+const framePath = (i) => path.join(framesDir, `f${String(i).padStart(5, "0")}.png`);
+let out = 0;
+let compressed = 0;
+
+for (const segment of timeline) {
+  const available = Math.max(0, segment.lastFrame - segment.firstFrame);
+  const wanted = Math.max(1, Math.round(segment.seconds * FPS));
+  if (available === 0) {
+    // A screencast only emits a frame when the page repaints, so a line spoken
+    // over a still screen produces none at all. Hold the last frame for the
+    // whole line rather than flashing past it in a tenth of a second.
+    const held = framePath(Math.max(0, segment.firstFrame - 1));
+    for (let i = 0; i < wanted; i++) {
+      copyFileSync(held, path.join(cutDir, `f${String(out++).padStart(5, "0")}.png`));
+    }
+    continue;
+  }
+  if (available > wanted * 1.25) compressed += segment.actual - segment.seconds;
+  for (let i = 0; i < wanted; i++) {
+    const source = segment.firstFrame + Math.min(available - 1, Math.floor((i * available) / wanted));
+    copyFileSync(framePath(source), path.join(cutDir, `f${String(out++).padStart(5, "0")}.png`));
+  }
+}
+
+console.log(
+  `cut to ${out} frames at ${FPS}fps (${(out / FPS).toFixed(1)}s)` +
+    (compressed > 1 ? `; ${compressed.toFixed(0)}s of waiting for the router is timelapsed` : ""),
+);
+
 run("ffmpeg", [
   "-y", "-v", "error",
-  "-framerate", rate.toFixed(4),
-  "-i", path.join(framesDir, "f%05d.png"),
-  "-vf", `scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,pad=${WIDTH}:${HEIGHT}:(ow-iw)/2:(oh-ih)/2,fps=${FPS}`,
+  "-framerate", String(FPS),
+  "-i", path.join(cutDir, "f%05d.png"),
+  "-vf", `scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,pad=${WIDTH}:${HEIGHT}:(ow-iw)/2:(oh-ih)/2`,
   "-c:v", "libx264", "-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "20",
   silentPath,
 ]);
@@ -320,8 +368,7 @@ writeFileSync(
 run("ffmpeg", ["-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", audioListPath, "-ar", "44100", "-ac", "1", narrationPath]);
 
 // The narration is padded with silence rather than trimmed against the picture:
-// a shot that ran long — because the router was slow — should hold quietly, not
-// cut the end off the video.
+// a shot that ran long should hold quietly, not cut the end off the video.
 run("ffmpeg", [
   "-y", "-v", "error",
   "-i", silentPath,
@@ -333,5 +380,23 @@ run("ffmpeg", [
   finalPath,
 ]);
 
-console.log(`\ndone: ${finalPath}  (${durationOf(finalPath).toFixed(1)}s)`);
+const finalSeconds = durationOf(finalPath);
+console.log(`\ndone: ${finalPath}  (${finalSeconds.toFixed(1)}s)`);
 console.log(`silent cut for a human voiceover: ${silentPath}`);
+
+if (mismatches.length > 0) {
+  console.warn(
+    `\nTHIS TAKE IS NOT USABLE AS NARRATED.\n` +
+      mismatches
+        .map(
+          (m) =>
+            `  segment "${m.id}" is narrated as if the page said "${m.expected}", and this run did not produce that.`,
+        )
+        .join("\n") +
+      `\nThe models are not deterministic. Re-run for a take that matches, or use ${silentPath}\n` +
+      `and read VIDEO_PITCH.md over it, saying the numbers that are actually on screen.`,
+  );
+}
+if (finalSeconds > 150) {
+  console.warn(`\nThat is over the brief two-minute target. Trim a line in tools/pitch-script.mjs.`);
+}
