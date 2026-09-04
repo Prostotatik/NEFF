@@ -94,3 +94,20 @@ declined: while it was open, anyone with the link could spend the Gonka key's cr
 inferences at a time. Three processes were found and stopped, and the three reviewing agents now
 carry an explicit instruction never to publish, tunnel, deploy or push. Recorded here rather than
 quietly fixed, because the key was briefly reachable from the internet and the team should know.
+
+## D15 — The brief publishes no judging criteria, and this file now says so (2026-09-04)
+`PROMT.md` Phase 0 instructs: "Quote its judging criteria verbatim into `JUDGING_CRITERIA.md`". The
+challenge document has no such section. Its five headings are Challenge Overview, Technical
+Requirements, Developer Tips & Best Practices, Prizes & Incentives, and Submission Criteria; there is
+no rubric, no weighting, no scoring breakdown.
+
+What was done instead: quote verbatim the four things that function as criteria — the mandatory Gonka
+requirement, the four core functions, the three developer tips (one of which calls Consensus Logic
+"a major plus"), and the three submission deliverables — and derive a C1–C12 checklist with weights
+from how the document phrases its emphasis.
+
+That derivation is a reasonable reading and it drove real decisions, but it was presented under a
+heading claiming the whole file was verbatim, which overstated it. Corrected: the file now separates
+the organizers' words from our inference, and says plainly that any score against the checklist —
+including `JUDGE_FEEDBACK.md`'s 86/100 — is a score against our own reading rather than a published
+rubric.

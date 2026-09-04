@@ -1,13 +1,29 @@
-# Judging Criteria — verbatim from `Hackathon_Challenge_AI-for-Society.md`
+# What the brief actually asks for
 
-> Every self-review scores against the organizers' actual words below, never a paraphrase.
-> Quoted exactly; emphasis and bilingual text preserved from the source document.
+**The organizers did not publish judging criteria.** `Hackathon_Challenge_AI-for-Society.md` has five
+sections — Challenge Overview, Technical Requirements, Developer Tips & Best Practices, Prizes &
+Incentives, Submission Criteria — plus a closing note on originality. There is no rubric, no scoring
+breakdown and no weights anywhere in it.
+
+So this file is in two parts, and the difference matters:
+
+- **Everything in blockquotes below is verbatim** from that document — the mandatory requirement, the
+  four core functions, the three developer tips, the three submission deliverables, the originality
+  rule. Emphasis and bilingual text preserved. These are the organizers' words and they are checkable
+  against the source.
+- **The C1–C12 checklist at the bottom, and its weights, are ours.** They are an inference about what
+  the document is likely to reward, drawn from how it phrases things — "MUST", "encouraged",
+  "a major plus" — not a rubric anyone published. Any score computed against them (including the
+  numbers in `JUDGE_FEEDBACK.md`) is a score against our own reading, and a real judge may weigh these
+  things completely differently.
+
+The verbatim half is the part to trust.
 
 ## Mandatory technical requirement
 
 > **Mandatory: Gonka Router Integration (Required)**
 >
-> * All AI reasoning and verification logic **MUST** run on the Gonka Network via the official inference gateway (`gonkarouter.io`).
+> * All AI reasoning and verification logic **MUST** run on the Gonka Network via the official inference gateway ([`gonkarouter.io`](http://gonkarouter.io)). 所有 AI 推理与验证逻辑**必须**通过官方推理网关（`gonkarouter.io`）运行在 Gonka 网络上。
 > * **Multi-Model Consensus**: You are encouraged to use at least two different models to "cross-verify" claims and ensure neutrality.
 > * **Free Access**: During the hackathon, all participants will receive unlimited free token credits for development.
 
@@ -44,13 +60,17 @@ lever in the document. Our whole differentiator lives here.
 > used before. Our team hopes that the solutions/prototype/ideas that have
 > been developed or innovated are the ideas that really solve the problem.
 > Maybe you can be the successor of a previously failed idea to build what they
-> couldn't finish building, good luck!
+> couldn’t finish building, good luck!
 
 ## Framing (the "why", quoted)
 
-> In an era of deepfakes and AI-generated misinformation, centralized fact-checkers are often accused of bias. This challenge tasks you with using Gonka's decentralized network to provide a **neutral, verifiable, and transparent** source of truth.
+> In an era of deepfakes and AI-generated misinformation, centralized fact-checkers are often accused of bias. This challenge tasks you with using Gonka’s decentralized network to provide a **neutral, verifiable, and transparent** source of truth.
 
-## Derived weighted checklist
+## Our derived checklist — an inference, not the organizers' rubric
+
+The weights below are our guess at emphasis, taken from the document's own language: a hard "MUST"
+outranks an "encouraged", and "a major plus" is the strongest discretionary signal in the text. No
+part of this table is quoted from anyone.
 
 | # | Criterion (source) | Weight | Served by |
 |---|---|---|---|

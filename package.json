@@ -13,7 +13,8 @@
     "test:live": "node --conditions=react-server --env-file-if-exists=.env --test --experimental-strip-types \"test/live/*.test.ts\"",
     "share": "npx --yes localtunnel --port 3000",
     "record:pitch": "node tools/record-pitch.mjs evidence/pitch",
-    "browser:check": "node tools/browser-check.mjs evidence/browser 1440 1000"
+    "browser:check": "node tools/browser-check.mjs evidence/browser 1440 1000",
+    "verify:quotes": "python tools/verify-quotes.py"
   },
   "dependencies": {
     "next": "^16.3.4",
