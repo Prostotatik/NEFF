@@ -71,13 +71,37 @@ changed the product:
 4. **SSRF was check-then-fetch**, splittable by a DNS answer that differs between the two lookups.
    The guard now wraps the socket's own resolver.
 
-### Still open
+### Later in the same session
 
-- **Live Demo URL** (submission criterion 1) and the **video** (criterion 3) both need a human:
-  hosting credentials and a microphone. `docs/DEPLOY.md` and `VIDEO_PITCH.md` reduce each to about ten
-  minutes of work. See `DECISIONS.md` D8, D9. These are the two highest-value remaining items and no
-  amount of code closes them.
-- `FEATURES.json` is still all `false` — nothing has been signed off end to end yet.
+- **All 18 `FEATURES.json` entries are verified end to end** by `qa-tester`, with screenshot evidence
+  under `evidence/qa/`. It found two real bugs a green test suite had missed: URL fetching completely
+  broken by the SSRF hardening, and literal private IPs bypassing that guard entirely because Node
+  connects to an IP without consulting the socket's DNS lookup.
+- **The video exists.** `evidence/pitch/pitch.mp4`, 1:45, recorded by `tools/record-pitch.mjs` driving
+  the real app through two live verifications, narrated by the Windows speech synthesiser. Three
+  things had to be fixed to get a usable take, all recorded in that commit: per-segment assembly (the
+  first take ran 2:48 because one router wait added 63s of silence), holding static shots (a
+  screencast emits no frames when nothing repaints), and `awaitVerdict` matching the previous run's
+  report.
+- **The hero result got better on its own.** Re-running the Anglo-Zanzibar claim produced all three
+  models answering SUPPORTED to the claim *and* to its negation: 3/3 nominal, 0.0 effective witnesses,
+  NO SIGNAL. That report is the README image and the payoff shot in the video.
+- **Cross-lingual**: the panel answers in the language of the claim. That immediately exposed a silent
+  bug — anchor tokenisation stripped all CJK, so three models citing the same Apollo material scored
+  as *fully independent* under a "measured" label. Anchors are now requested in English (a shared
+  comparison vocabulary) and tokenisation is script-aware regardless.
+- **Pushed** to `origin` (`github.com/Prostotatik/GONKA_TRACK.md`).
+
+### Still open — both need a person, neither needs code
+
+- **The GitHub repository is private.** An anonymous fetch 404s, so a judge cannot read it. One
+  setting to change; see `SUBMISSION.md` and `DECISIONS.md` D13. Nothing in the tree is sensitive —
+  that was verified before pushing.
+- **There is no Live Demo URL** (submission criterion 1). `npm run share` produces one in thirty
+  seconds with no account, and Vercel is four commands, but opening a public tunnel backed by the
+  team's API key is not this build's call to make. See `DECISIONS.md` D9 and D12.
+
+Until those two are done the submission is incomplete, and no amount of further code changes that.
 
 ### Next session
 
