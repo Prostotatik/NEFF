@@ -288,8 +288,8 @@ function VerdictCard({ run }: { run: VerificationRun }) {
             <div className={s.scoreNumber}>
               {verdict.truthScore}
               <span className={s.scoreUnit}>/100</span>
-              <span className={s.scoreUnit}>± {verdict.band}</span>
             </div>
+            <div className={s.scoreBand}>± {verdict.band} credible band</div>
             <div className={`${s.scoreLabel} ${LABEL_CLASS[verdict.label]}`}>{verdict.label}</div>
           </div>
 

@@ -44,9 +44,12 @@ witnesses**, with the six answers that prove it. No vote can produce that senten
 [the recording](evidence/pitch/pitch.mp4). All eleven inferences per check run on the Gonka Network,
 each listed with its request ID and serving node.
 
-**Why it is not a reskin.** Everything else treats agreement as evidence. Quorum treats agreement as a
-claim that has to be verified. Full search in [`PRIOR_ART.md`](PRIOR_ART.md); honest limits
-[below](#what-this-does-not-do).
+**Why it is not a reskin.** Neither ingredient is new on its own — the estimator is standard, and
+auditing a model by checking its own consistency is
+[published work](https://arxiv.org/abs/2306.09983). What does not exist is the combination, shipped
+to a reader: a blind-negation gate on each vote, times a query-time measurement of how much evidence
+those votes share, printed as one witness count with the transcript that justifies it. Full search in
+[`PRIOR_ART.md`](PRIOR_ART.md); honest limits [below](#what-this-does-not-do).
 
 ---
 
@@ -164,9 +167,11 @@ A tool whose whole argument is "your confidence is overstated" has no business o
   call times out cannot be shown to discriminate, so it is not counted. That is deliberately the
   conservative direction — unmeasured is not the same as independent — and the report always says
   which it was.
-- **The effective-sample-size correction assumes the agreeing models are exchangeable.** They are
-  not exactly: they differ in size and training. The estimator is a floor on how much the count
-  should be discounted, not a precise measurement of it.
+- **The Effective Witness Count is a floor on the discount, not a per-decision measurement.** The
+  estimator assumes the agreeing models are exchangeable, and they are not exactly — they differ in
+  size and training. Read it as a reason to distrust a unanimous card and go and check the
+  load-bearing fact, which is why the transcript is on the same page, and not as a calibrated
+  probability.
 - **UNCERTAIN on both sides is scored as partial, not as an echo.** A model that is honestly unsure
   about a claim and its negation is being consistent, not pattern-matching, and is not punished as
   though it were.

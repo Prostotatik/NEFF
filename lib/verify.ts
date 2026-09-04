@@ -448,9 +448,11 @@ export async function* verify(
         messages,
         purpose: "adjudicate",
         maxTokens: Math.max(900, model.maxTokens),
-        timeoutMs: model.timeoutMs,
+        // Short leash and no retry: the closing note has two more nodes behind
+        // it, so waiting out one slow model costs more than moving on does.
+        timeoutMs: Math.min(model.timeoutMs, 30_000),
         chatTemplateKwargs: model.chatTemplateKwargs,
-        maxAttempts: 2,
+        maxAttempts: 1,
         signal,
       });
       const receiptIndex = pushReceipt(receipt);
