@@ -249,3 +249,197 @@ independent witnesses, and no one shows the probe transcript that justifies the 
    idea is being written about publicly right now; the window is real but not wide.
 
 GATE: PASS - no unanswered lookalike as of 2026-09-04
+
+---
+
+# Audit pass — 2026-09-04 (prior-art-scout, second pass, pre-completion)
+
+Second adversarial re-run, against the mechanism **as now shipped**, not as it was at concept lock.
+The concept has changed since the first pass (three probes per model rather than two conceptually;
+zeroed votes with both answers shown; Kish `n_eff` over measured evidence overlap; a labelled
+documented prior where overlap is unmeasurable; an on-screen "Effective Witness Count" beside the
+nominal vote). The previous section's conclusion was treated as unproven and re-derived from scratch.
+
+**Mechanism searched (branding stripped):** *probe each model on a panel three ways — the claim, the
+claim's negation presented blind as a fresh request, and a demand to name the evidence base it is
+leaning on; set to zero the vote of any model that answers the claim and its negation the same way and
+show both answers; measure how far the models' named evidence bases overlap; collapse the surviving
+votes into Kish's effective sample size; print that number to the end user as the count of independent
+witnesses behind the verdict, and shrink the truth score by it.*
+
+**Coverage this pass:** 12 distinct web queries and 7 direct page fetches. Surfaces: Devpost (via
+domain-restricted search after the on-site search endpoint returned no fetchable content), ETHGlobal,
+lablab.ai, MLH, DoraHacks and HackerEarth galleries; Product Hunt and the general commercial web;
+GitHub; arXiv and lab research blogs (Apple ML Research, Amazon Science). Queries deliberately split
+between the *technique* (Kish effective sample size on an LLM panel, design effect, negation/inverted
+claim probes, cross-model evidence-source overlap, judge-correlation adjustment) and the *user-visible
+outcome* (a fact checker that discards a model's vote, telling a user model agreement is meaningless,
+showing how many independent sources an answer really has, an effective-witness number).
+
+## New candidates found this pass
+
+### Name collisions — shipped or near-shipped products already called "Quorum" in this exact space
+
+This is new since the first pass and is recorded here because a judge searching the product name lands
+on these before it lands on us. None is a mechanism lookalike; all are a submission risk.
+
+- **PromptQuorum** — <https://www.promptquorum.com/features>,
+  <https://www.promptquorum.com/blog/what-is-ai-consensus-scoring> — beta product (waitlist +
+  downloadable beta). One prompt fanned out to 25+ models, then a five-step "**Quorum Verdict**":
+  parallel dispatch → claim extraction → agreement mapping → confidence weighting → divergence
+  flagging, with 13 consensus analysis types including hallucination and contradiction scoring.
+  → **DISTINCT.** Fetched and confirmed: confidence weights come from *capability benchmarks*, not
+  from measured dependence. No negation probe, no evidence-anchor probe, no cross-model source-overlap
+  term, no effective-sample-size correction, no count of independent models. Its headline is 5/5 models
+  agreeing — the nominal number Quorum exists to discount. It is the naive build at 25× the panel size,
+  wearing our name.
+- **Quorum (aiquorum.app)** — <https://www.aiquorum.app/> — "every decision deserves a committee";
+  Democratic / Deliberative / Evidence-Based modes over several models, verdict plus agreement and
+  disagreement. → **DISTINCT.** Fetched: no correlation or independence metric, no negation probe, no
+  effective-model count; confidence is a qualitative "High / Medium-High" label.
+- **AskQuorum AI** — <https://askquorumai.com/> — "from consensus, everything". → **DISTINCT**, same
+  primitive as above.
+- **AISCouncil** — <https://www.aiscouncil.com/> — seven modes including "Consensus Vote (democratic
+  scoring)" and "Mixture of Agents". → **DISTINCT.** Vote tallying; independence never measured.
+
+### GitHub — the closest open-source neighbour found in either pass
+
+- **qinnovates/quorum** — <https://github.com/qinnovates/quorum> — CLI that spawns 5–15+ specialised
+  agents to debate a question with mandatory adversarial critics, and reports a verdict carrying a
+  **convergence score**, an **"INDEPENDENCE SCORE: 0.81 (HIGH)"**, bias flags, a **cross-model
+  agreement %**, an **evidence scorecard with source deduplication**, and a disagreement register.
+  → **DISTINCT — but this is the nearest lookalike found anywhere, it shares our name, and the
+  difference has to be stated precisely rather than waved at.** Fetched the repo page and the raw
+  README. Four separable differences:
+  1. **Different object measured.** Its independence score grades how far agents *diverged during a
+     debate* — groupthink detection over a shared transcript. Quorum's agents never see each other;
+     the number is a statistical dependence estimate between blind, isolated verifiers.
+  2. **Diversity is manufactured, not measured.** It *assigns* each agent a cognitive-diversity
+     profile (risk tolerance, skepticism, abstraction) to create tension. Quorum assigns nothing and
+     measures what the panel actually did on this claim.
+  3. **No estimator, no probe, no witness count.** The README publishes no formula; there is no Kish
+     / design-effect correction, no blind-negation probe, no vote set to zero, and the output is a
+     0–1 quality grade, not a count of independent witnesses that shrinks a truth score.
+  4. **Not a fact checker.** It is a deliberation tool for hard questions; fact-checking is one
+     validation layer inside it. It produces a better answer; Quorum produces an answer plus a
+     defensible number for how much of the panel's agreement was real.
+  Its own docs concede the point Quorum is built on: "the validation gate is not truly independent…
+  that's prompt-level independence, not structural independence." Unmeasured, and admitted.
+- **karpathy/llm-council** — <https://github.com/karpathy/llm-council> — models answer, then rank each
+  other's answers, then a chairman synthesises. → **DISTINCT.** Peer ranking; no dependence term.
+- **focuslead/ai-council-framework** — <https://github.com/focuslead/ai-council-framework> —
+  structured debate, consensus synthesis, "bias reduction". → **DISTINCT.** Bias reduction by protocol,
+  not by measurement; no independence number.
+
+### Shipped tools that do measure source overlap — but on a different axis
+
+New candidate class this pass, and the honest one to record, because "measure whether the sources
+overlap" *is* shipped software today.
+
+- **Profound** (<https://www.tryprofound.com/blog/citation-overlap-strategy>), **Similarweb AI
+  Citation Analysis** (<https://aisearch.similarweb.com/ai-brand-visibility/citation-analysis/>),
+  **Otterly.ai**, and the Writesonic (161,286 prompts) and Wellows overlap studies — all measure
+  **citation overlap between AI answer engines** (ChatGPT vs Perplexity vs Gemini vs AI Overviews),
+  reporting figures like 11–17% shared domains and 79.6% single-engine sources.
+  → **DISTINCT, and the difference is the purpose, not the arithmetic.** These are GEO/AEO marketing
+  tools: they measure overlap so a brand can buy visibility across engines. They compare *which web
+  pages each engine cited*, aggregated over many prompts, and no output of theirs discounts a verdict,
+  gates a vote, or tells a reader how much a given answer should be believed. Quorum measures overlap
+  between *verifiers on one claim, at query time*, and spends it as confidence. Worth knowing that the
+  number exists commercially; nobody is using it for epistemics.
+
+### Research neighbours new since the first pass
+
+- **Blind to the Pivotal Vote: Aggregate Independence Metrics Miss Where Verification Actually Helps**
+  — <https://arxiv.org/abs/2608.06940> — **the most consequential find of this pass, and it is not a
+  lookalike but a loaded gun pointed at our headline number.** Fetched abstract: aggregate dependence
+  metrics are "fundamentally disconnected from practical utility"; adding a genuinely external
+  verifier moved the panel's aggregate effective-vote count by −0.04 (95% CI [−0.10, +0.02]) while
+  producing +10.4 to +23.3 points on *pivotal, one-vote-margin* decisions and exactly zero elsewhere.
+  "Aggregate dependence and conditional decision utility are different questions."
+  → **DISTINCT** (paper, no code, no product, no demo). But see standing risk 3 below: a judge who
+  has read it can ask why an aggregate `n_eff` is the right thing to put on the card.
+- **Partially Correlated Verifier Cascades in LLM Harnesses** —
+  <https://arxiv.org/html/2607.13918v1> — correlation as a "double penalty" across verifier gates,
+  with blind-spot ceilings. → **DISTINCT.** Theory of cascades; no artifact.
+- **CARE** (confounder-aware aggregation modelling inter-judge correlations, cited in 2605.29800's
+  related work; reduces aggregation error up to 25%), **RoPoLL: Robust Panel of LLM Judges**
+  (<https://arxiv.org/pdf/2606.30931>), **A Finite-Calibration Regime Map for LLM Judge Panels**
+  (<https://arxiv.org/pdf/2606.01034>), **When the Judge Changes, So Does the Measurement**
+  (<https://arxiv.org/html/2607.08535v1>), **The Ringelmann Effect in Multi-Agent LLM Systems: A
+  Scaling Law for Effective Team Size** (<https://arxiv.org/pdf/2606.02646>).
+  → **DISTINCT.** All correct the *aggregate* to get a better score for eval engineers. None reports a
+  per-claim witness count to an end user; none ships.
+- **Learning to Trust the Crowd: A Multi-Model Consensus Reasoning Engine** —
+  <https://arxiv.org/pdf/2601.07245> — states the premise almost in our words ("models that have
+  similar training data and inductive biases may agree on the same falsehoods") and learns over the
+  graph of who disagrees with whom. → **DISTINCT.** A learned aggregator that exploits disagreement
+  structure to produce a *better answer*; fetched and found no negation probe, no evidence-anchor
+  probe, no user-facing effective-model count, and no released tool.
+- **Evaluating Superhuman Models with Consistency Checks** —
+  <https://arxiv.org/pdf/2306.09983> — negation prompting and paraphrase prompting as consistency
+  checks. **The Impact of Negated Text on Hallucination with LLMs** —
+  <https://arxiv.org/pdf/2510.20375> — post-negation transformation, NegHalu dataset.
+  → **DISTINCT as products, but they matter: the mirror probe is not a novel technique either.**
+  See standing risk 2. Both are offline evaluation methods over datasets; neither gates a live vote
+  nor combines with a cross-model term.
+- **Contradiction to Consensus** (<https://arxiv.org/pdf/2602.18693>) — dual-perspective retrieval,
+  supporting and refuting evidence, source-level disagreement. → **DISTINCT.** It negates the
+  *retrieval*, not the model's own read of the claim, and reports source disagreement, not verifier
+  dependence.
+- **Debating to verify** (<https://www.sciencedirect.com/science/article/pii/S2405959526000883>),
+  **Fusion-Augmented LLMs** (2510.16057), **Council of AIs on the USMLE** (medRxiv) → **DISTINCT.**
+  All treat cross-model agreement as a validation signal; none audits it.
+
+## Re-verification of the first pass's load-bearing claims
+
+- **Nine Judges, Two Effective Votes (2605.29800) still ships no code.** Fetched the Apple Machine
+  Learning Research page for it — abstract, authors, arXiv link and BibTeX only, with no repository,
+  demo or tool. The gap between the published estimator and a runnable artifact is still open.
+- **Council AI and AllChat re-checked, and their own copy has got *more* useful to us, not less.**
+  Council AI: models answer "independently and in parallel, without seeing each other's responses,
+  which is what keeps their errors uncorrelated." AllChat: "uses different model families so the
+  failure modes are independent." Both assert independence as a property of the *setup*. Neither
+  measures it. → **DISTINCT**, unchanged, and quotable.
+- **Cleanlab TLM, Is it Fake?, Arc-Hives, Trust Me Bro, AutoVerifier, Flare Fact Checker, NFT Deep
+  Appraisal** — re-searched, no change found in scope or mechanism. Verdicts from the first pass stand.
+- **No shipped product or hackathon entry surfaced, on any of the surfaces above, that reports a
+  count of effective independent verifiers to an end user.** The phrase "effective witness count" and
+  its synonyms return only the correlated-judges literature and unrelated legal-witness pages.
+
+## Standing risks to answer before completion (revised)
+
+1. **Naming.** Four separate things in this exact market are called Quorum, including a beta product
+   whose headline feature is literally a "Quorum Verdict" over 25+ models. This is not an originality
+   problem — none of them measures independence — but the demo and the README must land the inversion
+   before a judge pattern-matches us onto them. Carrying risk knowingly; not a gate failure.
+2. **Two of the three ingredients are published, and the repo must not claim otherwise.** The Kish
+   estimator on an LLM panel is 2605.29800 (already conceded in the README). The negation/consistency
+   probe is also published (2306.09983, 2510.20375) — the README currently concedes the estimator but
+   not the probe. The defensible claim is the *combination shipped live to a user*: a blind-negation
+   gate on each vote, times a query-time cross-model evidence-overlap term, rendered as one witness
+   count with the transcript that justifies it. Claim that, and nothing wider.
+3. **New: an aggregate `n_eff` has a published critic (2608.06940).** The honest answer, and it is
+   already half-written in the README's limits section, is that the Effective Witness Count is a
+   *floor on the discount*, a reason to distrust a unanimous card, not a per-decision utility
+   estimate — and that Quorum shows the transcript precisely so a reader can go and check the pivotal
+   case themselves. If that answer is not in the README's "what this does not do", put it there.
+4. **The 0.44 assumed prior is the softest number in the product.** It is derived by inverting one
+   paper's result. It is labelled as assumed on screen, which is the right behaviour; keep it labelled
+   and never let a headline number rest on it silently.
+5. **Re-run this gate if the panel or the probe set changes again.** The concept moved materially
+   between the two passes, and the first pass's conclusion would not have covered what shipped.
+
+## Verdict
+
+Nothing found on any surface delivers Quorum's user-visible artifact by Quorum's mechanism. The
+closest neighbours are, in order: **qinnovates/quorum** (same name, an independence score, evidence
+deduplication — but it grades divergence inside a debate it manufactured, publishes no estimator, runs
+no negation probe, zeroes no vote, and prints no witness count); **PromptQuorum** (same name, 25+
+models, agreement mapping — capability-weighted, dependence never measured); the **citation-overlap
+tools** (real overlap measurement, shipped, but for brand visibility rather than to discount a
+verdict); and **2605.29800** (our exact estimator, still paper-only, still no artifact). Each fails the
+test on a different axis, and none of them can print "three models agreed, that agreement is worth zero
+witnesses, here is the transcript."
+
+GATE: PASS - no unanswered lookalike as of 2026-09-04

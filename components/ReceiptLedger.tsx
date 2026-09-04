@@ -33,8 +33,8 @@ export function ReceiptLedger({ receipts }: { receipts: ReceiptView[] }) {
         <span>gonka request id</span>
         <span>model</span>
         <span>step</span>
-        <span>latency</span>
-        <span>tokens</span>
+        <span className={s.num}>latency</span>
+        <span className={s.num}>tokens</span>
       </div>
 
       {receipts.map((receipt, index) => (
@@ -49,10 +49,10 @@ export function ReceiptLedger({ receipts }: { receipts: ReceiptView[] }) {
             <span className={s.reqId}>
               {receipt.requestId || (receipt.status === "error" ? "no response" : "—")}
             </span>
-            <span className={s.dim}>{labelFor(receipt.model)}</span>
-            <span className={s.dim}>{PURPOSE_TITLE[receipt.purpose] ?? receipt.purpose}</span>
-            <span className={s.dim}>{(receipt.latencyMs / 1000).toFixed(1)}s</span>
-            <span className={s.dim}>{receipt.totalTokens || "—"}</span>
+            <span className={s.cell}>{labelFor(receipt.model)}</span>
+            <span className={s.cell}>{PURPOSE_TITLE[receipt.purpose] ?? receipt.purpose}</span>
+            <span className={s.num}>{(receipt.latencyMs / 1000).toFixed(1)}s</span>
+            <span className={s.num}>{receipt.totalTokens || "—"}</span>
           </button>
 
           {open === index ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { CALLS_PER_RUN, PANEL, labelFor } from "@/lib/models";
 import type { ClaimPrep, ProbeResult, ReceiptView, RunEvent, VerificationRun } from "@/lib/types";
 import { Report } from "./Report";
@@ -20,9 +20,16 @@ const EXAMPLES: Array<{ label: string; input: string }> = [
 ];
 
 const PROBE_TITLE: Record<ProbeResult["kind"], string> = {
-  direct: "claim",
-  mirror: "mirror",
-  anchor: "evidence",
+  direct: "the claim",
+  mirror: "its negation",
+  anchor: "the evidence",
+};
+
+/** Stances are coloured so the echo pattern forms visibly as cells land. */
+const STANCE_TONE: Record<string, string> = {
+  SUPPORTED: s.toneSupported,
+  REFUTED: s.toneRefuted,
+  UNCERTAIN: s.toneUncertain,
 };
 
 interface PanelStatus {
@@ -318,42 +325,53 @@ function LiveRun({
         </div>
       ) : null}
 
-      {prep ? <p className={s.claim}>{prep.claim}</p> : null}
-
+      {/* One row per model, one column per probe. Exactly nine cells, so nothing
+          wraps into a ragged tail — and a row that answers the same way twice is
+          the echo, visible as it lands. */}
       <div className={s.probeGrid}>
-        {PANEL.flatMap((model) =>
-          kinds.map((kind) => {
-            const probe = landed(model.id, kind);
-            return (
-              <div
-                key={`${model.id}-${kind}`}
-                className={`${s.probeCell} ${probe ? "" : s.probeCellPending}`}
-              >
-                <div className={s.probeHead}>
-                  <span>{labelFor(model.id)}</span>
-                  <span>{PROBE_TITLE[kind]}</span>
+        <div className={`${s.probeCell} ${s.probeHeadCell}`} aria-hidden="true" />
+        {kinds.map((kind) => (
+          <div key={kind} className={`${s.probeCell} ${s.probeHeadCell}`}>
+            <span className={s.probeColumn}>{PROBE_TITLE[kind]}</span>
+          </div>
+        ))}
+
+        {PANEL.map((model) => (
+          <Fragment key={model.id}>
+            <div className={`${s.probeCell} ${s.probeRowHead}`}>
+              <span className={s.probeModel}>{model.label}</span>
+            </div>
+            {kinds.map((kind) => {
+              const probe = landed(model.id, kind);
+              return (
+                <div
+                  key={kind}
+                  className={`${s.probeCell} ${probe ? "" : s.probeCellPending}`}
+                >
+                  {probe ? (
+                    <div className={`${s.probeBody} ${probe.stance ? STANCE_TONE[probe.stance] : ""}`}>
+                      {probe.status === "failed"
+                        ? "no answer"
+                        : kind === "anchor"
+                          ? (probe.anchors ?? []).length > 0
+                            ? `${(probe.anchors ?? []).length} named`
+                            : "named none"
+                          : probe.stance}
+                    </div>
+                  ) : (
+                    <>
+                      <div className={s.shimmer} aria-hidden="true" />
+                      <span className={s.probeWaiting}>awaiting node…</span>
+                    </>
+                  )}
                 </div>
-                {probe ? (
-                  <div className={s.probeBody}>
-                    {probe.status === "failed"
-                      ? "no answer"
-                      : kind === "anchor"
-                        ? (probe.anchors ?? []).length > 0
-                          ? `${(probe.anchors ?? []).length} source${(probe.anchors ?? []).length === 1 ? "" : "s"} named`
-                          : "named none"
-                        : probe.stance}
-                  </div>
-                ) : (
-                  <>
-                    <div className={s.shimmer} aria-hidden="true" />
-                    <span className={s.probeWaiting}>awaiting node…</span>
-                  </>
-                )}
-              </div>
-            );
-          }),
-        )}
+              );
+            })}
+          </Fragment>
+        ))}
       </div>
+
+      {prep ? <p className={s.liveClaim}>{prep.claim}</p> : null}
     </div>
   );
 }

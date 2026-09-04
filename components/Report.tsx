@@ -45,6 +45,17 @@ function truncate(text: string | undefined, max = 260): string {
   return flat.length > max ? `${flat.slice(0, max).trimEnd()}…` : flat;
 }
 
+/**
+ * A vote that was thrown out must not be painted in the colour of a vote that
+ * counted. At three metres a green SUPPORTED chip under the header "ECHO —
+ * FAILED THE MIRROR PROBE" reads as confirmation, which is the opposite of what
+ * happened.
+ */
+function stanceClass(stance: Stance | null | undefined, counted: boolean): string {
+  if (!stance) return s.stanceNone;
+  return counted ? STANCE_CLASS[stance] : s.stanceDiscounted;
+}
+
 export function Report({ run }: { run: VerificationRun }) {
   const { prep, consensus, witnesses, adjudication, receipts, totals } = run;
   const probeFor = (modelId: string, kind: "direct" | "mirror") =>
@@ -134,16 +145,16 @@ export function Report({ run }: { run: VerificationRun }) {
                 <div className={s.weightBar} aria-hidden="true">
                   <div className={s.weightFill} style={{ width: `${w.discrimination * 100}%` }} />
                 </div>
-                <span className={s.confidence}>
-                  vote weight {w.discrimination.toFixed(2)}
+                <span
+                  className={`${s.voteWeight} ${w.discrimination === 0 ? s.voteWeightZero : ""}`}
+                >
+                  vote weight <strong>{w.discrimination.toFixed(2)}</strong>
                 </span>
               </div>
 
               <div>
                 <div className={s.stanceRow}>
-                  <span
-                    className={`${s.stanceTag} ${w.stance ? STANCE_CLASS[w.stance] : s.stanceNone}`}
-                  >
+                  <span className={`${s.stanceTag} ${stanceClass(w.stance, w.discrimination > 0)}`}>
                     {w.stance ?? "NO ANSWER"}
                   </span>
                   {w.stance ? (
@@ -186,7 +197,7 @@ export function Report({ run }: { run: VerificationRun }) {
                     other without saying the same thing twice. */}
                 <div className={s.stanceRow}>
                   <span className={s.confidence}>on the claim</span>
-                  <span className={`${s.stanceTag} ${w.stance ? STANCE_CLASS[w.stance] : s.stanceNone}`}>
+                  <span className={`${s.stanceTag} ${stanceClass(w.stance, w.discrimination > 0)}`}>
                     {w.stance ?? "—"}
                   </span>
                 </div>
@@ -194,9 +205,7 @@ export function Report({ run }: { run: VerificationRun }) {
                 <div className={s.mirrorSide}>
                   <div className={s.stanceRow}>
                     <span className={s.confidence}>on its negation, blind</span>
-                    <span
-                      className={`${s.stanceTag} ${w.mirrorStance ? STANCE_CLASS[w.mirrorStance] : s.stanceNone}`}
-                    >
+                    <span className={`${s.stanceTag} ${stanceClass(w.mirrorStance, w.discrimination > 0)}`}>
                       {w.mirrorStance ?? "—"}
                     </span>
                   </div>
@@ -217,7 +226,7 @@ export function Report({ run }: { run: VerificationRun }) {
       {/* --- the proof ----------------------------------------------------- */}
       <section className={s.section}>
         <div className={s.sectionHead}>
-          <h2 className={s.sectionTitle}>Receipt ledger</h2>
+          <h2 className={s.sectionTitle}>Reasoning trace &amp; receipts</h2>
           <span className="eyebrow">every inference, on a named Gonka node</span>
         </div>
         <ReceiptLedger receipts={receipts} />
@@ -254,6 +263,7 @@ function VerdictCard({ run }: { run: VerificationRun }) {
   const panelSize = Math.max(witnesses.length, 1);
   const lost = consensus.nominalAgree - consensus.effectiveWitnesses;
   const echoed = witnesses.filter((w) => w.discriminationVerdict === "echo");
+  const survived = consensus.effectiveWitnesses;
 
   return (
     <section className={s.section}>
@@ -262,22 +272,39 @@ function VerdictCard({ run }: { run: VerificationRun }) {
         <span className="eyebrow">truth score, discounted by measured independence</span>
       </div>
       <div className={s.verdict}>
+        {/* The Effective Witness Count is the argument, so it is the loudest
+            thing on the page. The truth score sits under it: a judge should read
+            "0.0 witnesses" first and "50/100" second, because the second only
+            means anything in light of the first. */}
         <div className={s.verdictScore}>
-          <div className={s.scoreNumber}>
-            {verdict.truthScore}
-            <span className={s.scoreUnit}>/100</span>
+          <span className={s.gaugeLabel}>Effective witnesses</span>
+          <div className={s.witnessNumber}>{survived.toFixed(1)}</div>
+          <div className={s.scoreBand}>
+            of {consensus.nominalAgree} that agreed, out of {consensus.respondents} that answered
           </div>
-          <div className={s.scoreBand}>± {verdict.band} credible band</div>
-          <div className={`${s.scoreLabel} ${LABEL_CLASS[verdict.label]}`}>{verdict.label}</div>
+
+          <div className={s.scoreBlock}>
+            <span className={s.gaugeLabel}>Truth score</span>
+            <div className={s.scoreNumber}>
+              {verdict.truthScore}
+              <span className={s.scoreUnit}>/100</span>
+              <span className={s.scoreUnit}>± {verdict.band}</span>
+            </div>
+            <div className={`${s.scoreLabel} ${LABEL_CLASS[verdict.label]}`}>{verdict.label}</div>
+          </div>
 
           <div className={s.derivation}>
             <span className="eyebrow">its own arithmetic</span>
             <div className={s.derivationRow}>
               <span>stance balance</span>
-              <span>{verdict.balance >= 0 ? `+${verdict.balance.toFixed(2)}` : verdict.balance.toFixed(2)}</span>
+              <span>
+                {verdict.balance >= 0 ? `+${verdict.balance.toFixed(2)}` : verdict.balance.toFixed(2)}
+              </span>
             </div>
             <div className={s.derivationRow}>
-              <span>evidence weight, {consensus.effectiveWitnesses.toFixed(1)} / ({consensus.effectiveWitnesses.toFixed(1)} + 1)</span>
+              <span>
+                evidence weight, {survived.toFixed(1)} / ({survived.toFixed(1)} + 1)
+              </span>
               <span>{verdict.shrink.toFixed(2)}</span>
             </div>
             <div className={s.derivationRow}>
@@ -306,17 +333,23 @@ function VerdictCard({ run }: { run: VerificationRun }) {
             <div className={s.gaugeHead}>
               <span className={s.gaugeLabel}>Effective witnesses — what it is actually worth</span>
               <span className={`${s.gaugeValue} ${s.gaugeValueEffective}`}>
-                {consensus.effectiveWitnesses.toFixed(1)}
+                {survived.toFixed(1)}
               </span>
             </div>
-            <div className={s.track}>
-              <div
-                className={s.fillEffective}
-                style={{ width: `${(consensus.effectiveWitnesses / panelSize) * 100}%` }}
-              />
+            {/* Same slot geometry as the gauge above, so an empty bar reads as
+                "three places, none filled" rather than as a horizontal rule. */}
+            <div className={s.slotsEffective} aria-hidden="true">
+              {Array.from({ length: panelSize }, (_, i) => (
+                <div key={i} className={s.slotEmpty}>
+                  <div
+                    className={s.slotFill}
+                    style={{ width: `${Math.min(1, Math.max(0, survived - i)) * 100}%` }}
+                  />
+                </div>
+              ))}
             </div>
             {lost > 0.05 ? (
-              <span className={s.lost}>
+              <p className={s.lost}>
                 {lost.toFixed(1)} of {consensus.nominalAgree} apparent witnesses did not survive:{" "}
                 {[
                   consensus.lostToEcho > 0.05 &&
@@ -334,13 +367,15 @@ function VerdictCard({ run }: { run: VerificationRun }) {
                 ]
                   .filter(Boolean)
                   .join("; ")}
-              </span>
+              </p>
             ) : null}
           </div>
 
           {echoed.length > 0 ? (
             <div className={s.excluded}>
-              <span className={s.excludedLabel}>Vote thrown out</span>
+              <span className={s.excludedLabel}>
+                {echoed.length === 1 ? "Vote thrown out" : "Votes thrown out"}
+              </span>
               <p className={s.excludedBody}>
                 {list(echoed.map((w) => labelFor(w.modelId)))}{" "}
                 {echoed.length === 1 ? "answered" : "each answered"} the claim and its negation the
