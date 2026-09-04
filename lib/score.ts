@@ -27,7 +27,7 @@ import type {
   Verdict,
   VerdictLabel,
   WitnessAssessment,
-} from "./types";
+} from "./types.ts";
 
 // ---------------------------------------------------------------------------
 // Evidence anchors

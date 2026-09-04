@@ -15,18 +15,18 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
 
-import { GonkaError, gonkaChat, type GonkaReceipt } from "./gonka";
-import { ADJUDICATOR, PANEL, labelFor } from "./models";
-import { fetchPage, looksLikeUrl } from "./extract";
+import { GonkaError, gonkaChat, type GonkaReceipt } from "./gonka.ts";
+import { ADJUDICATOR, PANEL, labelFor } from "./models.ts";
+import { fetchPage, looksLikeUrl } from "./extract.ts";
 import {
   normaliseConfidence,
   normaliseStance,
   parseJsonObject,
   stringList,
   textField,
-} from "./parse";
-import { adjudicationPrompt, anchorPrompt, directPrompt, mirrorPrompt, prepPrompt } from "./prompts";
-import { assessWitnesses, computeConsensus, computeVerdict } from "./score";
+} from "./parse.ts";
+import { adjudicationPrompt, anchorPrompt, directPrompt, mirrorPrompt, prepPrompt } from "./prompts.ts";
+import { assessWitnesses, computeConsensus, computeVerdict } from "./score.ts";
 import type {
   Adjudication,
   ClaimPrep,
@@ -36,7 +36,7 @@ import type {
   RunEvent,
   VerificationRun,
   WitnessAssessment,
-} from "./types";
+} from "./types.ts";
 
 function toView(receipt: GonkaReceipt): ReceiptView {
   return {
@@ -238,7 +238,7 @@ async function runProbe(
   }
 }
 
-function panelSummary(witnesses: WitnessAssessment[], probes: ProbeResult[]): string {
+export function panelSummary(witnesses: WitnessAssessment[], probes: ProbeResult[]): string {
   return witnesses
     .map((w) => {
       if (!w.reachable) return `- ${labelFor(w.modelId)}: did not answer.`;
@@ -250,7 +250,7 @@ function panelSummary(witnesses: WitnessAssessment[], probes: ProbeResult[]): st
     .join("\n");
 }
 
-function independenceSummary(
+export function independenceSummary(
   witnesses: WitnessAssessment[],
   consensus: ReturnType<typeof computeConsensus>,
 ): string {

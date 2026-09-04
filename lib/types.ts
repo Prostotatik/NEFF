@@ -3,7 +3,7 @@
  * Nothing here may import server-only code — client components read these types.
  */
 
-import type { Stance } from "./parse";
+import type { Stance } from "./parse.ts";
 
 export type { Stance };
 

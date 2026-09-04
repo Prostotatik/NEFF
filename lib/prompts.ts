@@ -15,7 +15,7 @@
  * is a separate request with no shared context rather than a second turn.
  */
 
-import type { ChatMessage } from "./gonka";
+import type { ChatMessage } from "./gonka.ts";
 
 const ANALYST_SYSTEM = `You are an evidence analyst. You assess factual claims on their merits.
 

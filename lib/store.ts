@@ -11,7 +11,7 @@
 import "server-only";
 import { mkdir, readFile, readdir, stat, writeFile, unlink } from "node:fs/promises";
 import path from "node:path";
-import type { VerificationRun } from "./types";
+import type { VerificationRun } from "./types.ts";
 
 const RUN_DIR = path.join(process.cwd(), ".runs");
 const MAX_RUNS = 200;
