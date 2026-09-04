@@ -32,6 +32,12 @@ const DISCRIMINATION_TITLE: Record<WitnessAssessment["discriminationVerdict"], s
   unavailable: "Not measurable",
 };
 
+/** "A, B and C" rather than "A and B and C". */
+function list(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? "";
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
+
 /** The panel card has room for the gist, not the whole answer; the ledger has the rest. */
 function truncate(text: string | undefined, max = 260): string {
   if (!text) return "";
@@ -314,9 +320,13 @@ function VerdictCard({ run }: { run: VerificationRun }) {
                 {lost.toFixed(1)} of {consensus.nominalAgree} apparent witnesses did not survive:{" "}
                 {[
                   consensus.lostToEcho > 0.05 &&
-                    `${consensus.lostToEcho.toFixed(1)} to echo, a model that answered the claim and its negation the same way`,
+                    `${consensus.lostToEcho.toFixed(1)} to echo${
+                      consensus.lostToEcho > 1.05
+                        ? ", models that answered the claim and its negation the same way"
+                        : ", a model that answered the claim and its negation the same way"
+                    }`,
                   consensus.lostToUnmeasured > 0.05 &&
-                    `${consensus.lostToUnmeasured.toFixed(1)} to a mirror probe that never came back, so that model's independence could not be tested`,
+                    `${consensus.lostToUnmeasured.toFixed(1)} to a mirror probe that never came back, so that independence could not be tested`,
                   consensus.lostToPartial > 0.05 &&
                     `${consensus.lostToPartial.toFixed(1)} to a model that was decisive one way and uncertain the other`,
                   consensus.lostToRedundancy > 0.05 &&
@@ -332,11 +342,13 @@ function VerdictCard({ run }: { run: VerificationRun }) {
             <div className={s.excluded}>
               <span className={s.excludedLabel}>Vote thrown out</span>
               <p className={s.excludedBody}>
-                {echoed.map((w) => labelFor(w.modelId)).join(" and ")}{" "}
-                {echoed.length === 1 ? "answered" : "answered"} the claim and its negation the same
-                way{echoed.length === 1 && echoed[0].stance ? ` — ${echoed[0].stance} to both` : ""}.
-                That is a model reading the shape of the sentence rather than the fact, so its vote
-                carries no information and is excluded from the count.
+                {list(echoed.map((w) => labelFor(w.modelId)))}{" "}
+                {echoed.length === 1 ? "answered" : "each answered"} the claim and its negation the
+                same way
+                {echoed.length === 1 && echoed[0].stance ? ` — ${echoed[0].stance} to both` : ""}.
+                {echoed.length === 1
+                  ? " That is a model reading the shape of the sentence rather than the fact, so its vote carries no information and is excluded from the count."
+                  : " Those are models reading the shape of the sentence rather than the fact, so their votes carry no information and are excluded from the count."}
               </p>
             </div>
           ) : null}

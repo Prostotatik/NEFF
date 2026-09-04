@@ -21,7 +21,7 @@ const MAX_RUNS = 200;
  * build is served as "not found" rather than rendered from fields that no longer
  * exist — a 404 on a stale link is honest; a half-rendered verdict is not.
  */
-const SCHEMA = 2;
+const SCHEMA = 3;
 
 const ID_PATTERN = /^[a-z2-9]{6,16}$/;
 

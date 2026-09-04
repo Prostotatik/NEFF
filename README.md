@@ -6,11 +6,11 @@ Quorum is a fact checker that treats model agreement as a claim to be verified r
 evidence. Every inference runs on the [Gonka Network](https://gonkarouter.io) — eleven of them per
 check, each traceable to the node that served it.
 
-![The verdict card: three models agreed, and the agreement is worth one witness](evidence/verdict-card.png)
+![The verdict card: three models agreed, and the agreement is worth zero witnesses](evidence/verdict-card.png)
 
-*A real report. Three models agreed; one of them answered the same way to the claim **and** to its
-negation, so its vote was thrown out. What looks like unanimity is worth 1.0 independent witnesses,
-and the score is discounted to match.*
+*A real report, unedited. Three of three models said the claim was true — and every one of them also
+said its negation was true. A vote would have called this unanimous. Quorum calls it **NO SIGNAL on
+0.0 witnesses**, and shows you the transcripts.*
 
 ```
 ./init.sh          # clean checkout to a running demo, with a live Gonka connectivity check
@@ -84,9 +84,12 @@ actually did that time, not a fixed opinion about the claim.
   effective witnesses**. The naive build reports unanimity. Quorum reports one witness, quoted three
   times. (Reproducible from the first example button; observed at 1.08 across separate runs.)
 
-- *"The Anglo-Zanzibar War of 1896 lasted under forty-five minutes."* — **Kimi K2.6 answered
-  SUPPORTED to the claim and SUPPORTED to its negation.** Its vote is thrown out and both answers are
-  quoted side by side. That is the screenshot at the top of this page.
+- *"The Anglo-Zanzibar War of 1896 lasted under forty-five minutes."* — **all three models answered
+  SUPPORTED to the claim and SUPPORTED to its negation.** The war is famous for being about forty
+  minutes long, and the models are pattern-matching the famous fact rather than reading the boundary
+  the claim actually sets. Every vote is thrown out: 3/3 nominal, **0.0 effective witnesses, NO
+  SIGNAL**. That is the screenshot at the top of this page, and it is the clearest statement of the
+  whole argument: a unanimous panel that knows nothing.
 
 - *"The Great Wall of China is visible from the Moon with the naked eye."* — the honest counter-case.
   One run had the three models naming three different evidence bases and the agreement **held at 3.0
