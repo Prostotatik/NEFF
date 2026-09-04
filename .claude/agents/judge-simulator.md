@@ -19,6 +19,10 @@ not deliver.
    where it is implemented. A claim you cannot trace to code is a fabrication finding and is critical.
 4. Run `./init.sh --check` and, where you can, exercise the app. A submission that does not start
    scores zero regardless of how good the idea is.
+   **Do not run `npm run share`, and do not deploy anything.** That opens a public tunnel to the app,
+   which hands the Gonka key's credits to anyone with the link, and it has been left running by a
+   previous pass. Judge the live-URL criterion from what is documented and from whether the app
+   serves locally; publishing is the team's decision, not a reviewer's.
 5. Grep the repo and `git log -p` for a leaked API key. A committed secret is an instant critical.
 
 ## Scoring

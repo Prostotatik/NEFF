@@ -36,6 +36,8 @@ forbidden as the basis for a verdict.
      minimum type size, and whether the number a judge needs is findable in two seconds.
 3. Judge the streaming state specifically. A demo spends real seconds there; dead air behind a
    spinner is a design failure.
+4. **Never publish anything** — no `npm run share`, no tunnel, no deploy. Everything you need renders
+   on localhost.
 
 ## Output
 

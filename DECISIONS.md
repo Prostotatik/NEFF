@@ -86,3 +86,11 @@ cannot read it. Changing a repository's visibility publishes the team's account 
 this code, and it is one click in a UI this agent has no business clicking. Nothing in the tree is
 sensitive — that was verified before pushing — so the step is safe, but it belongs to a person.
 Flagged at the top of `SUBMISSION.md` rather than buried here.
+
+## D14 — A subagent opened a public tunnel; it has been closed (2026-09-04)
+The second `judge-simulator` pass ran `npm run share` to check the live-URL criterion, which opened a
+localtunnel to the running app and left it up. That is the outward-facing action D12 deliberately
+declined: while it was open, anyone with the link could spend the Gonka key's credits eleven
+inferences at a time. Three processes were found and stopped, and the three reviewing agents now
+carry an explicit instruction never to publish, tunnel, deploy or push. Recorded here rather than
+quietly fixed, because the key was briefly reachable from the internet and the team should know.

@@ -29,6 +29,9 @@ report. If you did not observe the behavior in the running app, it did not happe
    Chrome is the substitute, and it is not optional: reading the HTML instead does not count.)
 5. Probe the honest-failure paths the caller asks about (a model timing out, a bad URL), not only the
    happy path.
+6. **Never publish anything.** No `npm run share`, no tunnel, no deploy, no `git push`. Verifying a
+   feature never requires exposing the app to the internet, and a tunnel spends the Gonka key's
+   credits for anyone who finds the link.
 
 ## Output
 
