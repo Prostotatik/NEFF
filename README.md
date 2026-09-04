@@ -75,21 +75,32 @@ panel of language models is evidence, never proof.
 
 ### What that looks like in practice
 
-Both of these are real runs against the live router, reproducible from the example buttons on the
-home screen:
+Every number below came off a real run against the live router. The models are not deterministic
+across nodes, so a re-run can land differently — which is the point: the number tracks what the panel
+actually did that time, not a fixed opinion about the claim.
 
-- *"Taking vitamin C supplements prevents the common cold."* — **3 of 3 models agreed.** All three
-  named the same Cochrane systematic reviews: 89% measured evidence overlap, **1.1 effective
-  witnesses**. The naive build would report unanimous agreement. Quorum reports one witness, quoted
-  three times.
-- *A Wikipedia article on the Streisand effect* — **MiniMax M2.7 answered REFUTED to the claim and
-  REFUTED to its negation.** Its vote is thrown out with the transcript of both answers shown side by
-  side. Two coherent witnesses remain, worth 1.2 after their evidence overlap is priced in.
+- *"Taking vitamin C supplements prevents the common cold."* — **3 of 3 models agreed it is false.**
+  All three named the same Cochrane systematic reviews: 89% measured evidence overlap, **1.1
+  effective witnesses**. The naive build reports unanimity. Quorum reports one witness, quoted three
+  times. (Reproducible from the first example button; observed at 1.08 across separate runs.)
 
-The second one is the point. Products exist that flag a single model's answer as low-trust —
-Cleanlab's Trustworthy Language Model scores self-consistency across resamples, for instance. What
-none of them report is *how many independent witnesses stand behind a verdict*, with the probe
-transcript that shows which one was discarded and why.
+- *"The Anglo-Zanzibar War of 1896 lasted under forty-five minutes."* — **Kimi K2.6 answered
+  SUPPORTED to the claim and SUPPORTED to its negation.** Its vote is thrown out and both answers are
+  quoted side by side. That is the screenshot at the top of this page.
+
+- *"The Great Wall of China is visible from the Moon with the naked eye."* — the honest counter-case.
+  One run had the three models naming three different evidence bases and the agreement **held at 3.0
+  effective witnesses**; another had them overlapping and it fell to 1.7. A metric that only ever said
+  "echo" would be worthless, and this one does not.
+
+- *A Wikipedia article on the Streisand effect* — pasted as a link. Quorum fetches the page, reduces
+  it to one atomic checkable claim, and verifies that: 3 of 3 coherent, **1.8 effective witnesses**
+  after their partial evidence overlap is priced in.
+
+Products exist that flag a single model's answer as low-trust — Cleanlab's Trustworthy Language Model
+scores self-consistency across resamples, for instance. What none of them report is *how many
+independent witnesses stand behind a verdict*, with the probe transcript that shows which one was
+discarded and why.
 
 ## What you get back
 
