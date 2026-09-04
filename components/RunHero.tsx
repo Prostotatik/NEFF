@@ -4,7 +4,7 @@ import { useState } from "react";
 import { PANEL } from "@/lib/models";
 import type { ProbeResult, ReceiptView, VerificationRun } from "@/lib/types";
 import { OrbitTrails, SatelliteOrb, Shard, StarField, VerdictOrb } from "./Orbs";
-import { ArrowRight, Copy, ShieldCheck } from "./Icons";
+import { ArrowRight, Copy, ModelMark, ShieldCheck } from "./Icons";
 import { avatarStyle, hueFor } from "./palette";
 import s from "./quorum.module.css";
 
@@ -190,7 +190,7 @@ export function DetailsRail({
           <CopyChip value={PANEL.map((m) => m.id).join("\n")} />
         </span>
         <span className={s.railAvatars}>
-          {PANEL.map((model) => {
+          {PANEL.map((model, i) => {
             const online = status?.panel?.find((p) => p.id === model.id)?.online ?? true;
             return (
               <span
@@ -199,7 +199,7 @@ export function DetailsRail({
                 style={{ ...avatarStyle(model.id), opacity: online ? 1 : 0.4 }}
                 title={model.id}
               >
-                {model.sigil}
+                <ModelMark index={i} size={14} />
               </span>
             );
           })}

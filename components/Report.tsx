@@ -8,6 +8,7 @@ import {
   GonkaMark,
   MinusCircle,
   MirrorIcon,
+  ModelMark,
   ScaleIcon,
   SearchIcon,
   ShieldCheck,
@@ -320,7 +321,7 @@ function ThePanel({ run }: { run: VerificationRun }) {
       </div>
 
       <div className={s.witnesses}>
-        {witnesses.map((w) => {
+        {witnesses.map((w, index) => {
           const counted = w.discrimination > 0;
           const model = modelByHouse(w.modelId);
           const direct = probeFor(w.modelId, "direct");
@@ -350,7 +351,7 @@ function ThePanel({ run }: { run: VerificationRun }) {
                   style={avatarStyle(w.modelId)}
                   aria-hidden="true"
                 >
-                  {model?.sigil ?? "??"}
+                  <ModelMark index={index} size={22} />
                 </span>
                 <span>
                   <span className={s.witnessName}>{labelFor(w.modelId)}</span>
@@ -499,7 +500,7 @@ function WhatThisRestsOn({ run }: { run: VerificationRun }) {
 
         <div className={s.hingeCell}>
           <span className={s.hingeArt} aria-hidden="true">
-            <Spiral size={112} />
+            <Spiral size={116} />
           </span>
           <span className={s.hingeHead}>
             <SearchIcon size={17} />
@@ -512,7 +513,7 @@ function WhatThisRestsOn({ run }: { run: VerificationRun }) {
 
         <div className={s.hingeCell}>
           <span className={s.hingeArt} aria-hidden="true">
-            <Spiral size={148} />
+            <Spiral size={150} open />
           </span>
           <span className={s.hingeHead}>
             <ScaleIcon size={17} />

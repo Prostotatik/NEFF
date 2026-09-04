@@ -252,6 +252,41 @@ absence of long-frame stalls rather than a true on-device frame rate.
 
 ---
 
+### design-critic pass, and what it caught
+
+Run against the rendered screenshots only. It withheld sign-off with five findings; four were real
+and are fixed, one is the documented colour deviation above.
+
+1. **Probe-card illustrations read as flat neon icons, not the reference's volumetric scenes.** The
+   biggest gap on the page, and the log had already marked S2 "matches" — it did not. Rebuilt around
+   a shared `Sphere` primitive: a radial body fill brightest off-centre, meridians *and* latitudes so
+   curvature is described in both directions, a specular arc, ~50 surface lights, and a two-tier
+   pedestal with ground-glow under card 1. Card 2's beam went from a hairline to a lit shaft; card 3
+   gained a bigger store, a fourth orbit ring and larger source chips.
+   Fixing it exposed a real bug: the spin group rotates about its own **bounding box**, so the odd
+   one-sided latitude rings put that origin off centre and the sphere swept out a second ghost
+   sphere as it turned. Latitudes now come in symmetric pairs and position is done by translating
+   the group, never by an internal `cy`.
+2. **The balance was a stock icon-font glyph inside a bespoke illustration system** — two flat
+   triangles on a post, and reused at small size in S8, so the same off-style mark appeared twice.
+   Redrawn as an instrument: bowl pans in perspective with three hanging cords each, a finial, a
+   stepped base, glints.
+3. **`Spiral` did not render as a spiral** — it was an orbit ring, and columns 3 and 4 of S8 used the
+   same motif so they were indistinguishable. Replaced with a real logarithmic spiral
+   (r = a·e^(bθ)) sampled to a polyline, in two visibly different forms: a tight three-arm and an
+   open two-arm.
+4. **The model avatars were two-letter initials** — the placeholder-avatar pattern of every SaaS
+   dashboard, where the reference commits to a distinct glyph per model. Replaced with three drawn
+   marks (a wave, a lattice, a crescent orbit). Deliberately *not* the vendors' real logos: using a
+   trademark to stand for a node we rent inference from would imply an endorsement nobody gave.
+5. **"2/2" renders blue where the reference has it white.** Not changed — see the colour deviation
+   above. CLAUDE.md makes steel-for-nominal and sodium-for-effective non-negotiable, and the labels
+   above each figure say which is which.
+
+The critic also read the hero's orbit trails as "generic sci-fi beams" and the orb interior as hazy.
+The haze was already fixed in the commit after its screenshot was taken (the bloom ring was landing
+inside the sphere); the trails are the reference's own sweeping orbit arcs and are kept.
+
 ## Definition of Done — status
 
 - [x] Every section in the locked section map has been implemented, screenshot-compared at 1536px,

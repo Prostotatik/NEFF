@@ -22,6 +22,11 @@ function Defs({ id }: { id: string }) {
         <stop offset="62%" stopColor={GREEN} stopOpacity="0.08" />
         <stop offset="100%" stopColor="#000" stopOpacity="0.4" />
       </radialGradient>
+      <radialGradient id={`${id}-body`} cx="38%" cy="34%">
+        <stop offset="0%" stopColor={GREEN} stopOpacity="0.2" />
+        <stop offset="45%" stopColor="#00251a" stopOpacity="0.62" />
+        <stop offset="100%" stopColor="#000" stopOpacity="0.72" />
+      </radialGradient>
       <filter id={`${id}-glow`} x="-60%" y="-60%" width="220%" height="220%">
         <feGaussianBlur stdDeviation="3" />
       </filter>
@@ -29,6 +34,141 @@ function Defs({ id }: { id: string }) {
         <feGaussianBlur stdDeviation="1.4" />
       </filter>
     </defs>
+  );
+}
+
+
+/** Deterministic surface lights, so the sphere reads as populated, not empty. */
+function seeded(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function surfaceLights(seed: number, count: number, radius: number) {
+  const rand = seeded(seed);
+  return Array.from({ length: count }, () => {
+    const angle = rand() * Math.PI * 2;
+    const dist = Math.sqrt(rand()) * radius * 0.93;
+    return {
+      x: Number((Math.cos(angle) * dist).toFixed(2)),
+      y: Number((Math.sin(angle) * dist).toFixed(2)),
+      r: Number((0.7 + rand() * 1.7).toFixed(2)),
+      delay: Number((rand() * 4).toFixed(2)),
+      dur: Number((2.6 + rand() * 3.4).toFixed(2)),
+    };
+  });
+}
+
+const CLAIM_LIGHTS = surfaceLights(9101, 54, 104);
+const MIRROR_LIGHTS_A = surfaceLights(3311, 24, 56);
+const MIRROR_LIGHTS_B = surfaceLights(7717, 28, 64);
+
+/**
+ * The volumetric sphere the reference's probe cards are built around.
+ *
+ * The earlier version was an outlined circle with a few arcs behind it, which
+ * read as a flat neon icon rather than a body. What makes it read as volume is
+ * four things together: a radial fill that is brightest off-centre, meridians
+ * *and* latitudes so the curvature is described in both directions, a specular
+ * highlight, and enough surface lights that the far side looks populated.
+ */
+function Sphere({
+  id,
+  r,
+  hue,
+  lights,
+  meridians = 10,
+}: {
+  id: string;
+  r: number;
+  hue: string;
+  lights: ReturnType<typeof surfaceLights>;
+  meridians?: number;
+}) {
+  // Latitudes come in symmetric pairs on purpose. The spin group rotates about
+  // its own bounding box, so an odd number of one-sided rings puts the origin
+  // off centre and the sphere sweeps out a second, ghost sphere as it turns.
+  const lat = [0.42, 0.68, 0.88];
+  return (
+    <g>
+      <circle r={r} fill={`url(#${id}-body)`} />
+      <g className={s.spin}>
+        <g fill="none" stroke={hue} strokeWidth="0.75">
+          {Array.from({ length: meridians }, (_, i) => (
+            <ellipse
+              key={i}
+              rx={Number((r * Math.abs(Math.cos((i / meridians) * Math.PI))).toFixed(2))}
+              ry={r}
+              transform={`rotate(${(i * 180) / meridians})`}
+              opacity={0.34}
+            />
+          ))}
+        </g>
+        <g fill="none" stroke={hue} strokeWidth="0.7">
+          {lat.flatMap((k) =>
+            [-1, 1].map((sign) => (
+              <ellipse
+                key={`${k}-${sign}`}
+                cy={Number((sign * r * (1 - k)).toFixed(2))}
+                rx={Number((r * Math.sqrt(1 - (1 - k) ** 2)).toFixed(2))}
+                ry={Number((r * k * 0.28).toFixed(2))}
+                opacity={0.26}
+              />
+            )),
+          )}
+        </g>
+      </g>
+      <g fill={hue}>
+        {lights.map((p, i) => (
+          <circle
+            key={i}
+            cx={p.x}
+            cy={p.y}
+            r={p.r}
+            className={s.twinkleLight}
+            style={{ animationDelay: `${p.delay}s`, animationDuration: `${p.dur}s` }}
+          />
+        ))}
+      </g>
+      {/* rim: bloom, soft edge, hard edge */}
+      <circle r={r} fill="none" stroke={hue} strokeWidth={r * 0.1} opacity="0.2" filter={`url(#${id}-glow)`} />
+      <circle r={r} fill="none" stroke={hue} strokeWidth="2.4" opacity="0.45" filter={`url(#${id}-soft)`} />
+      <circle r={r} fill="none" stroke={hue} strokeWidth="1.2" opacity="0.9" />
+      {/* the specular the reference puts on the upper left */}
+      <circle
+        r={r}
+        fill="none"
+        stroke="#eafff6"
+        strokeWidth="2"
+        opacity="0.75"
+        strokeDasharray={`${(r * 1.5).toFixed(1)} ${(r * 6.4).toFixed(1)}`}
+        strokeDashoffset={(r * 2.3).toFixed(1)}
+        filter={`url(#${id}-soft)`}
+      />
+    </g>
+  );
+}
+
+/** The two-tier wireframe pedestal, with the ground-glow under it. */
+function Pedestal({ id, y, hue = GREEN }: { id: string; y: number; hue?: string }) {
+  return (
+    <g transform={`translate(0 ${y})`}>
+      <ellipse rx="70" ry="20" fill={hue} opacity="0.22" filter={`url(#${id}-glow)`} />
+      <g fill="none" stroke={hue}>
+        <path d="M0 -30 L76 0 L0 30 L-76 0Z" strokeWidth="3" opacity="0.18" filter={`url(#${id}-glow)`} />
+        <path d="M0 -30 L76 0 L0 30 L-76 0Z" strokeWidth="1.1" opacity="0.9" />
+        <path d="M0 -30 L76 0 L0 30 L-76 0Z" fill={hue} stroke="none" opacity="0.07" />
+        <path d="M-76 0 L-76 13 L0 43 L76 13 L76 0" strokeWidth="1" opacity="0.6" />
+        <path d="M0 30 L0 43" strokeWidth="1" opacity="0.5" />
+        <path d="M0 -18 L46 0 L0 18 L-46 0Z" strokeWidth="0.8" opacity="0.45" />
+        <path d="M0 -46 L100 -8 L0 32 L-100 -8Z" strokeWidth="0.7" opacity="0.2" />
+      </g>
+    </g>
   );
 }
 
@@ -53,20 +193,19 @@ function Plinth({ id, y = 118 }: { id: string; y?: number }) {
 function Rings({ id, hue = GREEN }: { id: string; hue?: string }) {
   return (
     <g fill="none" stroke={hue}>
-      <ellipse rx="112" ry="40" transform="rotate(-16)" strokeWidth="0.7" opacity="0.35" className={s.ringA} />
-      <ellipse rx="94" ry="62" transform="rotate(22)" strokeWidth="0.7" opacity="0.28" className={s.ringB} />
-      <ellipse rx="126" ry="26" transform="rotate(8)" strokeWidth="0.7" opacity="0.22" className={s.ringC} />
-      <g fill={hue} stroke="none" className={s.ringA}>
-        <circle cx="108" cy="-12" r="1.6" />
-        <circle cx="-96" cy="20" r="1.4" />
-        <circle cx="42" cy="36" r="1.2" />
+      <ellipse rx="132" ry="34" transform="rotate(-14)" strokeWidth="0.6" opacity="0.2" className={s.ringA} />
+      <ellipse rx="118" ry="52" transform="rotate(20)" strokeWidth="0.6" opacity="0.14" className={s.ringB} />
+      <ellipse rx="142" ry="22" transform="rotate(7)" strokeWidth="0.6" opacity="0.12" className={s.ringC} />
+      <g fill={hue} stroke="none" className={s.ringA} opacity="0.7">
+        <circle cx="128" cy="-14" r="1.5" />
+        <circle cx="-118" cy="22" r="1.3" />
       </g>
-      <g fill={hue} stroke="none" className={s.ringB}>
-        <circle cx="-84" cy="-38" r="1.4" />
-        <circle cx="76" cy="42" r="1.5" />
+      <g fill={hue} stroke="none" className={s.ringB} opacity="0.7">
+        <circle cx="-104" cy="-40" r="1.3" />
+        <circle cx="96" cy="44" r="1.4" />
       </g>
-      <circle cx="118" cy="-46" r="9" fill="none" stroke={BLUE} strokeWidth="0.9" opacity="0.7" />
-      <circle cx="118" cy="-46" r="2" fill={BLUE} stroke="none" opacity="0.9" filter={`url(#${id}-soft)`} />
+      <circle cx="126" cy="-52" r="8" fill="none" stroke={BLUE} strokeWidth="0.9" opacity="0.6" />
+      <circle cx="126" cy="-52" r="2" fill={BLUE} stroke="none" opacity="0.85" filter={`url(#${id}-soft)`} />
     </g>
   );
 }
@@ -78,30 +217,23 @@ export function ClaimScene() {
     <svg viewBox="-150 -150 300 300" className={s.scene} aria-hidden="true" focusable="false">
       <Defs id={id} />
       <Rings id={id} />
-      <circle cy="14" r="76" fill={`url(#${id}-core)`} />
-      <g className={s.spin} style={{ transformOrigin: "0px 14px" }}>
-        <g fill="none" stroke={GREEN} opacity="0.5">
-          {[0, 40, 80, 120].map((deg, i) => (
-            <ellipse key={deg} cy="14" rx={76 * (0.24 + (i % 3) * 0.3)} ry="76" transform={`rotate(${deg} 0 14)`} strokeWidth="0.8" />
-          ))}
-          <ellipse cy="14" rx="76" ry="24" strokeWidth="0.8" opacity="0.7" />
-        </g>
+      <g transform="translate(0 -6)">
+        <Sphere id={id} r={104} hue={GREEN} lights={CLAIM_LIGHTS} meridians={11} />
       </g>
-      <circle cy="14" r="76" fill="none" stroke={GREEN} strokeWidth="6" opacity="0.3" filter={`url(#${id}-glow)`} />
-      <circle cy="14" r="76" fill="none" stroke={GREEN} strokeWidth="1.2" opacity="0.95" />
 
-      {/* the document being read */}
-      <g transform="translate(0 12)">
-        <rect x="-24" y="-32" width="48" height="64" rx="6" fill="#04150e" stroke={GREEN} strokeWidth="1.4" />
-        <rect x="-24" y="-32" width="48" height="64" rx="6" fill="none" stroke={GREEN} strokeWidth="4" opacity="0.22" filter={`url(#${id}-glow)`} />
+      {/* the document being read, held inside the sphere */}
+      <g transform="translate(0 -8)">
+        <rect x="-30" y="-40" width="60" height="80" rx="7" fill="#04150e" stroke={GREEN} strokeWidth="1.6" />
+        <rect x="-30" y="-40" width="60" height="80" rx="7" fill="none" stroke={GREEN} strokeWidth="6" opacity="0.24" filter={`url(#${id}-glow)`} />
         <g fill={GREEN} className={s.readLines}>
-          <rect x="-14" y="-12" width="28" height="6" rx="3" />
-          <rect x="-14" y="0" width="28" height="6" rx="3" opacity="0.8" />
-          <rect x="-14" y="12" width="18" height="6" rx="3" opacity="0.6" />
+          <rect x="-18" y="-16" width="36" height="7.5" rx="3.75" />
+          <rect x="-18" y="-1" width="36" height="7.5" rx="3.75" opacity="0.8" />
+          <rect x="-18" y="14" width="23" height="7.5" rx="3.75" opacity="0.6" />
         </g>
-        <path d="M-16 -30 L16 -30" stroke="#eafff6" strokeWidth="2" opacity="0.9" filter={`url(#${id}-soft)`} />
+        <path d="M-20 -38 L20 -38" stroke="#eafff6" strokeWidth="2.4" opacity="0.95" filter={`url(#${id}-soft)`} />
       </g>
-      <Plinth id={id} />
+
+      <Pedestal id={id} y={116} />
     </svg>
   );
 }
@@ -112,52 +244,35 @@ export function MirrorScene() {
   return (
     <svg viewBox="-150 -150 300 300" className={s.scene} aria-hidden="true" focusable="false">
       <Defs id={id} />
-      <g opacity="0.55">
+      <g opacity="0.5">
         <Rings id={id} hue={VIOLET} />
       </g>
 
       {/* the negated side */}
-      <g transform="translate(-84 34)">
-        <circle r="52" fill={VIOLET} opacity="0.16" />
-        <g className={s.spinSlow}>
-          <g fill="none" stroke={VIOLET} opacity="0.6">
-            {[0, 50, 100, 140].map((deg, i) => (
-              <ellipse key={deg} rx={52 * (0.22 + (i % 3) * 0.32)} ry="52" transform={`rotate(${deg})`} strokeWidth="0.8" />
-            ))}
-          </g>
-        </g>
-        <circle r="52" fill="none" stroke={VIOLET} strokeWidth="5" opacity="0.32" filter={`url(#${id}-glow)`} />
-        <circle r="52" fill="none" stroke={VIOLET} strokeWidth="1" opacity="0.85" />
-        <circle r="3" fill="#fff" opacity="0.9" filter={`url(#${id}-soft)`} />
+      <g transform="translate(-82 18)">
+        <Sphere id={id} r={58} hue={VIOLET} lights={MIRROR_LIGHTS_A} meridians={8} />
       </g>
 
       {/* the claim side */}
-      <g transform="translate(80 34)">
-        <circle r="58" fill={GREEN} opacity="0.14" />
-        <g className={s.spin}>
-          <g fill="none" stroke={GREEN} opacity="0.55">
-            {[0, 45, 90, 135].map((deg, i) => (
-              <ellipse key={deg} rx={58 * (0.22 + (i % 3) * 0.32)} ry="58" transform={`rotate(${deg})`} strokeWidth="0.8" />
-            ))}
-          </g>
-        </g>
-        <circle r="58" fill="none" stroke={GREEN} strokeWidth="5.5" opacity="0.3" filter={`url(#${id}-glow)`} />
-        <circle r="58" fill="none" stroke={GREEN} strokeWidth="1" opacity="0.85" />
+      <g transform="translate(82 18)">
+        <Sphere id={id} r={66} hue={GREEN} lights={MIRROR_LIGHTS_B} meridians={9} />
       </g>
 
       {/* the pane the probe is fired through */}
-      <g transform="translate(0 30)">
-        <path d="M-16 -78 L16 -70 L16 74 L-16 66Z" fill={BLUE} opacity="0.12" />
-        <path d="M-16 -78 L16 -70 L16 74 L-16 66Z" fill="none" stroke={BLUE} strokeWidth="1.2" opacity="0.85" />
-        <path d="M-16 -78 L16 -70 L16 74 L-16 66Z" fill="none" stroke={BLUE} strokeWidth="4" opacity="0.18" filter={`url(#${id}-glow)`} />
+      <g transform="translate(0 14)">
+        <path d="M-17 -86 L17 -78 L17 82 L-17 74Z" fill={BLUE} opacity="0.13" />
+        <path d="M-17 -86 L17 -78 L17 82 L-17 74Z" fill="none" stroke={BLUE} strokeWidth="1.3" opacity="0.9" />
+        <path d="M-17 -86 L17 -78 L17 82 L-17 74Z" fill="none" stroke={BLUE} strokeWidth="7" opacity="0.2" filter={`url(#${id}-glow)`} />
+        <path d="M-17 -30 L17 -22 M-17 26 L17 34" stroke={BLUE} strokeWidth="0.7" opacity="0.35" />
       </g>
 
-      {/* the beam, fired both ways */}
+      {/* the beam, fired both ways — a lit shaft, not a hairline */}
       <g className={s.beamPulse}>
-        <path d="M-84 34 L80 34" stroke={GREEN} strokeWidth="1.8" opacity="0.85" filter={`url(#${id}-soft)`} />
-        <path d="M-84 34 L80 34" stroke="#eafff6" strokeWidth="0.8" opacity="0.95" />
-        <path d="M-84 20 L80 24" stroke={VIOLET} strokeWidth="1" opacity="0.55" filter={`url(#${id}-soft)`} />
-        <path d="M-84 48 L80 44" stroke={BLUE} strokeWidth="1" opacity="0.5" filter={`url(#${id}-soft)`} />
+        <path d="M-82 18 L82 18" stroke={GREEN} strokeWidth="9" opacity="0.22" filter={`url(#${id}-glow)`} />
+        <path d="M-82 18 L82 18" stroke={GREEN} strokeWidth="3" opacity="0.75" filter={`url(#${id}-soft)`} />
+        <path d="M-82 18 L82 18" stroke="#eafff6" strokeWidth="1.1" opacity="0.95" />
+        <path d="M-82 2 L82 8" stroke={VIOLET} strokeWidth="1.4" opacity="0.55" filter={`url(#${id}-soft)`} />
+        <path d="M-82 34 L82 30" stroke={BLUE} strokeWidth="1.4" opacity="0.5" filter={`url(#${id}-soft)`} />
       </g>
     </svg>
   );
@@ -167,9 +282,9 @@ export function MirrorScene() {
 export function EvidenceScene() {
   const id = "sc3";
   const nodes: Array<{ x: number; y: number; hue: string; glyph: "search" | "doc" | "book" }> = [
-    { x: -96, y: 18, hue: BLUE, glyph: "search" },
-    { x: 40, y: -46, hue: GREEN, glyph: "doc" },
-    { x: 108, y: 44, hue: VIOLET, glyph: "book" },
+    { x: -104, y: 6, hue: BLUE, glyph: "search" },
+    { x: 34, y: -68, hue: GREEN, glyph: "doc" },
+    { x: 116, y: 40, hue: VIOLET, glyph: "book" },
   ];
 
   return (
@@ -179,20 +294,22 @@ export function EvidenceScene() {
       {/* the shared store they all converge on */}
       <g transform="translate(0 52)">
         <g fill="none" stroke={GREEN}>
-          <ellipse ry="9" rx="26" cy="-16" strokeWidth="1.2" opacity="0.9" />
-          <path d="M-26 -16 L-26 14 M26 -16 L26 14" strokeWidth="1.2" opacity="0.9" />
-          <ellipse ry="9" rx="26" cy="14" strokeWidth="1.2" opacity="0.9" />
-          <ellipse ry="9" rx="26" cy="-1" strokeWidth="0.9" opacity="0.5" />
-          <ellipse ry="9" rx="26" cy="-16" strokeWidth="4" opacity="0.25" filter={`url(#${id}-glow)`} />
+          <ellipse ry="11" rx="33" cy="-21" strokeWidth="1.3" opacity="0.95" />
+          <path d="M-33 -21 L-33 19 M33 -21 L33 19" strokeWidth="1.3" opacity="0.95" />
+          <ellipse ry="11" rx="33" cy="19" strokeWidth="1.3" opacity="0.95" />
+          <ellipse ry="11" rx="33" cy="-3" strokeWidth="0.9" opacity="0.45" />
+          <ellipse ry="11" rx="33" cy="-21" strokeWidth="6" opacity="0.28" filter={`url(#${id}-glow)`} />
+          <path d="M-33 -21 L33 19 M33 -21 L-33 19" strokeWidth="0.6" opacity="0.18" />
         </g>
-        <ellipse rx="34" ry="11" cy="14" fill={GREEN} opacity="0.16" filter={`url(#${id}-glow)`} />
+        <ellipse rx="44" ry="14" cy="19" fill={GREEN} opacity="0.2" filter={`url(#${id}-glow)`} />
       </g>
 
       {/* the orbit plane the sources sit on */}
       <g fill="none" stroke={GREEN} transform="translate(0 52)">
-        <ellipse rx="140" ry="50" strokeWidth="0.8" opacity="0.34" />
-        <ellipse rx="112" ry="40" strokeWidth="0.8" opacity="0.28" />
-        <ellipse rx="82" ry="30" strokeWidth="0.8" opacity="0.22" />
+        <ellipse rx="146" ry="52" strokeWidth="0.9" opacity="0.4" />
+        <ellipse rx="118" ry="42" strokeWidth="0.9" opacity="0.32" />
+        <ellipse rx="88" ry="32" strokeWidth="0.9" opacity="0.24" />
+        <ellipse rx="60" ry="22" strokeWidth="0.9" opacity="0.16" />
       </g>
 
       {/* each source, wired back to the store */}
@@ -213,9 +330,9 @@ export function EvidenceScene() {
               collapse onto the origin. */}
           <g transform={`translate(${n.x} ${n.y})`}>
             <g className={s.bob} style={{ animationDelay: `${-2.3 * i}s` }}>
-            <circle r="24" fill="#04150e" stroke={n.hue} strokeWidth="1.3" />
-            <circle r="24" fill="none" stroke={n.hue} strokeWidth="5" opacity="0.3" filter={`url(#${id}-glow)`} />
-            <g stroke={n.hue} strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <circle r="29" fill="#04150e" stroke={n.hue} strokeWidth="1.4" />
+            <circle r="29" fill="none" stroke={n.hue} strokeWidth="7" opacity="0.32" filter={`url(#${id}-glow)`} />
+            <g stroke={n.hue} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" transform="scale(1.25)">
               {n.glyph === "search" ? (
                 <>
                   <circle cx="-2" cy="-2" r="7" />

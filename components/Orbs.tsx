@@ -518,81 +518,149 @@ export function Icosahedron({ size = 132, hue = "#00ffa3" }: { size?: number; hu
 /**
  * The wireframe balance beside the two consensus readings — nominal on one pan,
  * effective on the other, which is the argument the strip is making.
+ *
+ * Drawn as an instrument rather than a symbol: the pans are bowls seen in
+ * perspective, the post has a finial and a stepped base, and the whole beam
+ * rocks. A flat two-triangles-on-a-post glyph is the stock icon-font solution
+ * and reads as one next to the icosahedron, which is drawn from real geometry.
  */
 export function Balance({ size = 150, hue = "#00ffa3" }: { size?: number; hue?: string }) {
+  const pan = (cx: number, cy: number) => (
+    <g transform={`translate(${cx} ${cy})`}>
+      {/* the bowl: an open ellipse for the rim and an arc for its underside */}
+      <ellipse rx="19" ry="5.4" fill="none" strokeWidth="1.2" opacity="0.95" />
+      <ellipse rx="19" ry="5.4" fill={hue} stroke="none" opacity="0.09" />
+      <path d="M-19 0 Q 0 15 19 0" fill="none" strokeWidth="1" opacity="0.85" />
+      <path d="M-11 3.6 Q 0 11.5 11 3.6" fill="none" strokeWidth="0.7" opacity="0.4" />
+      {/* the three cords it hangs from */}
+      <path d="M-19 0 L0 -16 L19 0 M0 -16 L0 -3" strokeWidth="0.7" opacity="0.55" fill="none" />
+    </g>
+  );
+
   return (
     <svg
       width={size}
       height={size}
-      viewBox="-64 -54 128 120"
+      viewBox="-64 -56 128 118"
       className={s.balance}
       style={{ ["--hue" as string]: hue }}
       aria-hidden="true"
       focusable="false"
     >
-      <g fill="none" stroke={hue} strokeWidth="1" strokeLinejoin="round">
-        {/* column and foot */}
-        <path d="M0 -40 L0 42" opacity="0.9" />
-        <path d="M-15 42 L15 42 L21 52 L-21 52Z" opacity="0.85" />
-        <path d="M-21 52 L21 52" opacity="0.55" />
-        <circle cy="-42" r="3.2" opacity="0.9" />
+      <g fill="none" stroke={hue} strokeLinejoin="round" strokeLinecap="round">
+        {/* post, finial and stepped base */}
+        <path d="M0 -38 L0 38" strokeWidth="1.1" opacity="0.9" />
+        <path d="M-3.4 -38 L3.4 -38" strokeWidth="1" opacity="0.7" />
+        <circle cy="-43" r="3.4" strokeWidth="1" opacity="0.95" />
+        <circle cy="-43" r="1.4" fill={hue} stroke="none" opacity="0.9" />
+        <path d="M-11 38 L11 38 L15 45 L-15 45Z" strokeWidth="1" opacity="0.9" />
+        <path d="M-15 45 L15 45 L21 53 L-21 53Z" strokeWidth="1" opacity="0.8" />
+        <path d="M-21 53 L21 53" strokeWidth="0.8" opacity="0.5" />
+        <path d="M-11 38 L11 38" strokeWidth="0.7" opacity="0.45" />
 
         <g className={s.beam}>
-          {/* the beam */}
-          <path d="M-44 -38 L44 -38" strokeWidth="1.4" opacity="0.95" />
-          {/* the cords each pan hangs from */}
-          <path d="M-44 -38 L-44 -18 M44 -38 L44 -18" opacity="0.55" />
-          {/* the pans */}
-          <path d="M-64 -18 L-24 -18 L-44 6Z" opacity="0.55" />
-          <path d="M-64 -18 L-24 -18" strokeWidth="1.3" opacity="0.95" />
-          <path d="M24 -18 L64 -18 L44 6Z" opacity="0.55" />
-          <path d="M24 -18 L64 -18" strokeWidth="1.3" opacity="0.95" />
-          <path d="M-58 -18 L-44 6 L-30 -18" opacity="0.8" />
-          <path d="M30 -18 L44 6 L58 -18" opacity="0.8" />
+          {/* the beam and its hangers */}
+          <path d="M-44 -34 L44 -34" strokeWidth="1.4" opacity="0.95" />
+          <path d="M-44 -34 L-44 -20 M44 -34 L44 -20" strokeWidth="0.8" opacity="0.6" />
+          <path d="M-8 -34 L0 -38 L8 -34" strokeWidth="0.8" opacity="0.6" />
+          {pan(-44, -20)}
+          {pan(44, -20)}
           <g fill={hue} stroke="none" opacity="0.95">
-            <circle cx="-44" cy="-38" r="1.6" />
-            <circle cx="44" cy="-38" r="1.6" />
-            <circle cy="-38" r="1.6" />
+            <circle cx="-44" cy="-34" r="1.6" />
+            <circle cx="44" cy="-34" r="1.6" />
           </g>
         </g>
       </g>
-      <ellipse cy="54" rx="26" ry="7" fill={hue} opacity="0.18" />
+      {/* the glints the reference scatters along the instrument */}
+      <g fill="#dffff3" opacity="0.85">
+        <circle cx="-44" cy="-20" r="1.1" />
+        <circle cx="44" cy="-20" r="1.1" />
+        <circle cy="-43" r="1" />
+      </g>
+      <ellipse cy="55" rx="26" ry="7" fill={hue} opacity="0.16" />
     </svg>
   );
 }
 
-/** A spiral galaxy — the drifting motif behind the closing panel. */
-export function Spiral({ size = 120, hue = "#00ffa3" }: { size?: number; hue?: string }) {
-  const arms = [0, 120, 240];
-  const dots = alongEllipse(4242, 26, 46, 30);
+const SPIRAL_TIGHT = [
+  "M2.0 0.0 L2.1 0.7 L2.0 1.4 L1.6 2.1 L1.0 2.7 L0.2 3.2 L-0.9 3.4 L-2.0 3.3 L-3.2 2.8 L-4.3 1.9 L-5.1 0.5 L-5.5 -1.1 L-5.4 -3.0 L-4.7 -4.9 L-3.3 -6.7 L-1.3 -8.1 L1.3 -8.9 L4.3 -8.9 L7.5 -7.9 L10.4 -5.9 L12.9 -2.7 L14.4 1.4 L14.6 6.1 L13.3 11.3 L10.3 16.2 L5.4 20.3 L-1.0 23.1 L-8.6 23.9 L-16.9 22.2 L-25.0 17.8 L-32.0 10.4",
+  "M-1.0 1.7 L-1.6 1.5 L-2.2 1.0 L-2.6 0.4 L-2.9 -0.5 L-2.9 -1.5 L-2.5 -2.5 L-1.8 -3.4 L-0.8 -4.2 L0.5 -4.6 L2.1 -4.7 L3.7 -4.2 L5.3 -3.2 L6.6 -1.6 L7.5 0.5 L7.7 2.9 L7.1 5.6 L5.6 8.2 L3.1 10.4 L-0.1 12.0 L-4.1 12.5 L-8.4 11.8 L-12.6 9.6 L-16.4 5.9 L-19.1 0.8 L-20.3 -5.4 L-19.5 -12.4 L-16.4 -19.4 L-10.8 -25.7 L-2.9 -30.5 L7.0 -33.0",
+  "M-1.0 -1.7 L-0.5 -2.1 L0.2 -2.4 L1.0 -2.5 L1.9 -2.2 L2.7 -1.7 L3.4 -0.9 L3.9 0.1 L4.0 1.4 L3.7 2.8 L3.0 4.1 L1.8 5.3 L0.1 6.2 L-1.9 6.5 L-4.1 6.2 L-6.4 5.2 L-8.4 3.3 L-9.9 0.7 L-10.6 -2.5 L-10.3 -6.1 L-8.8 -9.8 L-6.0 -13.1 L-2.0 -15.7 L3.1 -17.2 L8.9 -17.0 L14.9 -14.9 L20.5 -10.7 L25.0 -4.5 L27.7 3.5 L27.9 12.8 L25.0 22.5",
+];
+
+const SPIRAL_OPEN = [
+  "M3.4 0.0 L3.6 0.9 L3.6 1.9 L3.3 2.9 L2.7 3.9 L1.9 4.9 L0.7 5.7 L-0.7 6.2 L-2.4 6.4 L-4.2 6.1 L-6.0 5.4 L-7.8 4.2 L-9.3 2.4 L-10.5 0.1 L-11.1 -2.6 L-11.1 -5.7 L-10.3 -8.9 L-8.6 -12.1 L-6.0 -15.1 L-2.4 -17.5 L2.0 -19.2 L7.1 -19.8 L12.7 -19.1 L18.4 -16.9 L23.9 -13.1 L28.7 -7.7 L32.4 -0.7 L34.5 7.7 L34.5 17.1 L32.1 27.1 L26.9 37.1",
+  "M-3.4 0.0 L-3.6 -0.9 L-3.6 -1.9 L-3.3 -2.9 L-2.7 -3.9 L-1.9 -4.9 L-0.7 -5.7 L0.7 -6.2 L2.4 -6.4 L4.2 -6.1 L6.0 -5.4 L7.8 -4.2 L9.3 -2.4 L10.5 -0.1 L11.1 2.6 L11.1 5.7 L10.3 8.9 L8.6 12.1 L6.0 15.1 L2.4 17.5 L-2.0 19.2 L-7.1 19.8 L-12.7 19.1 L-18.4 16.9 L-23.9 13.1 L-28.7 7.7 L-32.4 0.7 L-34.5 -7.7 L-34.5 -17.1 L-32.1 -27.1 L-26.9 -37.1",
+];
+
+const SPIRAL_DOTS: Array<[number, number, number]> = [
+  [-1.8, 19.2, 1.2],
+  [-3.8, 2.3, 0.8],
+  [-12.1, 18.3, 1.2],
+  [-5.1, 0.3, 0.8],
+  [-22.1, 11.9, 1.3],
+  [-5.3, -2.5, 0.8],
+  [-28.7, -0.0, 1.3],
+  [-4.0, -5.4, 0.9],
+  [-28.8, -15.5, 1.3],
+  [-1.1, -7.6, 0.9],
+  [-20.6, -31.1, 1.4],
+  [3.0, -8.3, 1.0],
+  [-1.4, 2.4, 0.5],
+  [7.5, -6.7, 1.0],
+];
+
+/**
+ * A spiral galaxy. `open` swaps a tight three-arm form for a wider two-arm one,
+ * so the two columns that use it in "what this rests on" read as different
+ * objects rather than the same ring twice — which is what the reference does.
+ *
+ * The arms are a real logarithmic spiral (r = a·e^(bθ)) sampled to a polyline,
+ * because an ellipse with a dot in it does not read as a galaxy at any size.
+ */
+export function Spiral({
+  size = 120,
+  hue = "#00ffa3",
+  open = false,
+}: {
+  size?: number;
+  hue?: string;
+  open?: boolean;
+}) {
+  const arms = open ? SPIRAL_OPEN : SPIRAL_TIGHT;
+  const scale = open ? 1.15 : 0.92;
+
   return (
     <svg
       width={size}
       height={size}
-      viewBox="-60 -60 120 120"
+      viewBox="-42 -42 84 84"
       className={s.spiral}
       style={{ ["--hue" as string]: hue }}
       aria-hidden="true"
       focusable="false"
     >
-      <g className={s.spinSlow}>
-        <g fill="none" stroke={hue} strokeWidth="0.8" opacity="0.55">
-          {arms.map((a) => (
-            <path
-              key={a}
-              d="M0 0 C 12 -6 26 -6 34 4 C 42 15 34 30 18 34 C 2 38 -14 30 -20 16"
-              transform={`rotate(${a})`}
-            />
+      <g className={s.spinSlow} transform={`scale(${scale})`}>
+        <g fill="none" stroke={hue} strokeWidth="0.9" strokeLinecap="round">
+          {arms.map((d, i) => (
+            <path key={i} d={d} opacity={0.62 - i * 0.1} />
           ))}
         </g>
-        <g fill={hue} opacity="0.8">
-          {dots.map((p, i) => (
-            <circle key={i} cx={fixed(p.x * 0.8)} cy={fixed(p.y * 0.8)} r={fixed(p.r * 0.7)} />
+        <g fill="none" stroke={hue} strokeWidth="2.6" opacity="0.14">
+          {arms.map((d, i) => (
+            <path key={`g${i}`} d={d} />
+          ))}
+        </g>
+        <g fill={hue} opacity="0.85">
+          {SPIRAL_DOTS.map(([x, y, r], i) => (
+            <circle key={i} cx={x * scale} cy={y * scale} r={r * 0.7} />
           ))}
         </g>
       </g>
-      <circle r="3" fill="#eafff6" opacity="0.9" />
-      <circle r="9" fill={hue} opacity="0.18" />
+      {/* the core */}
+      <circle r="10" fill={hue} opacity="0.14" />
+      <circle r="4.5" fill={hue} opacity="0.3" />
+      <circle r="2" fill="#eafff6" opacity="0.95" />
     </svg>
   );
 }

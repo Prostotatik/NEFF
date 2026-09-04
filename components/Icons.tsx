@@ -189,3 +189,54 @@ export function GonkaMark({ size = 26, className }: IconProps) {
     </svg>
   );
 }
+
+/**
+ * A distinct mark per model on the panel.
+ *
+ * The reference gives every model its own glyph rather than its initials, and
+ * two-letter circles are the placeholder-avatar pattern of every dashboard ever
+ * shipped. These are drawn marks, not the model vendors' logos — using a
+ * vendor's actual trademark to stand for a node we merely rent inference from
+ * would be claiming an endorsement nobody gave. Each is a different figure so
+ * the three are told apart at 24px: a wave, a lattice, a crescent orbit.
+ */
+export function ModelMark({ index, size = 18 }: { index: number; size?: number }) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none" as const,
+    stroke: "currentColor",
+    strokeWidth: 1.9,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+    focusable: "false" as const,
+  };
+
+  if (index % 3 === 0) {
+    // a wave passing through a node — the model that reads the claim first
+    return (
+      <svg {...common}>
+        <path d="M3 14.5c2.6-6 5.2-6 7.8 0s5.2 6 7.8 0" />
+        <path d="M12 4.4v3.2M12 16.4v3.2" opacity="0.55" />
+      </svg>
+    );
+  }
+  if (index % 3 === 1) {
+    // a lattice — parallel probes crossing
+    return (
+      <svg {...common}>
+        <path d="M5.5 5.5v13M12 3.6v16.8M18.5 5.5v13" />
+        <path d="M3.4 9.6h17.2M3.4 14.4h17.2" opacity="0.5" />
+      </svg>
+    );
+  }
+  // a crescent orbit around a core
+  return (
+    <svg {...common}>
+      <path d="M17.6 5.6a8.4 8.4 0 1 0 1.4 10.6" />
+      <circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}

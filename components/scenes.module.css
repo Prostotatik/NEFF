@@ -114,3 +114,20 @@
     transform: rotate(360deg);
   }
 }
+
+/* Surface lights on the probe-card spheres. Kept separate from the orb's own
+   twinkle so the two can be tuned apart — these sit on a lit body, so they never
+   fall as dark. */
+.twinkleLight {
+  animation: twinkleLight 3s ease-in-out infinite;
+}
+
+@keyframes twinkleLight {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
