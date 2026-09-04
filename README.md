@@ -123,12 +123,15 @@ and the argument are in [`PRIOR_ART.md`](PRIOR_ART.md).
 cp .env.example .env       # then put your Gonka Router key in it
 ./init.sh                  # installs, checks the router is reachable, starts on :3000
 ./init.sh --check          # environment and connectivity only
-npm test                   # 38 unit tests over the scoring and parsing
+npm test                   # 50 unit tests over the scoring, parsing and URL guard
 npm run test:live          # 4 tests against the live Gonka Router
+npm run browser:check      # drives the real app in a browser and screenshots what it did
 ```
 
 The key is read server-side only, from `.env`, which is git-ignored and has never been committed.
-Deployment is one command — see [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
+For a public URL: `npm run share` tunnels the local app and prints one, with no account needed; for a
+real deployment it is four commands on Vercel. Both are in [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Where things are
 

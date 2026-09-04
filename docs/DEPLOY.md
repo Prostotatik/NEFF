@@ -1,7 +1,26 @@
 # Deploying Quorum
 
 Quorum is a standard Next.js app with no database and no build-time secrets. Anywhere that runs
-Node 20+ will serve it; the two paths below are the ones that have been prepared for.
+Node 20+ will serve it; the paths below are the ones that have been prepared for.
+
+## The fastest live URL, with no account at all
+
+If you need a public URL in the next thirty seconds — to put in a submission form, or to hand a judge
+mid-demo — tunnel the local app:
+
+```bash
+./init.sh                # in one terminal: the app on :3000
+npm run share            # in another: prints a public https URL
+```
+
+`npm run share` is `npx --yes localtunnel --port 3000`. It gives a real, working, publicly reachable
+URL backed by the machine you are sitting at, which is enough for judging and costs nothing.
+
+Two things to be clear-eyed about before you run it. The URL is only live while both that terminal
+and the app are running, so it is not a substitute for a real deployment if judging happens later.
+And it is genuinely public: anyone with the link can spend your Gonka credits, eleven inferences at a
+time. `/api/verify` is rate limited per client, but the sensible thing is to close the tunnel when you
+are done. For anything longer-lived, deploy properly below.
 
 ## Vercel (recommended — this is the Live Demo URL)
 
