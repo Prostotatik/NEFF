@@ -37,11 +37,11 @@ export function OrbitalStage({
   status: PanelStatus | null;
 }) {
   const score = run?.verdict.truthScore;
-  const orbHue = run
-    ? run.verdict.truthScore >= 50
-      ? "#00ffa3"
-      : "#00d9ff"
-    : "#00ffa3";
+  // The orb is brand green whatever the verdict. The reference's orb is green at
+  // 23%, and recolouring it by score would put a third colour into a system where
+  // colour already means something specific — steel for the nominal reading,
+  // sodium for the effective one.
+  const orbHue = "#00ffa3";
 
   return (
     <div className={s.stage}>
@@ -49,6 +49,7 @@ export function OrbitalStage({
         <StarField />
         <OrbitTrails />
 
+        <div className={s.orbHolder}>
         <VerdictOrb size={318} hue={orbHue} idle={!run}>
           {run ? (
             <>
@@ -74,6 +75,7 @@ export function OrbitalStage({
             </>
           )}
         </VerdictOrb>
+        </div>
 
         {PANEL.map((model, i) => {
           const witness = run?.witnesses.find((w) => w.modelId === model.id);

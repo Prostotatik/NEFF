@@ -190,3 +190,33 @@ Until those two are done the submission is incomplete, and no further code chang
 
 - **D8** Video pitch: script and shot list are shippable by this agent; the recording is not.
 - **D9** Live Demo URL: needs the team's hosting account. Build is deploy-ready and documented.
+
+## Visual redesign phase — the interface was rebuilt against visual-reference.png
+
+The full working log is in `VISUAL_QA.md`, including the locked section map and the per-section
+compare passes. The things worth not rediscovering:
+
+- **Git Bash mangles a leading-`/` argument.** `node tools/shot.mjs out name /` arrives in Node as a
+  Windows path, Chrome answers `Cannot navigate to invalid URL`, and you get a screenshot of
+  `about:blank` with no error. Every call needs `MSYS_NO_PATHCONV=1`.
+- **`Math.cos`/`Math.sin`/`Math.sqrt` differ in their last bits between Node and Chrome.** Any SVG
+  coordinate computed from them at render time is a hydration mismatch. `tools/shot.mjs` reports
+  console errors, which is how this was caught; the fix is to round generated geometry to 3 decimals.
+- **A CSS `transform` beats an SVG `transform` attribute on the same element.** An animation class
+  and a `transform="translate(...)"` on one `<g>` silently collapses everything to the origin. This
+  stacked all three source nodes of the probe-03 illustration on one point, and it was invisible
+  until the card was screenshotted.
+- **Screenshots of a stored run are not a substitute for a live one.** Four real defects only showed
+  up when a verification was actually driven through the console: the orb recoloured itself by score,
+  `confidence 0.99` was ellipsised, 40 characters of gateway prose were printed into a 6rem cell, and
+  a "not measurable" note overflowed. `tools/browser-check.mjs` also needed updating — the submit
+  control is an icon button now, so it is found by `button[type="submit"]`.
+- **The panel row's five column minimums sum to 42.1rem, and the left report column gives 674px at
+  1536px.** Going over silently clips the last column. Any future change to one column has to come
+  out of another; there is a comment on the rule saying so.
+- `tools/shot.mjs` reports `document.getAnimations()` — a declared `@keyframes` that never attaches
+  proves nothing, so animation claims are checked against the browser's own list.
+
+**Noted, not fixed:** one live run returned the claim and adjudication in French for an English
+input. That is claim-preparation prompt behaviour, not presentation, and was left alone under a
+presentation-layer brief.

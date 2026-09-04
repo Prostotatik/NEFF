@@ -15,6 +15,7 @@ import {
 } from "./Icons";
 import { avatarStyle } from "./palette";
 import { WitnessDetail } from "./WitnessDetail";
+import { HingeText } from "./HingeText";
 import s from "./quorum.module.css";
 
 const LABEL_CLASS: Record<VerdictLabel, string> = {
@@ -52,6 +53,21 @@ const DISCRIMINATION_NOTE: Record<WitnessAssessment["discriminationVerdict"], st
   partial: "decisive on one side only",
   unavailable: "the mirror probe did not return",
 };
+
+/**
+ * A failed probe's error in the width of a table cell.
+ *
+ * The gateway's message is a sentence; the column is 6rem. An HTTP status is the
+ * part a reader can act on, so it is lifted out when there is one — and when
+ * there is not, the message is cut rather than dropped, because a node that
+ * failed has to say so.
+ */
+function shortError(error: string | undefined): string {
+  if (!error) return "no response";
+  const status = error.match(/([45]\d{2})/);
+  if (status) return `HTTP ${status[1]}`;
+  return error.length > 22 ? `${error.slice(0, 22).trimEnd()}…` : error;
+}
 
 /** "A, B and C" rather than "A and B and C". */
 function list(items: string[]): string {
@@ -354,11 +370,7 @@ function ThePanel({ run }: { run: VerificationRun }) {
                   {w.stance ?? "NO ANSWER"}
                 </span>
                 <span className={s.witnessMetaLabel}>
-                  {w.stance
-                    ? `confidence ${w.confidence.toFixed(2)}`
-                    : direct?.error
-                      ? direct.error.slice(0, 40)
-                      : "no response"}
+                  {w.stance ? `confidence ${w.confidence.toFixed(2)}` : shortError(direct?.error)}
                 </span>
               </div>
 
@@ -466,7 +478,7 @@ function WhatThisRestsOn({ run }: { run: VerificationRun }) {
           {/* The plain-language verdict sentence. The reference gives this cell
               only the mark; a reader who reads one line of the report should
               read this one, so it goes under it rather than nowhere. */}
-          <p className={s.hingeBody}>{run.verdict.headline}</p>
+          <HingeText>{run.verdict.headline}</HingeText>
         </div>
 
         <div className={s.hingeCell}>
@@ -477,9 +489,9 @@ function WhatThisRestsOn({ run }: { run: VerificationRun }) {
             <DocIcon size={17} />
             Load-bearing fact
           </span>
-          <p className={s.hingeBody}>
+          <HingeText>
             {adjudication.loadBearingFact || "The adjudicating node did not return this field."}
-          </p>
+          </HingeText>
         </div>
 
         <div className={s.hingeCell}>
@@ -490,9 +502,9 @@ function WhatThisRestsOn({ run }: { run: VerificationRun }) {
             <SearchIcon size={17} />
             What would flip it
           </span>
-          <p className={s.hingeBody}>
+          <HingeText>
             {adjudication.falsifier || "The adjudicating node did not return this field."}
-          </p>
+          </HingeText>
         </div>
 
         <div className={s.hingeCell}>
@@ -503,11 +515,11 @@ function WhatThisRestsOn({ run }: { run: VerificationRun }) {
             <ScaleIcon size={17} />
             {consensus.contested ? "Where the panel splits" : "Why they agreed"}
           </span>
-          <p className={s.hingeBody}>
+          <HingeText>
             {consensus.contested && adjudication.contention
               ? adjudication.contention
               : adjudication.agreementDiagnosis || "No closing note was returned."}
-          </p>
+          </HingeText>
         </div>
       </div>
     </section>

@@ -122,7 +122,25 @@ const r = await send("Page.captureScreenshot", { format: "png" });
 writeFileSync(`${outDir}/${name}.png`, Buffer.from(r.data, "base64"));
 const probe = (
   await send("Runtime.evaluate", {
-    expression: `JSON.stringify({url:location.href,title:document.title,text:document.body.innerText.length,h:document.documentElement.scrollHeight})`,
+    expression: `JSON.stringify({
+      url: location.href,
+      title: document.title,
+      text: document.body.innerText.length,
+      h: document.documentElement.scrollHeight,
+      // Running animations, counted by name. The redesign brief requires that
+      // everything the reference shows in motion is actually in motion, and a
+      // declared @keyframes that never attaches proves nothing; this is the
+      // browser's own list of animations it is currently ticking.
+      running: Object.entries(
+        document.getAnimations()
+          .filter((a) => a.playState === "running")
+          .reduce((acc, a) => {
+            const n = a.animationName || "(unnamed)";
+            acc[n] = (acc[n] || 0) + 1;
+            return acc;
+          }, {})
+      ).sort((x, y) => y[1] - x[1]),
+    })`,
     returnByValue: true,
   })
 )?.result?.value;

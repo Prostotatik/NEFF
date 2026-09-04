@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Report } from "@/components/Report";
 import { Masthead, Footer } from "@/components/Chrome";
 import { DetailsRail, OrbitalStage } from "@/components/RunHero";
+import { Mechanism } from "@/components/Mechanism";
 import { loadRun } from "@/lib/store";
 import s from "@/components/quorum.module.css";
 
@@ -65,6 +66,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         <OrbitalStage run={run} probes={[]} running={false} status={null} />
         <DetailsRail run={run} receipts={run.receipts} running={false} status={null} />
       </div>
+
+      {/* The reference puts the three probe cards between the hero and the
+          report, and a permalink reader has had no chance to see them — they are
+          what makes the numbers below mean anything. */}
+      <Mechanism />
 
       <Report run={run} />
       <Footer />

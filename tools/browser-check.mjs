@@ -117,7 +117,9 @@ if (claim) {
   console.log(typed);
   await sleep(400);
   console.log(await evaluate(`(() => {
-    const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Verify');
+    // The submit control is an icon button in the rebuilt console, so it is
+    // found by its accessible name rather than by its text.
+    const b = document.querySelector('button[type="submit"]');
     if (!b) return 'no verify button';
     if (b.disabled) return 'verify still disabled';
     b.click();
@@ -126,7 +128,7 @@ if (claim) {
 } else {
   console.log(await evaluate(`(() => {
     const buttons = [...document.querySelectorAll('button')];
-    const chip = buttons.find(b => b.textContent.includes('Taking vitamin C'));
+    const chip = buttons.find(b => b.textContent.includes('vitamin C'));
     if (!chip) return 'chip not found';
     chip.click();
     return 'clicked: ' + chip.textContent.trim();

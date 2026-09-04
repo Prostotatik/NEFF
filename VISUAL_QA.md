@@ -113,76 +113,102 @@ health check says a node is unreachable), total inferences, and the first three 
 ids with the rest counted. Copy buttons on the id and the model list. **Compared at 1536px**
 (`v8-report.png`): matches.
 
-### S2 · Probe cards — IN PROGRESS
+### S2 · Probe cards — DONE
 
-Observed on re-view (`ref-probe1.png` @2.2): the illustration is not a corner watermark — it fills
-the right ~55% of the card and is the brightest thing in it; the card's own fill is a radial that is
-greener under the illustration and near-black under the text; the ghost numeral is bottom-left at
-~86px in about 9% green.
-Built: `ClaimScene` / `MirrorScene` / `EvidenceScene` in `Scenes.tsx` — isometric plinth, sphere
-cage, document glyph with lines that pulse in reading order, a pane with a beam fired both ways, and
-three source nodes wired back to a store. Delta found and fixed once: scenes were 17rem and read as
-watermarks; now 22rem.
-**Next:** compare the card band at 1536px against `ref-probe1.png` and check the scene brightness
-and vertical centring.
+Observed on re-view (`ref-probe1.png` @2.2, `ref-probe23.png` @1.55): the illustration is not a
+corner watermark — it fills most of the card and is the brightest thing in it; the ghost numeral is
+**grey, not green** (green there would read as a measurement) and sits flush with the bottom-left,
+partly bleeding off; card 2's pane is taller than either sphere and the beam runs through it both
+ways; card 3's sources are circular chips on wide concentric orbit ellipses around a lit store.
+Built: `ClaimScene` / `MirrorScene` / `EvidenceScene` in `Scenes.tsx`.
+Deltas found and fixed over four compare passes: (1) the scenes were 17rem and read as watermarks;
+(2) the numeral was green; (3) card 2's beam ran through a line of body copy; (4) **all three source
+nodes in card 3 were stacked on the origin** — the `bob` CSS transform was overriding the SVG
+`transform` attribute on the same element, so placement and motion now live on separate groups.
+**Compared at 1536px** (`v13-probe.png`, `v14-probe.png` @2.6): matches.
 
-### S5 · Metrics strip — DONE
+### S8 · What this rests on — DONE, with one accepted deviation
 
-Observed on re-view (`ref-metrics.png` @1.9): four cells divided by hairlines; the witness count is
-a *light* 44px numeral; "TRUTH SCORE" is set in two tones; the verdict is a bordered capsule in red;
-the arithmetic rows each have a full-width 2px meter under them, red for the negative one and green
-for the positive; the fourth cell puts each label on its own line above its number, with the
-wireframe balance to its right and faint scan lines behind.
-Built all of it, wired to `verdict` and `consensus`. Deltas found and fixed: (1) the fourth cell's
-labels wrapped *into* their values — labels are now `display:block` + `nowrap` in a `.metricReading`
-grid and the cell is wider; (2) the icosahedron was a hexagon with spokes — replaced with a true
-icosahedron (the standard (0, ±1, ±φ) vertices, rotated 36°/12°, front edges bright and back edges
-dim); (3) the balance had detached pans — rebuilt with cords, and it rocks (`tilt`, 9s).
-**Compared at 1536px** (`v10-report.png`): matches.
+Observed on re-view (`ref-rests.png` @2.4): four columns behind neon wireframe illustrations that
+bleed *under* the text — a hex-G on a plinth, a ridge mesh, a spiral, and a larger spiral — and the
+four columns are level with each other.
+Built with `GonkaMark`, `Ridge`, `Spiral` and the real adjudication fields.
+**Accepted deviation:** the reference's four columns are level because its text is placeholder-short.
+The adjudicating node's real closing note runs 3–4× the length of the other fields.
+- *Attempt 1* — shrink the body to 0.75rem and re-cut the column ratios. The band still came out
+  roughly twice the reference's height, and the fourth column still ran ~10 lines past the third.
+- *Attempt 2* — let it run full length. That is honest but it drags the panel to nearly double the
+  reference's height and breaks the row the reference builds, which is the thing being matched.
+- *Resolved* — `HingeText` clamps to 8 lines with a "read the whole note" toggle. The band is level
+  like the reference's and nothing the node actually said is discarded, which was the constraint that
+  ruled out simple truncation.
+**Compared at 1536px** (`v15-rests.png` @2.4, `final-composite-1536.png`): matches.
 
-### S4 · The panel — DONE
+### Addition the reference has no slot for
 
-Observed on re-view (`ref-panel.png` @2.1): each witness is its own rounded row, ~72px, divided into
-five columns by hairlines, and a row whose vote counted carries a **bright green left edge** the
-no-answer row does not. Nothing in the row wraps.
-Built exactly that, and the left edge is driven by `discrimination > 0` so it is a measurement, not
-decoration; an echo row is edged in red instead. The model's full answer, its blind answer to the
-negation and the sources it named do not fit a reference row, so they are one click away in a
-disclosure rather than deleted.
-Deltas found and fixed over four compare passes: the name overran the vote-weight divider, "vote
-weight" truncated to "vote we…", "passed the mirror probe" wrapped to two lines, and "evidence it
-leaned on" truncated — all resolved by re-cutting the five column widths.
-**Compared at 1536px** (`v10-panel.png` @2.4): matches.
+**Claim under test.** The reference has no band showing the sentence being checked. A report that
+never shows the claim it verified is useless, so it is kept, styled in the same panel grammar, as a
+slim bar between the hero and the metrics strip rather than a block that would push the strip off
+the fold. Likewise the plain-language verdict headline, which sits in the first cell of "what this
+rests on" under the Gonka mark.
 
-### S3 · Reasoning trace & receipts — DONE
+### Live end-to-end check
 
-Observed on re-view (`ref-receipts.png` @2.1): the header row is a lighter band; node numbers and
-request ids are mono green; **the model name is coloured per model**; latency and tokens are right
-aligned; a node that answered has a filled dot and one that did not has a hollow ring.
-Built that, with the per-model hue shared with the hero orbs and the rail dots so one model can be
-followed by colour alone. Deltas found and fixed: the request id and then the model name and the
-step were being ellipsised — column widths re-cut until every column shows in full.
-**Compared at 1536px** (`v9-panel.png` @1.7): matches.
+Two real verifications were driven through the rebuilt console with `tools/browser-check.mjs`
+(not source inspection): "Taking vitamin C…" (50s, 11 inferences, `/r/sncz9mna74uj`) and "The Great
+Wall of China…" (68s, 11 inferences, `/r/eqm9djnnqkm2`). Both streamed, both produced a permalink,
+zero console errors. `tools/browser-check.mjs` needed updating for the rebuilt console — the submit
+control is now an icon button, so it is found by `button[type="submit"]` rather than by its text.
 
-### S8 · What this rests on — IN PROGRESS
+Four deltas the live run surfaced and that the stored fixture could not: the orb turned cyan below a
+score of 50 (now always brand green — recolouring by score would put a third meaning into a palette
+where colour already means something); `confidence 0.99` was ellipsised; a failed probe printed 40
+characters of gateway prose into a 6rem cell (now the HTTP status where there is one); and the
+"not measurable" note overflowed its column.
 
-Observed on re-view (`ref-rests.png` @2.4): four columns behind four neon wireframe illustrations
-that bleed *under* the text — a hex-G on a plinth, a ridge mesh, a spiral, and a larger spiral.
-Built with `GonkaMark`, `Ridge`, `Spiral`, and the real adjudication fields.
-**Next:** the fourth column's real text is much longer than the reference's placeholder and makes
-the panel tall and uneven; compare at 1536px and decide whether that is an accepted deviation
-(the text is evidence and will not be truncated) or a layout fix.
+### Responsiveness
+
+Checked at 1180 / 1000 / 820 / 390px. The orbital scene is composed at hero width, so below 1000px
+it scales as one object rather than letting its pieces collide, and below 760px the satellites are
+dropped entirely — the same per-model numbers are in the panel a screen further down, so nothing is
+lost. Zero console errors at every width. Screenshots: `resp-390.png`, `resp-820.png`,
+`resp-1180.png`.
+
+### Animation
+
+`tools/shot.mjs` now reports the browser's own list of running animations, because a declared
+`@keyframes` that never attaches proves nothing. On the composite page Chrome is ticking 278
+animations: `twinkle` ×232 (point lights), `spin` ×16 and `sceneSpin` ×13 (orbit cages and rings),
+`breathe` ×4 (orb blooms), `bob`/`dash`/`readPulse`/`beam` (the probe scenes), `tumble` and `tilt`
+(the icosahedron and the balance beam), `drift` ×2 (debris), `pulseDot` ×2, `scanNode`, `flarePulse`.
+`meterGrow` is a one-shot entrance and so is correctly absent from a list taken 8s after load.
+
+Frame pacing sampled over 180 consecutive frames on both routes: median 10.0ms, p95 10.1ms, worst
+10.2ms — no frame took measurably longer than any other, so there is no jank. Caveat recorded
+honestly: headless Chrome runs on a fixed ~100Hz clock rather than a real vsync, so this shows the
+absence of long-frame stalls rather than a true on-device frame rate.
 
 ---
 
 ## Definition of Done — status
 
-- [ ] Every section implemented, screenshot-compared at 1536px, marked matching or accepted
-      deviation — **8 of 10 marked; S2 and S8 still open**
-- [ ] Everything animated in the reference is actually animated — built, not yet verified frame by
-      frame
-- [x] The reference image is not present anywhere in the shipped build — it is only ever read by
-      `tools/crop.mjs`, never imported, never referenced from CSS
-- [ ] A final full-page 1536px screenshot compared against the reference using the section map
-- [ ] No console errors, no regressions — console clean on both routes; `npm test` /
-      `npm run test:live` not yet re-run against this diff
+- [x] Every section in the locked section map has been implemented, screenshot-compared at 1536px,
+      and is marked matching or an accepted deviation — **all 10 marked**; S8 carries the one
+      accepted deviation, with the two attempts that failed recorded above
+- [x] Everything that appears animated/glowing/in-motion in the reference is actually animated —
+      verified from `document.getAnimations()`, not from the stylesheet
+- [x] The reference image is not present anywhere in the shipped build — there is no `public/`
+      directory, no import and no CSS `url()` referencing it; the only occurrences of the string are
+      two source comments, and `grep` over `.next/static` finds nothing
+- [x] A final full-page screenshot at 1536px compared against the reference using the section map as
+      the checklist — `evidence/visual/final-composite-1536.png`, from a live run, all ten sections
+      present on one page
+- [x] No console errors, no regressions — clean on `/`, `/r/[id]` and at 1180/1000/820/390px;
+      `npm test` 57/57, `npm run test:live` 9/9, `npx tsc --noEmit` clean, `npm run build` succeeds
+
+## Noted, not fixed — outside this phase
+
+One live run returned a claim and adjudication **in French** for an English input
+("La prise de suppléments de vitamine C prévient le rhume commun"). That is claim-preparation
+prompt behaviour, not presentation, and this phase is a presentation-layer refactor — recorded here
+and in PROGRESS.md rather than changed under a visual brief.
