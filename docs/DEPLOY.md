@@ -9,12 +9,16 @@ If you need a public URL in the next thirty seconds — to put in a submission f
 mid-demo — tunnel the local app:
 
 ```bash
-./init.sh                # in one terminal: the app on :3000
-npm run share            # in another: prints a public https URL
+./init.sh --check              # confirm the key and the router first
+npm run build && npm start     # one terminal: the production app on :3000
+npm run share                  # another: prints a public https URL
 ```
 
 `npm run share` is `npx --yes localtunnel --port 3000`. It gives a real, working, publicly reachable
 URL backed by the machine you are sitting at, which is enough for judging and costs nothing.
+
+Use the production build rather than `./init.sh` for anything a judge will see: the dev server is
+slower under load and paints a development indicator into the corner of every screenshot.
 
 Two things to be clear-eyed about before you run it. The URL is only live while both that terminal
 and the app are running, so it is not a substitute for a real deployment if judging happens later.

@@ -12,9 +12,13 @@ The app is built and runs. What it needs is a public address.
 **Fastest, no account:**
 
 ```bash
-./init.sh        # terminal 1 — the app on :3000
-npm run share    # terminal 2 — prints a public https URL
+./init.sh --check              # confirm the key and the router first
+npm run build && npm start     # terminal 1 — the production app on :3000
+npm run share                  # terminal 2 — prints a public https URL
 ```
+
+Use the production build, not `./init.sh`: the dev server is slower and paints a development
+indicator into the corner of every screenshot.
 
 Paste that URL into the submission form. It is live for as long as both terminals are, and it is
 genuinely public — close it when judging is over. Anyone with the link spends the Gonka key's
