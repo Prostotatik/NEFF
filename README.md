@@ -6,6 +6,12 @@ Quorum is a fact checker that treats model agreement as a claim to be verified r
 evidence. Every inference runs on the [Gonka Network](https://gonkarouter.io) — eleven of them per
 check, each traceable to the node that served it.
 
+![The verdict card: three models agreed, and the agreement is worth one witness](evidence/verdict-card.png)
+
+*A real report. Three models agreed; one of them answered the same way to the claim **and** to its
+negation, so its vote was thrown out. What looks like unanimity is worth 1.0 independent witnesses,
+and the score is discounted to match.*
+
 ```
 ./init.sh          # clean checkout to a running demo, with a live Gonka connectivity check
 ```
