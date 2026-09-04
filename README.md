@@ -114,6 +114,30 @@ discarded and why.
   row, copy the request body, and re-run that exact step against the same gateway yourself
 - a permanent link to the report
 
+## What this does not do
+
+A tool whose whole argument is "your confidence is overstated" has no business overstating its own.
+
+- **The evidence anchors are self-reported.** A model can name a source it never read, or confabulate
+  one outright. Quorum does not treat an anchor as evidence *for the claim* — it never scores a
+  source's reliability — it uses anchors only as a **dependence signal**: two models describing the
+  same evidence base are behaving alike, which is informative about correlation whether or not the
+  base is real.
+- **A failed mirror probe costs a witness even when the network was at fault.** A model whose mirror
+  call times out cannot be shown to discriminate, so it is not counted. That is deliberately the
+  conservative direction — unmeasured is not the same as independent — and the report always says
+  which it was.
+- **The effective-sample-size correction assumes the agreeing models are exchangeable.** They are
+  not exactly: they differ in size and training. The estimator is a floor on how much the count
+  should be discounted, not a precise measurement of it.
+- **UNCERTAIN on both sides is scored as partial, not as an echo.** A model that is honestly unsure
+  about a claim and its negation is being consistent, not pattern-matching, and is not punished as
+  though it were.
+- **Three models is a small panel.** The mechanism generalises to more, and would report more
+  precisely with more; three is what the Gonka Router currently serves.
+- **A verdict is evidence, never proof.** Nothing here reaches 0 or 100, and a Truth Score is a
+  reason to go and look at the load-bearing fact, not a reason to stop looking.
+
 ## How it uses Gonka
 
 Every piece of reasoning in this application runs on `api.gonkarouter.io`. There is no other
