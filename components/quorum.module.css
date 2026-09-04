@@ -1824,8 +1824,28 @@
     grid-template-columns: 1fr;
   }
 
+  /* Stacked, the card is far wider than it is tall, so the scene moves beside
+     the copy rather than behind it — at full width it was sitting straight
+     under the headline. */
   .step {
-    min-height: 17rem;
+    min-height: 15rem;
+  }
+
+  .stepBody {
+    max-width: 26rem;
+  }
+
+  .stepScene {
+    right: 0;
+    bottom: 50%;
+    transform: translateY(50%);
+    width: 17rem;
+    height: 15rem;
+  }
+
+  .stepNumeral {
+    font-size: 5rem;
+    bottom: -0.4rem;
   }
 
   .metrics {
@@ -1914,6 +1934,28 @@
 
   .stage {
     height: 340px;
+  }
+
+  /* Narrower than the copy needs, so the scene drops below it and dims — a card
+     whose headline is unreadable over its own illustration is worse than one
+     with a smaller illustration. */
+  .step {
+    min-height: 20rem;
+    padding-bottom: 9rem;
+  }
+
+  .stepBody {
+    max-width: none;
+  }
+
+  .stepScene {
+    right: -1rem;
+    bottom: -1rem;
+    top: auto;
+    transform: none;
+    width: 13rem;
+    height: 12rem;
+    opacity: 0.75;
   }
 
   .satWrap,

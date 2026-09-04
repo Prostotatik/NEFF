@@ -230,7 +230,11 @@ characters of gateway prose into a 6rem cell (now the HTTP status where there is
 
 ### Responsiveness
 
-Checked at 1180 / 1000 / 820 / 390px. The orbital scene is composed at hero width, so below 1000px
+Checked at 1180 / 1000 / 820 / 390px, and re-checked after the illustrations were enlarged — which
+regressed the stacked cards: at full width the scene sat directly under the headline and body, so
+the copy was unreadable over its own illustration. Stacked, a probe card is far wider than it is
+tall, so below 1180px the scene moves *beside* the copy, and below 760px it drops below it at 13rem
+and 75% opacity with the card padded to make room. The orbital scene is composed at hero width, so below 1000px
 it scales as one object rather than letting its pieces collide, and below 760px the satellites are
 dropped entirely — the same per-model numbers are in the panel a screen further down, so nothing is
 lost. Zero console errors at every width. Screenshots: `resp-390.png`, `resp-820.png`,
