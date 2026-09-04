@@ -3,8 +3,8 @@
 **Three models agreeing is one witness if they all read the same page.**
 
 Quorum is a fact checker that treats model agreement as a claim to be verified rather than as
-evidence. Every inference runs on the [Gonka Network](https://gonkarouter.io) — eleven of them per
-check, each traceable to the node that served it.
+evidence. Every inference runs on the [Gonka Network](https://gonkarouter.io) — eleven per check, each
+traceable to the node that served it.
 
 ![The verdict card: three models agreed, and the agreement is worth zero witnesses](evidence/verdict-card.png)
 
@@ -41,8 +41,8 @@ comes an **Effective Witness Count**, and the truth score is shrunk to match.
 witnesses**, with the six answers that prove it. No vote can produce that sentence.
 
 **How to see it.** `./init.sh`, then click an example — or watch
-[the recording](evidence/pitch/pitch.mp4). All eleven inferences per check run on the Gonka Network,
-each listed with its request ID and serving node.
+[the recording](evidence/pitch/pitch.mp4). Every inference in a check — eleven of them, twelve if a
+node has to be replaced — runs on the Gonka Network, each listed with its request ID and serving node.
 
 **Why it is not a reskin.** Neither ingredient is new on its own — the estimator is standard, and
 auditing a model by checking its own consistency is
