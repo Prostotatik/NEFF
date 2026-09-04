@@ -377,12 +377,15 @@
   color: var(--paper-dim);
 }
 
+/* Sodium is reserved for the independence story — the effective count, and the
+   votes thrown out. A stance is not that, so the probe grid uses the verdict
+   palette instead. */
 .toneSupported {
-  color: var(--steel);
+  color: var(--verify);
 }
 
 .toneRefuted {
-  color: var(--sodium);
+  color: var(--refute);
 }
 
 .toneUncertain {
