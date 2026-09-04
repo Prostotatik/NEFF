@@ -182,7 +182,12 @@ real deployment it is four commands on Vercel. Both are in [`docs/DEPLOY.md`](do
 | `lib/score.ts` | the argument: discrimination, evidence overlap, Effective Witness Count, truth score |
 | `lib/prompts.ts` | the neutrality prompts, and why the mirror probe has to be blind |
 | `lib/verify.ts` | the 11-call run, streamed as each node answers |
+| `lib/extract.ts` | reading a pasted URL, and the SSRF guard that runs inside the connection |
 | `components/Report.tsx` | verdict card, panel, receipt ledger |
+| `tools/record-pitch.mjs` | records the pitch video by driving the real app through real runs |
+| `tools/browser-check.mjs` | drives the app in a browser and reports what it saw; how features get verified |
+| `SUBMISSION.md` | the three deliverables, and the command that finishes each |
 | `PRIOR_ART.md` | the originality search |
 | `JUDGING_CRITERIA.md` | the organizers' criteria, quoted verbatim, and what serves each |
 | `DECISIONS.md` | every judgement call made without a human, and why |
+| `PROGRESS.md` | what broke, and what did not work — including the router behaviour that cost the most time |
