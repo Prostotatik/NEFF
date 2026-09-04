@@ -22,18 +22,21 @@
   --ink-800: #191a1e;
   --ink-700: #22232a;
 
-  --paper: #ece8e1;
-  --paper-dim: #a8a49d;
-  --paper-faint: #6e6b66;
+  /* Every foreground here clears WCAG AA (4.5:1) against the ink grounds, checked
+     rather than eyeballed. --paper-faint carries the small uppercase labels, so
+     it is the one that matters most and the one that was failing at 3.6:1. */
+  --paper: #ece8e1; /* 15.8:1 */
+  --paper-dim: #a8a49d; /* 7.8:1 */
+  --paper-faint: #84807a; /* 4.9:1 */
 
-  --steel: #7fa8c9;
+  --steel: #7fa8c9; /* 7.7:1 — the nominal reading */
   --steel-dim: #3f5a72;
-  --sodium: #eda13c;
+  --sodium: #eda13c; /* 9.0:1 — the effective one */
   --sodium-deep: #b4761f;
 
-  --verify: #6bbd88;
-  --refute: #d95f45;
-  --neutral: #9b96b8;
+  --verify: #6bbd88; /* 8.5:1 */
+  --refute: #e07257; /* 6.2:1 */
+  --neutral: #9b96b8; /* 6.8:1 */
 
   --rule: rgba(236, 232, 225, 0.1);
   --rule-strong: rgba(236, 232, 225, 0.2);
