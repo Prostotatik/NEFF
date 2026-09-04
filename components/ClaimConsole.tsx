@@ -1,16 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PANEL, labelFor } from "@/lib/models";
+import { CALLS_PER_RUN, PANEL, labelFor } from "@/lib/models";
 import type { ClaimPrep, ProbeResult, ReceiptView, RunEvent, VerificationRun } from "@/lib/types";
 import { Report } from "./Report";
 import s from "./quorum.module.css";
 
-const EXAMPLES = [
-  "Taking vitamin C supplements prevents the common cold.",
-  "The Great Wall of China is visible from the Moon with the naked eye.",
-  "Norway's sovereign wealth fund owns roughly 1.5% of all listed companies worldwide.",
-  "https://en.wikipedia.org/wiki/Streisand_effect",
+/**
+ * The examples are ordered by how sharply each one exercises the mechanism, not
+ * by topic. The first two have repeatedly produced a high nominal consensus next
+ * to a low witness count; the third and fourth are here precisely because they
+ * do not always, and a metric that only ever says "echo" would be worthless.
+ */
+const EXAMPLES: Array<{ label: string; input: string }> = [
+  { label: "Taking vitamin C supplements prevents the common cold.", input: "Taking vitamin C supplements prevents the common cold." },
+  { label: "a linked article", input: "https://en.wikipedia.org/wiki/Streisand_effect" },
+  { label: "The Great Wall of China is visible from the Moon…", input: "The Great Wall of China is visible from the Moon with the naked eye." },
+  { label: "Norway's sovereign wealth fund owns ~1.5% of listed shares", input: "Norway's sovereign wealth fund owns roughly 1.5% of all listed companies worldwide." },
 ];
 
 const PROBE_TITLE: Record<ProbeResult["kind"], string> = {
@@ -34,17 +40,21 @@ export function ClaimConsole() {
   const [run, setRun] = useState<VerificationRun | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // `running` in state drives the UI; the ref is what guards re-entry, because
+  // the state value captured in this callback is a render behind.
+  const runningRef = useRef(false);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const start = useCallback(
     async (value: string) => {
       const claim = value.trim();
-      if (claim.length < 8 || running) return;
+      if (claim.length < 8 || runningRef.current) return;
 
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
+      runningRef.current = true;
 
       setRunning(true);
       setError(null);
@@ -96,8 +106,15 @@ export function ClaimConsole() {
           setError(err instanceof Error ? err.message : "Something went wrong during verification.");
         }
       } finally {
-        setRunning(false);
-        setStage(null);
+        // Only the run that still owns the abort controller may clear the
+        // running flag. Without this, an aborted run's teardown re-enables the
+        // button underneath the run that replaced it, and a third click opens a
+        // third concurrent stream.
+        if (abortRef.current === controller) {
+          runningRef.current = false;
+          setRunning(false);
+          setStage(null);
+        }
       }
 
       function applyEvent(event: RunEvent) {
@@ -123,11 +140,29 @@ export function ClaimConsole() {
         }
       }
     },
-    [running],
+    // Nothing in this callback reads state that changes between runs — re-entry
+    // is guarded by runningRef — so it never needs to be rebuilt.
+    [],
   );
+
+  const engaged = running || Boolean(run) || probes.length > 0;
 
   return (
     <>
+      <header className={`${s.hero} ${engaged ? s.heroCompact : ""}`}>
+        <p className="eyebrow">
+          Independence-weighted fact verification · every inference on Gonka
+        </p>
+        <h1 className={s.thesis}>
+          Three models agreeing is <em>one witness</em> if they all read the same page.
+        </h1>
+        <p className={s.subthesis}>
+          Quorum does not count votes. It probes each model with the claim, with the claim negated,
+          and with a demand for its sources — then reports how many genuinely independent witnesses
+          are behind the verdict, and discounts the truth score by it.
+        </p>
+      </header>
+
       <form
         className={s.console}
         onSubmit={(e) => {
@@ -140,7 +175,7 @@ export function ClaimConsole() {
             className={s.input}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Paste a claim, a tweet, or a link to an article…"
+            placeholder="Paste a claim, the text of a post, or a link to an article…"
             spellCheck={false}
             disabled={running}
             onKeyDown={(e) => {
@@ -159,16 +194,16 @@ export function ClaimConsole() {
           <span className={s.examplesLabel}>Try</span>
           {EXAMPLES.map((example) => (
             <button
-              key={example}
+              key={example.input}
               type="button"
               className={s.example}
               disabled={running}
               onClick={() => {
-                setInput(example);
-                void start(example);
+                setInput(example.input);
+                void start(example.input);
               }}
             >
-              {example.startsWith("http") ? "a linked article" : shorten(example)}
+              {example.label}
             </button>
           ))}
         </div>
@@ -178,7 +213,7 @@ export function ClaimConsole() {
 
       <PanelStatus />
 
-      {running || (probes.length > 0 && !run) ? (
+      {(running || (probes.length > 0 && !run)) && !error ? (
         <LiveRun stage={stage} prep={prep} probes={probes} receipts={receipts} />
       ) : null}
 
@@ -194,10 +229,6 @@ export function ClaimConsole() {
       ) : null}
     </>
   );
-}
-
-function shorten(text: string): string {
-  return text.length > 46 ? `${text.slice(0, 44)}…` : text;
 }
 
 /**
@@ -227,7 +258,7 @@ function LiveRun({
           <span className={s.stageDot} aria-hidden="true" />
           <span>{stage.detail}</span>
           <span className={s.dim}>
-            · {receipts.length} of 11 inferences returned
+            · {receipts.length} of {CALLS_PER_RUN} inferences returned
           </span>
         </div>
       ) : null}

@@ -15,9 +15,12 @@ export interface PanelModel {
   /** Two-letter sigil used in dense views. */
   sigil: string;
   /**
-   * Per-call ceiling in ms. Measured, not guessed: Kimi-K2.6 is materially
-   * slower than the other two and needs a longer leash or it drops out of every
-   * run and silently costs us a witness.
+   * Per-call ceiling in ms. Measured, not guessed. Two failure modes pull in
+   * opposite directions: too short and a slow node drops out of every run,
+   * silently costing the panel a witness; too long and one hung call holds the
+   * whole verification open. Observed: an individual probe occasionally hangs
+   * well past its normal latency, so these are set near the slowest *healthy*
+   * response for each model rather than at the worst case.
    */
   timeoutMs: number;
   /**
@@ -43,7 +46,7 @@ export const PANEL: PanelModel[] = [
     label: "DeepSeek V4 Flash",
     house: "deepseek-ai",
     sigil: "DS",
-    timeoutMs: 90_000,
+    timeoutMs: 45_000,
     maxTokens: 1400,
   },
   {
@@ -51,7 +54,7 @@ export const PANEL: PanelModel[] = [
     label: "MiniMax M2.7",
     house: "MiniMaxAI",
     sigil: "MM",
-    timeoutMs: 150_000,
+    timeoutMs: 70_000,
     maxTokens: 3200,
   },
   {
@@ -59,7 +62,7 @@ export const PANEL: PanelModel[] = [
     label: "Kimi K2.6",
     house: "moonshotai",
     sigil: "KM",
-    timeoutMs: 180_000,
+    timeoutMs: 60_000,
     maxTokens: 2000,
     chatTemplateKwargs: { thinking: false },
   },
@@ -67,6 +70,13 @@ export const PANEL: PanelModel[] = [
 
 /** The model that writes the closing adjudication. Fastest of the panel. */
 export const ADJUDICATOR = PANEL[0];
+
+/**
+ * Inferences in a nominal run: one claim preparation, three probes per model,
+ * one closing adjudication. A run can exceed this if the adjudicator has to be
+ * failed over to another node, which the receipt ledger shows.
+ */
+export const CALLS_PER_RUN = 1 + PANEL.length * 3 + 1;
 
 export function modelByHouse(id: string): PanelModel | undefined {
   return PANEL.find((m) => m.id === id);

@@ -1,7 +1,7 @@
 ---
 name: design-critic
 description: Judges rendered screenshots of the running app against the Phase 4 design bar and names generic-template smell explicitly. Cannot pass anything it has only read as code — it must look at pixels.
-tools: Read, Bash, Glob, Grep, ToolSearch, mcp__claude-in-chrome__tabs_context_mcp, mcp__claude-in-chrome__tabs_create_mcp, mcp__claude-in-chrome__tabs_close_mcp, mcp__claude-in-chrome__navigate, mcp__claude-in-chrome__computer, mcp__claude-in-chrome__resize_window
+tools: Read, Bash, Glob, Grep
 model: sonnet
 ---
 
@@ -11,9 +11,16 @@ forbidden as the basis for a verdict.
 
 ## Procedure
 
-1. Open the running app and capture the key screens at 1440px wide: the empty landing state, a
-   verification mid-run, and the finished report including the verdict card and the receipt ledger.
-   Capture the finished report again at 390px wide. Save under `evidence/design/`.
+1. Capture the key screens with headless Chrome and Read each PNG:
+
+   ```
+   "/c/Program Files/Google/Chrome/Application/chrome.exe" --headless=new --disable-gpu      --hide-scrollbars --virtual-time-budget=8000 --window-size=1440,1600      --screenshot="E:\Projects\GONKA_TRACK\evidence\design\<name>.png" http://localhost:3000/<path>
+   ```
+
+   Capture at 1440px wide: the empty landing state, and the finished report — the verdict card, the
+   panel, and the receipt ledger. Capture the finished report again at 390px wide. Ask the caller for
+   a report id, or find one under `.runs/`. Save everything under `evidence/design/`.
+   (The Claude-in-Chrome extension is not connected on this machine — see PROGRESS.md.)
 2. Judge each screenshot on:
    - **Point of view** — a specific, deliberate type pairing, color system and density choice,
      applied consistently? Or whatever the framework shipped with?

@@ -41,6 +41,8 @@ before it can reach a log line or an HTTP response.
 
 ## The eleven calls in a verification
 
+(Twelve if the closing adjudication has to be failed over to another node, which the ledger shows.)
+
 | # | Purpose | Model | What it does |
 |---|---|---|---|
 | 1 | `prep` | DeepSeek V4 Flash | reduces the input to one checkable claim and its faithful negation |
@@ -89,6 +91,10 @@ All measured against the live gateway, not assumed:
 - **Bursts are rate limited.** Nine concurrent probes reliably drew HTTP 429 and Cloudflare 524.
   Calls are gated at four in flight and retried up to three times with exponential backoff and
   jitter. Retries are counted on the receipt, so the ledger stays honest about what a run cost.
+- **One node can hang far past its normal latency.** Per-model timeouts sit near the slowest *healthy*
+  response (45–70s), and the whole probe phase has a 75-second ceiling: a probe still waiting when the
+  budget runs out is cut and reported as unreachable, which costs the panel a visible witness rather
+  than costing the user the verdict.
 - **Chain of thought is billed against `max_tokens`.** MiniMax M2.7 emits it inline in a
   `<think>` block; Kimi K2.6 returns it in a separate `reasoning` field. A budget sized for the
   answer alone makes either return nothing at all, with `finish_reason: "length"` and empty content.
@@ -106,5 +112,14 @@ All measured against the live gateway, not assumed:
 When the input is a URL, `lib/extract.ts` fetches that page and strips it to text. That is retrieval
 over the public web, not model inference, and no model outside the Gonka Network is involved at any
 point — the fetched text is handed straight to Gonka-hosted models, which do all the reasoning about
-it. The fetch is guarded against SSRF: only `http`/`https`, no redirects, and any host resolving to a
-loopback, private, link-local or carrier-grade-NAT address is refused.
+it.
+
+The fetch is guarded against SSRF, and the guard sits **inside the connection** rather than in front
+of it: the socket's own DNS resolver is wrapped, so the address the request connects to is the address
+that was checked. Validating a hostname with a separate lookup and then handing the *name* to a fetch
+would let an attacker answer the two lookups differently — a public address for the check, a metadata
+endpoint for the connection. Only `http` and `https` are allowed; any host resolving to a loopback,
+private, link-local, carrier-grade-NAT or multicast address is refused; redirects are followed at most
+three times and every hop is revalidated the same way; the body is read incrementally and abandoned at
+2 MB so an endless response cannot exhaust memory. Hosts that block server-side reads — X, Facebook,
+Instagram, LinkedIn, Threads — return an instruction to paste the post's text instead of a failure.

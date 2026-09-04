@@ -3,8 +3,8 @@
 **Three models agreeing is one witness if they all read the same page.**
 
 Quorum is a fact checker that treats model agreement as a claim to be verified rather than as
-evidence. Every inference runs on the [Gonka Network](https://gonkarouter.io) — 11 of them per check,
-each traceable to the node that served it.
+evidence. Every inference runs on the [Gonka Network](https://gonkarouter.io) — eleven of them per
+check, each traceable to the node that served it.
 
 ```
 ./init.sh          # clean checkout to a running demo, with a live Gonka connectivity check
@@ -18,10 +18,16 @@ The obvious decentralised fact checker asks N models "is this true?", averages t
 prints a confident number. Its whole claim to neutrality is that several independent models agreed.
 
 They are not independent. Frontier language models share pretraining corpora, distillation ancestry
-and alignment pipelines, and their errors correlate strongly as a result — measured at r ≈ 0.77 in
-[arXiv:2604.07650](https://arxiv.org/abs/2604.07650v1), which puts three frontier models at roughly
-1.3 independent ones. Majority voting only beats a single model when errors are *uncorrelated*; that
-is the premise of the Condorcet Jury Theorem, and it is exactly the premise a panel of LLMs violates.
+and alignment pipelines, and they make the same mistakes as a result.
+[*Nine Judges, Two Effective Votes*](https://arxiv.org/abs/2605.29800) measures a panel of nine LLM
+judges and finds it "effectively provide[s] only about 2 independent votes' worth of information" —
+three quarters of the panel's nominal independence lost to correlated error, and an accuracy gap of
+8–22 points against what genuinely independent voting would achieve.
+[arXiv:2604.07650](https://arxiv.org/abs/2604.07650v1) finds the same thing from the other direction:
+the more entangled the judges, the worse the bias, and reweighting by measured independence beats
+majority voting by up to 4.5%. Majority voting only improves on a single model when errors are
+*uncorrelated* — that is the premise of the Condorcet Jury Theorem, and it is exactly the premise a
+panel of LLMs violates.
 
 So the naive design fails in the worst possible direction: it is *most* confident precisely when the
 models are wrong together. A unanimous panel prints 95% and moves on.
@@ -40,15 +46,22 @@ Those two measurements produce the number the whole product exists to report:
 
 > **Effective Witness Count** — how many genuinely independent verifiers are behind a verdict.
 
-It is Kish's effective sample size for correlated observations:
+It is Kish's effective sample size for correlated observations — the standard design-effect
+correction, already applied to LLM panels in *Nine Judges, Two Effective Votes*:
 
 ```
 EWC = k / (1 + (k − 1) · ρ)
 ```
 
 where `k` is the count of agreeing models weighted by whether each passed its mirror probe, and `ρ`
-is their measured evidence overlap. Three models on three distinct sources gives 3. Three models on
-one source gives exactly 1. A panel where every model failed the mirror probe gives 0.
+is their measured evidence overlap. The estimator is not the contribution here; measuring `ρ` per
+claim, at query time, from the models' own stated evidence — and putting the result in front of the
+reader as part of the verdict — is. When a model will not name a source, `ρ` for that pair cannot be
+measured, and a documented prior is used instead and **labelled as assumed on screen**; the prior is
+derived by inverting the same estimator on that paper's nine-judges-two-votes result, giving 0.44.
+
+Three models on three distinct sources gives 3. Three models on one source gives exactly 1. A panel
+where every model failed the mirror probe gives 0.
 
 The truth score is then shrunk toward "unresolved" by `EWC / (EWC + 1)`, so a verdict can only be as
 confident as the independent evidence behind it — and **no verdict ever reaches 0 or 100**, because a
@@ -67,8 +80,10 @@ home screen:
   REFUTED to its negation.** Its vote is thrown out with the transcript of both answers shown side by
   side. Two coherent witnesses remain, worth 1.2 after their evidence overlap is priced in.
 
-The second one is the point. No other fact checker can tell you that one of its verifiers wasn't
-actually reading.
+The second one is the point. Products exist that flag a single model's answer as low-trust —
+Cleanlab's Trustworthy Language Model scores self-consistency across resamples, for instance. What
+none of them report is *how many independent witnesses stand behind a verdict*, with the probe
+transcript that shows which one was discarded and why.
 
 ## What you get back
 
@@ -77,9 +92,9 @@ actually reading.
 - the **load-bearing fact** the verdict rests on, and **what evidence would flip it**
 - a **panel view**: every model's stance, confidence, reasoning, evidence base, and its answer to the
   mirror probe next to its answer to the claim
-- a **receipt ledger**: every one of the 11 inferences with its Gonka request id, the devshard node
-  that served it, the engine build, latency, tokens, and the full request and response — click any
-  row and re-run that exact step against the same gateway yourself
+- a **receipt ledger**: every inference in the run with its Gonka request id, the devshard node
+  that served it, the engine build, latency, tokens, and the full request and response — expand any
+  row, copy the request body, and re-run that exact step against the same gateway yourself
 - a permanent link to the report
 
 ## How it uses Gonka

@@ -13,6 +13,7 @@
  */
 
 import "server-only";
+import { randomBytes } from "node:crypto";
 
 import { GonkaError, gonkaChat, type GonkaReceipt } from "./gonka";
 import { ADJUDICATOR, PANEL, labelFor } from "./models";
@@ -36,8 +37,6 @@ import type {
   VerificationRun,
   WitnessAssessment,
 } from "./types";
-
-export const CALLS_PER_RUN = 1 + PANEL.length * 3 + 1;
 
 function toView(receipt: GonkaReceipt): ReceiptView {
   return {
@@ -72,6 +71,16 @@ function toView(receipt: GonkaReceipt): ReceiptView {
  */
 const MAX_IN_FLIGHT = 4;
 
+/**
+ * Hard ceiling on the whole probe phase.
+ *
+ * A verification is a live demo, not a batch job. One node hanging must not hold
+ * the report open indefinitely, so a probe still waiting when the budget runs out
+ * is cut and reported as unreachable — which costs the panel a witness, visibly,
+ * rather than costing the user the verdict.
+ */
+const PROBE_PHASE_BUDGET_MS = 75_000;
+
 /** Admission control for outbound Gonka calls. */
 function createGate(limit: number) {
   let active = 0;
@@ -83,19 +92,37 @@ function createGate(limit: number) {
       return await job();
     } finally {
       active--;
+      // Always release the next waiter, including when the job threw — otherwise
+      // one failure strands every probe still queued behind it.
       queue.shift()?.();
     }
   };
 }
 
-/** Yield results in completion order rather than argument order. */
+/**
+ * Yield results in completion order rather than argument order.
+ *
+ * A rejection is isolated to its own slot: one failed probe must never discard
+ * the probes that already landed. `runProbe` catches everything today, so this
+ * is belt and braces on the invariant that a lost node costs a witness, not the
+ * verification.
+ */
 async function* asCompleted<T>(promises: Promise<T>[]): AsyncGenerator<T> {
-  const pending = new Map<number, Promise<{ index: number; value: T }>>();
-  promises.forEach((p, index) => pending.set(index, p.then((value) => ({ index, value }))));
+  type Settled = { index: number; value: T; failed: false } | { index: number; failed: true };
+  const pending = new Map<number, Promise<Settled>>();
+  promises.forEach((p, index) =>
+    pending.set(
+      index,
+      p.then(
+        (value) => ({ index, value, failed: false as const }),
+        () => ({ index, failed: true as const }),
+      ),
+    ),
+  );
   while (pending.size > 0) {
-    const { index, value } = await Promise.race(pending.values());
-    pending.delete(index);
-    yield value;
+    const settled = await Promise.race(pending.values());
+    pending.delete(settled.index);
+    if (!settled.failed) yield settled.value;
   }
 }
 
@@ -109,9 +136,14 @@ async function runProbe(
   model: (typeof PANEL)[number],
   claim: string,
   negation: string,
+  deadline: number,
+  signal?: AbortSignal,
 ): Promise<ProbeOutcome> {
   const messages =
     kind === "direct" ? directPrompt(claim) : kind === "mirror" ? mirrorPrompt(negation) : anchorPrompt(claim);
+  // Whichever runs out first: this model's own ceiling, or what is left of the
+  // phase budget for a probe that waited its turn at the gate.
+  const timeoutMs = Math.max(5_000, Math.min(model.timeoutMs, deadline - Date.now()));
 
   try {
     const { text, receipt } = await gonkaChat({
@@ -119,8 +151,9 @@ async function runProbe(
       messages,
       purpose: kind,
       maxTokens: model.maxTokens,
-      timeoutMs: model.timeoutMs,
+      timeoutMs,
       chatTemplateKwargs: model.chatTemplateKwargs,
+      signal,
     });
 
     const parsed = parseJsonObject<Record<string, unknown>>(text);
@@ -221,6 +254,11 @@ function independenceSummary(
   witnesses: WitnessAssessment[],
   consensus: ReturnType<typeof computeConsensus>,
 ): string {
+  // The adjudicator writes prose that ends up in front of the reader, so it must
+  // never be handed a number the reader would see flagged. Two traps: a witness
+  // whose overlap was never computed has sharedAnchorRatio 0, which reads as
+  // "no overlap", and an overlap filled in from the documented prior is not an
+  // observation. Both are labelled here, or omitted.
   const lines = witnesses
     .filter((w) => w.reachable)
     .map((w) => {
@@ -228,16 +266,31 @@ function independenceSummary(
         w.discriminationVerdict === "echo"
           ? `gave the same answer (${w.stance}) to the claim AND to its negation, so its vote carries no information`
           : w.discriminationVerdict === "coherent"
-            ? `answered the claim and its negation in opposite directions, so it is tracking the fact`
+            ? "answered the claim and its negation in opposite directions, so it is tracking the fact"
             : w.discriminationVerdict === "partial"
-              ? `was decisive one way and uncertain the other`
-              : `could not be tested for consistency`;
-      return `- ${labelFor(w.modelId)} ${mirror}. Evidence overlap with the models that agree with it: ${Math.round(w.sharedAnchorRatio * 100)}%.`;
+              ? "was decisive one way and uncertain the other"
+              : "could not be tested for consistency";
+
+      const agreesWithOthers =
+        w.stance === consensus.majorityStance && consensus.nominalAgree > 1;
+      const overlap = !agreesWithOthers
+        ? "It does not sit inside the agreeing group, so evidence overlap does not apply to it."
+        : w.sharedAnchorMeasured
+          ? `Measured evidence overlap with the models that agree with it: ${Math.round(w.sharedAnchorRatio * 100)}%.`
+          : `Its evidence overlap could not be measured because a model named no source; ${Math.round(w.sharedAnchorRatio * 100)}% is an assumed default, not an observation.`;
+
+      return `- ${labelFor(w.modelId)} ${mirror}. ${overlap}`;
     });
+
+  const rho = consensus.nominalAgree > 1
+    ? consensus.overlapMeasured
+      ? `Mean measured evidence overlap inside that agreeing group: ${Math.round(consensus.meanAnchorOverlap * 100)}%.`
+      : `Evidence overlap inside that agreeing group could not be fully measured, because at least one model named no source. ${Math.round(consensus.meanAnchorOverlap * 100)}% is an assumed default and must be described as an assumption, never as an observation.`
+    : "Only one model holds the leading position, so there is no overlap to measure.";
 
   return [
     `Nominal agreement: ${consensus.nominalAgree} of ${consensus.respondents} models that answered.`,
-    `Mean evidence overlap inside that agreeing group: ${Math.round(consensus.meanAnchorOverlap * 100)}%.`,
+    rho,
     `Effective Witness Count after discounting echoes and shared evidence: ${consensus.effectiveWitnesses}.`,
     ...lines,
   ].join("\n");
@@ -248,7 +301,10 @@ function independenceSummary(
  * Never throws for an individual model failure — a lost node degrades the
  * Effective Witness Count and is reported, rather than ending the run.
  */
-export async function* verify(input: string): AsyncGenerator<RunEvent, void, void> {
+export async function* verify(
+  input: string,
+  signal?: AbortSignal,
+): AsyncGenerator<RunEvent, void, void> {
   const startedAt = Date.now();
   const receipts: ReceiptView[] = [];
   const probes: ProbeResult[] = [];
@@ -288,6 +344,7 @@ export async function* verify(input: string): AsyncGenerator<RunEvent, void, voi
       purpose: "prep",
       maxTokens: 900,
       timeoutMs: ADJUDICATOR.timeoutMs,
+      signal,
     });
     const receiptIndex = pushReceipt(receipt);
     yield { type: "receipt", receipt: receipts[receiptIndex] };
@@ -330,13 +387,14 @@ export async function* verify(input: string): AsyncGenerator<RunEvent, void, voi
   };
 
   const gate = createGate(MAX_IN_FLIGHT);
+  const deadline = Date.now() + PROBE_PHASE_BUDGET_MS;
   // Slowest models first: their probes are what the wall clock is waiting on, so
   // they should be the first through the gate, not the last.
   const order = [...PANEL].sort((a, b) => b.timeoutMs - a.timeoutMs);
   const jobs: Promise<ProbeOutcome>[] = [];
   for (const kind of ["direct", "mirror", "anchor"] as const) {
     for (const model of order) {
-      jobs.push(gate(() => runProbe(kind, model, prep.claim, prep.negation)));
+      jobs.push(gate(() => runProbe(kind, model, prep.claim, prep.negation, deadline, signal)));
     }
   }
 
@@ -368,38 +426,62 @@ export async function* verify(input: string): AsyncGenerator<RunEvent, void, voi
     contention: "",
   };
 
-  try {
-    const { text, receipt } = await gonkaChat({
-      model: ADJUDICATOR.id,
-      messages: adjudicationPrompt(
-        prep.claim,
-        prep.negation,
-        panelSummary(witnesses, probes),
-        independenceSummary(witnesses, consensus),
-      ),
-      purpose: "adjudicate",
-      maxTokens: 900,
-      timeoutMs: ADJUDICATOR.timeoutMs,
-    });
-    const receiptIndex = pushReceipt(receipt);
-    yield { type: "receipt", receipt: receipts[receiptIndex] };
+  const messages = adjudicationPrompt(
+    prep.claim,
+    prep.negation,
+    panelSummary(witnesses, probes),
+    independenceSummary(witnesses, consensus),
+  );
 
-    const parsed = parseJsonObject<Record<string, unknown>>(text);
-    adjudication = {
-      loadBearingFact: textField(parsed?.load_bearing_fact, 400),
-      falsifier: textField(parsed?.falsifier, 400),
-      agreementDiagnosis: textField(parsed?.agreement_diagnosis, 600),
-      contention: textField(parsed?.contention, 400),
-    };
-  } catch (error) {
-    if (error instanceof GonkaError) {
-      const receiptIndex = pushReceipt(error.receipt);
+  // The closing note is the most-read part of the report, and losing one node
+  // should not blank three cells of it. If the usual adjudicator does not
+  // answer, the next model on the panel writes it — every one of them is on the
+  // Gonka Network, so failing over changes nothing about where the reasoning
+  // happens.
+  const adjudicators = [ADJUDICATOR, ...PANEL.filter((m) => m.id !== ADJUDICATOR.id)];
+
+  for (const model of adjudicators) {
+    if (signal?.aborted) break;
+    try {
+      const { text, receipt } = await gonkaChat({
+        model: model.id,
+        messages,
+        purpose: "adjudicate",
+        maxTokens: Math.max(900, model.maxTokens),
+        timeoutMs: model.timeoutMs,
+        chatTemplateKwargs: model.chatTemplateKwargs,
+        maxAttempts: 2,
+        signal,
+      });
+      const receiptIndex = pushReceipt(receipt);
       yield { type: "receipt", receipt: receipts[receiptIndex] };
+
+      const parsed = parseJsonObject<Record<string, unknown>>(text);
+      const candidate: Adjudication = {
+        loadBearingFact: textField(parsed?.load_bearing_fact, 400),
+        falsifier: textField(parsed?.falsifier, 400),
+        agreementDiagnosis: textField(parsed?.agreement_diagnosis, 600),
+        contention: textField(parsed?.contention, 400),
+      };
+      // An answer that came back unreadable is not an answer; try the next node
+      // rather than showing the reader three empty cells.
+      if (candidate.loadBearingFact || candidate.falsifier || candidate.agreementDiagnosis) {
+        adjudication = candidate;
+        break;
+      }
+    } catch (error) {
+      if (error instanceof GonkaError) {
+        const receiptIndex = pushReceipt(error.receipt);
+        yield { type: "receipt", receipt: receipts[receiptIndex] };
+      }
     }
+  }
+
+  if (!adjudication.loadBearingFact && !adjudication.agreementDiagnosis) {
     // The verdict and its independence measurement do not depend on this call.
     // Say the closing note is missing rather than inventing one.
     adjudication.agreementDiagnosis =
-      "The closing note could not be produced: that Gonka node did not answer. The verdict, the probe transcript and the independence measurement above are unaffected.";
+      "The closing note could not be produced: no node on the panel returned one. The verdict, the probe transcript and the independence measurement above are unaffected — they come from the probes, not from this step.";
   }
 
   const run: VerificationRun = {
@@ -425,9 +507,16 @@ export async function* verify(input: string): AsyncGenerator<RunEvent, void, voi
   yield { type: "done", run };
 }
 
+/**
+ * Report ids address unauthenticated pages that echo whatever the user pasted,
+ * so they must not be guessable. `Math.random()` is a predictable PRNG whose
+ * state can be recovered from a handful of outputs; this is drawn from the
+ * system CSPRNG instead.
+ */
 function newRunId(): string {
   const alphabet = "abcdefghijkmnpqrstuvwxyz23456789";
+  const bytes = randomBytes(12);
   let id = "";
-  for (let i = 0; i < 10; i++) id += alphabet[Math.floor(Math.random() * alphabet.length)];
+  for (const byte of bytes) id += alphabet[byte % alphabet.length];
   return id;
 }

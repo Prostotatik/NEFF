@@ -124,17 +124,26 @@ export function anchorOverlap(a: string[], b: string[]): number {
  *
  * Zero would be the convenient answer and it is the wrong one: it would score a
  * panel that refuses to cite anything as *maximally independent*, inflating
- * confidence exactly where we know least. The prior used instead is the
- * measured error correlation between frontier language models reported in
- * "How Independent are Large Language Models?" (arXiv:2604.07650), r = 0.77 —
- * models sharing pretraining corpora, distillation ancestry and alignment
- * pipelines are strongly dependent by default, and the burden of proof is on
- * showing independence, not on assuming it.
+ * confidence exactly where we know least. Models sharing pretraining corpora,
+ * distillation ancestry and alignment pipelines are dependent by default, and
+ * the burden of proof belongs on showing independence rather than on assuming it.
  *
- * Every place this prior is used is reported to the user as assumed rather than
- * measured. It is never silently mixed in with the measured numbers.
+ * The value is derived, not picked. "Nine Judges, Two Effective Votes"
+ * (arXiv:2605.29800) reports that a panel of 9 LLM judges "effectively provide
+ * only about 2 independent votes' worth of information". Inverting the same
+ * effective-sample-size estimator this file uses:
+ *
+ *     2 = 9 / (1 + 8p)   =>   p = 0.4375
+ *
+ * So an unmeasurable pair is treated as roughly as dependent as the panels in
+ * that study — a published measurement rather than a number that happens to
+ * produce a striking demo.
+ *
+ * Every place this prior is used is reported to the user, and to the
+ * adjudicating model, as assumed rather than measured. It is never silently
+ * mixed in with the measured numbers.
  */
-export const ASSUMED_OVERLAP = 0.77;
+export const ASSUMED_OVERLAP = 0.44;
 
 export interface PairOverlap {
   value: number;
@@ -266,7 +275,12 @@ function majorityStance(witnesses: WitnessAssessment[]): Stance | null {
 /**
  * Effective Witness Count.
  *
- * Kish's effective sample size for correlated observations:
+ * Kish's effective sample size for correlated observations. The estimator is not
+ * ours: it is the standard design-effect correction, and it has already been
+ * applied to panels of language models in "Nine Judges, Two Effective Votes"
+ * (arXiv:2605.29800). What is ours is measuring rho per claim, at query time,
+ * from the models' own stated evidence, and reporting the result to the reader
+ * as part of the verdict.
  *   n_eff = k / (1 + (k - 1) * rho)
  * with k the discrimination-weighted number of agreeing models and rho their
  * mean pairwise evidence overlap. Three models with no shared evidence give 3;
@@ -276,7 +290,12 @@ function majorityStance(witnesses: WitnessAssessment[]): Stance | null {
 export function effectiveWitnesses(k: number, rho: number): number {
   if (k <= 0) return 0;
   const clamped = Math.min(Math.max(rho, 0), 1);
-  return k / (1 + (k - 1) * clamped);
+  // Kish's formula assumes k >= 1. Below that the (k - 1) term goes negative and
+  // the ratio *grows* with correlation: k = 0.5 at rho = 1 would report a full
+  // independent witness out of half a witness, inflating confidence exactly
+  // where the panel is weakest. The effective count can never exceed the
+  // nominal one.
+  return Math.min(k, k / (1 + (k - 1) * clamped));
 }
 
 export function computeConsensus(witnesses: WitnessAssessment[]): Consensus {
@@ -372,6 +391,9 @@ function headlineFor(label: VerdictLabel, consensus: Consensus): string {
   const { nominalAgree, respondents, effectiveWitnesses: ewc } = consensus;
   const vote = `${nominalAgree}/${respondents}`;
 
+  if (respondents === 0) {
+    return "No model on the panel returned a usable answer, so there is no verdict to report. The receipt ledger below shows what each Gonka node did instead.";
+  }
   if (label === "NO SIGNAL") {
     return `The panel produced no usable evidence: ${vote} agreed, but every agreeing model also affirmed the opposite claim, so the agreement carries no information.`;
   }

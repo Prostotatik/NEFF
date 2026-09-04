@@ -25,9 +25,10 @@ ledger contain no key, but a network panel would show the Authorization header.
 > Every AI fact checker works the same way. Ask several models, count the votes, print a confidence
 > score. The whole promise is that independent models agreed.
 >
-> They are not independent. Frontier models share training data, and their errors correlate at about
-> 0.77 — three models are worth roughly one and a third. Which means these systems are most confident
-> exactly when the models are wrong together.
+> They are not independent. Frontier models share training data and make the same mistakes. Measure a
+> panel of nine of them, as a 2026 paper did, and you get about two independent votes' worth of
+> information. Which means these systems are most confident exactly when the models are wrong
+> together.
 
 *Shot: the Quorum landing page, static. The headline on screen is doing this work for you.*
 
@@ -77,11 +78,12 @@ above "on its negation: REFUTED".*
 
 *Shot: scroll to the receipt ledger and expand one row.*
 
-> Every inference has a Gonka request id and the id of the node that served it. Click any row and you
-> get the exact request and the raw response — re-run it against the same gateway yourself.
+> Every inference has a Gonka request id and the id of the node that served it. Expand any row and you
+> get the exact request and the raw response — copy it and re-run that step against the same gateway
+> yourself.
 >
-> Consensus isn't evidence. Quorum is the only fact checker that tells you when its own panel
-> shouldn't be trusted.
+> Consensus isn't evidence. Quorum is the fact checker that tells you how many witnesses it actually
+> had — and shows you the one it had to throw out.
 
 ## Shot list, in order
 
@@ -99,7 +101,7 @@ above "on its negation: REFUTED".*
 
 | Claim in the script | Source |
 |---|---|
-| errors correlate at ≈ 0.77; three models ≈ 1.3 independent | arXiv:2604.07650, cited in `PRIOR_ART.md` and `README.md` |
+| nine judges give about two independent votes | arXiv:2605.29800, quoted in `PRIOR_ART.md` and `README.md` |
 | 3/3 agreed, 89% overlap, 1.1 effective witnesses | live run of example 1; reproducible from the home screen |
 | MiniMax answers REFUTED to both claim and negation | live run of the Streisand-effect URL; reproduced across separate runs |
 | 11 inferences per verification | `lib/verify.ts`, and the ledger totals on every report |

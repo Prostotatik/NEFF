@@ -57,9 +57,9 @@ lever in the document. Our whole differentiator lives here.
 | C1 | All inference on Gonka Router | **Hard gate** | `lib/gonka.ts` — single client, no other provider in repo |
 | C2 | Multi-model cross-verification (≥2 models) | High | 3 models × 3 probe types |
 | C3 | Consensus Logic for disagreement ("major plus") | **Highest discretionary** | Independence-weighted aggregation + Effective Witness Count |
-| C4 | Claim extraction from URL / tweet / text | Required | `/api/extract` |
+| C4 | Claim extraction from URL / post text / text | Required | `lib/extract.ts` fetch + the `prep` call in `lib/verify.ts` |
 | C5 | Truth Score 0–100 + detailed Reasoning Trace | Required | Verdict card + per-probe trace |
-| C6 | Transparency UI showing Gonka Request IDs per step | Required | Receipt Ledger (request id + devshard id per call) |
+| C6 | Transparency UI showing Gonka Request IDs per step | Required | `components/ReceiptLedger.tsx` — request id + devshard id + raw transcript per call |
 | C7 | Neutrality prompts, evidence citation | High | Role-neutral prompt templates, forced evidence anchors |
 | C8 | Originality (not previously built/won) | **Disqualifying gate** | `PRIOR_ART.md` |
 | C9 | Live demo URL | Deliverable | Vercel deploy, one command |

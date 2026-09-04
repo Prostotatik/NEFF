@@ -73,6 +73,11 @@ export interface GonkaCallOptions {
   /** Sends, including the first. Only transient gateway failures are retried. */
   maxAttempts?: number;
   /**
+   * Cancels the call, and any pending retry, when the caller goes away. A user
+   * who navigates away mid-verification should stop costing inference.
+   */
+  signal?: AbortSignal;
+  /**
    * Passed straight through to the serving node's chat template, for the
    * per-model switches vLLM exposes (Kimi-K2.6 takes `{ thinking: false }`).
    * Omitted from the request entirely when not set, so a node that does not
@@ -133,16 +138,20 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * are counted on the receipt so the ledger stays honest about what it took.
  */
 export async function gonkaChat(options: GonkaCallOptions): Promise<GonkaCallResult> {
-  const { maxAttempts = 3 } = options;
+  const { maxAttempts = 3, signal } = options;
+  // Resolved before the loop: a misconfigured key is not a transient failure and
+  // must not be retried three times with backoff before saying so.
+  const key = apiKey();
   let lastError: GonkaError | null = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    if (signal?.aborted) break;
     try {
-      return await attemptChat(options, attempt);
+      return await attemptChat(options, attempt, key);
     } catch (error) {
       if (!(error instanceof GonkaError)) throw error;
       lastError = error;
-      if (!error.retryable || attempt === maxAttempts) break;
+      if (!error.retryable || attempt === maxAttempts || signal?.aborted) break;
       // Exponential backoff with jitter, so three probes that were rejected
       // together do not come back together.
       await sleep(700 * 2 ** (attempt - 1) + Math.random() * 600);
@@ -152,7 +161,11 @@ export async function gonkaChat(options: GonkaCallOptions): Promise<GonkaCallRes
   throw lastError ?? new Error("Gonka call failed without a receipt");
 }
 
-async function attemptChat(options: GonkaCallOptions, attempt: number): Promise<GonkaCallResult> {
+async function attemptChat(
+  options: GonkaCallOptions,
+  attempt: number,
+  key: string,
+): Promise<GonkaCallResult> {
   const {
     model,
     messages,
@@ -161,6 +174,7 @@ async function attemptChat(options: GonkaCallOptions, attempt: number): Promise<
     maxTokens = 1200,
     timeoutMs = 120_000,
     chatTemplateKwargs,
+    signal,
   } = options;
 
   const body = {
@@ -194,13 +208,15 @@ async function attemptChat(options: GonkaCallOptions, attempt: number): Promise<
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const onCallerAbort = () => controller.abort();
+  signal?.addEventListener("abort", onCallerAbort, { once: true });
 
   try {
     const response = await fetch(`${GONKA_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey()}`,
+        Authorization: `Bearer ${key}`,
       },
       body: JSON.stringify(body),
       signal: controller.signal,
@@ -270,7 +286,9 @@ async function attemptChat(options: GonkaCallOptions, attempt: number): Promise<
     if (error instanceof GonkaError) throw error;
     const aborted = error instanceof Error && error.name === "AbortError";
     const message = aborted
-      ? `Timed out after ${Math.round(timeoutMs / 1000)}s`
+      ? signal?.aborted
+        ? "Cancelled — the caller went away"
+        : `Timed out after ${Math.round(timeoutMs / 1000)}s`
       : redact(error instanceof Error ? error.message : String(error));
     throw new GonkaError(
       message,
@@ -281,6 +299,7 @@ async function attemptChat(options: GonkaCallOptions, attempt: number): Promise<
     );
   } finally {
     clearTimeout(timer);
+    signal?.removeEventListener("abort", onCallerAbort);
   }
 }
 

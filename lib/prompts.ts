@@ -47,13 +47,19 @@ Reply with a single JSON object and nothing else:
 }
 
 Requirements for "claim":
-- Self-contained: a reader who has not seen the original material must be able to check it. Resolve every pronoun, and include the named entities, quantities, places and dates the claim depends on.
+- **Atomic. This is the most important requirement.** The claim must assert exactly ONE thing, so that it is either true or false as a whole. It must not join two assertions that could have different truth values — no "X and Y", no "X, seeking to Y", no list of particulars, no assertion carrying a second checkable detail such as an amount, a count or a date that could be wrong on its own while the rest is right. If the material asserts several things, pick the single most central one and drop the rest. A compound claim is a failed extraction, however faithful it is to the source.
+- Self-contained: a reader who has not seen the original material must be able to check it. Resolve every pronoun, and include the named entities, places and dates the claim needs in order to be identified — but only those it needs to be *identified*, not extra particulars that become additional assertions.
 - Checkable: an assertion about the world that evidence could confirm or contradict. Not an opinion, prediction or value judgement.
-- Faithful: do not soften, sharpen, or editorialise what was asserted.
-- If the material contains several claims, choose the one the material is really making, not the easiest one to check.
+- Faithful: do not soften, sharpen, or editorialise the assertion you selected.
+
+Examples of the atomic requirement:
+- Bad: "In 2003 Streisand sued Adelman for $50 million for violation of privacy, seeking removal of a photograph." Four assertions; someone could accept the lawsuit and dispute the amount.
+- Good: "In 2003, Barbra Streisand sued photographer Kenneth Adelman over an aerial photograph of her Malibu home."
+- Bad: "Vitamin C prevents colds and shortens their duration." Two claims with different answers.
+- Good: "Taking vitamin C supplements prevents the common cold."
 
 Requirements for "negation":
-- The direct logical negation of "claim", asserting the opposite state of affairs.
+- The direct logical negation of "claim", asserting the opposite state of affairs. Because the claim is atomic, its negation is unambiguous — there must be exactly one thing being denied.
 - It must read as a natural, confident, standalone assertion that someone might genuinely make. Do not write "It is not the case that...", do not mention the original claim, and do not signal in any way that it is a negation.
 - Keep every entity, quantity, place and date from the claim identical. Only the asserted relationship flips.`,
     },

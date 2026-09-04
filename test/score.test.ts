@@ -132,6 +132,31 @@ test("a panel where every model echoes counts as zero witnesses", () => {
   assert.equal(effectiveWitnesses(0, 0), 0);
 });
 
+test("the effective count can never exceed the nominal one", () => {
+  // Kish's formula assumes k >= 1; below that the (k - 1) term flips sign and
+  // the raw ratio grows with correlation. Half a witness reading one page must
+  // not be reported as a whole independent witness.
+  assert.equal(effectiveWitnesses(0.5, 1), 0.5);
+  assert.equal(effectiveWitnesses(0.5, 0.8), 0.5);
+  assert.equal(effectiveWitnesses(0.5, 0), 0.5);
+});
+
+test("a panel of one echo and one partial witness on shared evidence is not a whole witness", () => {
+  const shared = ["Cochrane systematic reviews of vitamin C trials"];
+  const probes = probesFrom([
+    { model: "model-a", direct: "SUPPORTED", mirror: "SUPPORTED", anchors: shared },
+    { model: "model-b", direct: "SUPPORTED", mirror: "UNCERTAIN", anchors: shared },
+  ]);
+  const consensus = computeConsensus(assessWitnesses(["model-a", "model-b"], probes));
+  assert.equal(consensus.nominalAgree, 2);
+  assert.ok(
+    consensus.effectiveWitnesses <= 0.5,
+    `expected at most the 0.5 of surviving vote weight, got ${consensus.effectiveWitnesses}`,
+  );
+  assert.ok(consensus.lostToRedundancy >= 0, "witness loss must never be reported as negative");
+  assert.ok(consensus.lostToEcho >= 0, "witness loss must never be reported as negative");
+});
+
 // --- witness assessment ----------------------------------------------------
 
 test("a model that affirms a claim and its negation is marked an echo and loses its vote", () => {
@@ -299,10 +324,10 @@ test("silence about sources cannot inflate the effective witness count", () => {
   const consensus = computeConsensus(assessWitnesses(MODELS, probes));
   assert.equal(consensus.nominalAgree, 3);
   assert.equal(consensus.overlapMeasured, false);
-  assert.ok(
-    consensus.effectiveWitnesses < 1.5,
-    `an uncitable panel should not read as independent, got ${consensus.effectiveWitnesses}`,
-  );
+  // With the documented prior, three agreeing models that will not name a source
+  // are worth 3 / (1 + 2 * 0.44) = 1.6 — well short of the three the naive
+  // reading would report, and never the full panel.
+  assert.equal(consensus.effectiveWitnesses, 1.6);
 });
 
 test("the report says when an overlap was assumed rather than measured", () => {
