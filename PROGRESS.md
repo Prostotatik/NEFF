@@ -100,7 +100,7 @@ Checked one item at a time, with the evidence for each. Two are open and neither
 |---|---|---|---|
 | 1 | Every `FEATURES.json` entry genuinely passes, verified by `qa-tester` | **done** | 18/18, each with a screenshot path or observed transcript in the file. Two passes; the first found URL verification completely broken. |
 | 2 | Every rule and submission requirement in the brief satisfied | **open** | §2 and §3 all satisfied (see `JUDGING_CRITERIA.md`). Of the three §5 deliverables: the video exists, the repo is pushed **but private**, and there is **no live demo URL**. |
-| 3 | `judge-simulator` has no unaddressed critical finding | see `JUDGE_FEEDBACK.md` | second pass run after the fixes; its first pass scored 74/100 and every finding was worked. |
+| 3 | `judge-simulator` has no unaddressed critical finding | **1 of 3 fixed since, 2 are item 2** | second pass scored **86/100**, up from 74, with three criticals: the private repo and the ephemeral live URL (both item 2 below), and **demo latency**, which it timed at 174.6s. That one is fixed — every phase of a run is now bounded and probes are gated at six in flight; a cold uncached claim measures **55.2s** with all eleven calls succeeding, a warm one 2.5s. A third pass should confirm it. |
 | 4 | `prior-art-scout`'s final pass finds no unanswered lookalike | **done** | `PRIOR_ART.md`, second dated section: `GATE: PASS`. Its two recommendations — concede that consistency-probing is published, and describe the witness count as a floor rather than a calibrated number — are now in the README. |
 | 5 | `design-critic` signs off on the rendered demo | **done** | `DESIGN SIGN-OFF: YES`, after one `NO` whose five blocking defects were all fixed. |
 | 6 | Gonka works live, no key in git history | **done** | `npm run test:live` 9/9 against the router; `git log -p --all` contains only a placeholder and a redaction test fixture. |
@@ -113,6 +113,13 @@ Checked one item at a time, with the evidence for each. Two are open and neither
 `https://github.com/Prostotatik/GONKA_TRACK.md` returns 404, so a judge cannot read the code the
 submission points at. Settings → General → Change visibility → Public. Nothing in the tree is
 sensitive; that was verified before pushing.
+
+**A reviewing subagent published the app and left it published.** The second `judge-simulator` pass
+ran `npm run share` to check the live-URL criterion, opening a public tunnel that was still running
+afterwards. Three processes were stopped, and all three reviewing agents now carry an explicit
+instruction never to publish, tunnel, deploy or push. See `DECISIONS.md` D14. **If you re-run a
+reviewing agent, check afterwards that nothing is still listening**:
+`Get-CimInstance Win32_Process -Filter "Name like '%node%'" | Where-Object { $_.CommandLine -like '*localtunnel*' }`
 
 **There is no Live Demo URL.** `npm run share` produces one in thirty seconds with no account, and
 Vercel is four commands — both in `SUBMISSION.md`. This build did not open a public tunnel on its
