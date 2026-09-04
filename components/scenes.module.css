@@ -1,0 +1,116 @@
+/* Motion for the probe-card scenes. Transforms and opacity only. */
+
+.scene {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.spin {
+  animation: sceneSpin 52s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.spinSlow {
+  animation: sceneSpin 78s linear infinite reverse;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.ringA {
+  animation: sceneSpin 88s linear infinite;
+  transform-origin: center;
+  transform-box: view-box;
+}
+
+.ringB {
+  animation: sceneSpin 116s linear infinite reverse;
+  transform-origin: center;
+  transform-box: view-box;
+}
+
+.ringC {
+  animation: sceneSpin 140s linear infinite;
+  transform-origin: center;
+  transform-box: view-box;
+}
+
+/* The document's lines brighten in sequence: the claim being read, once per
+   cycle, which is what probe 01 actually does. */
+.readLines rect:nth-child(1) {
+  animation: readPulse 4.2s ease-in-out infinite;
+}
+
+.readLines rect:nth-child(2) {
+  animation: readPulse 4.2s ease-in-out 0.5s infinite;
+}
+
+.readLines rect:nth-child(3) {
+  animation: readPulse 4.2s ease-in-out 1s infinite;
+}
+
+@keyframes readPulse {
+  0%,
+  55%,
+  100% {
+    opacity: 0.35;
+  }
+  20% {
+    opacity: 1;
+  }
+}
+
+.beamPulse {
+  animation: beam 3.6s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes beam {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.wire {
+  animation: dash 2.6s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+.bob {
+  animation: bob 7s ease-in-out infinite;
+}
+
+.bob:nth-of-type(2) {
+  animation-delay: -2.3s;
+}
+
+.bob:nth-of-type(3) {
+  animation-delay: -4.6s;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes sceneSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

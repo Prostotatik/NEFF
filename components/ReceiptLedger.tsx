@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { labelFor } from "@/lib/models";
 import type { ReceiptView } from "@/lib/types";
+import { hueFor } from "./palette";
 import s from "./quorum.module.css";
 
 const PURPOSE_TITLE: Record<string, string> = {
@@ -14,10 +15,14 @@ const PURPOSE_TITLE: Record<string, string> = {
 };
 
 /**
- * The proof surface. Every row is one inference that happened on a named node of
- * the Gonka Network, with the request id the brief asks us to display. Opening a
- * row shows exactly what was sent and exactly what came back, so a judge can
- * re-run any single step themselves against the same gateway.
+ * S3 — the proof surface. Every row is one inference that happened on a named
+ * node of the Gonka Network, with the request id the brief asks us to display.
+ * Opening a row shows exactly what was sent and exactly what came back, so a
+ * judge can re-run any single step themselves against the same gateway.
+ *
+ * The model column is coloured by model, the same hue that model carries in the
+ * hero and in the details rail, so one model's path through the run can be
+ * followed down the column without reading a word.
  */
 export function ReceiptLedger({ receipts }: { receipts: ReceiptView[] }) {
   const [open, setOpen] = useState<number | null>(null);
@@ -45,11 +50,25 @@ export function ReceiptLedger({ receipts }: { receipts: ReceiptView[] }) {
             onClick={() => setOpen(open === index ? null : index)}
             aria-expanded={open === index}
           >
-            <span className={s.node}>{receipt.devshardId || "—"}</span>
-            <span className={s.reqId}>
+            <span className={`${s.node} ${receipt.devshardId ? "" : s.nodeMissing}`}>
+              {receipt.devshardId ? (
+                <>
+                  <span
+                    className={`${s.nodeDot} ${receipt.status === "error" ? s.nodeDotRing : ""}`}
+                    aria-hidden="true"
+                  />
+                  {receipt.devshardId}
+                </>
+              ) : (
+                "—"
+              )}
+            </span>
+            <span className={`${s.reqId} ${receipt.requestId ? "" : s.reqIdMissing}`}>
               {receipt.requestId || (receipt.status === "error" ? "no response" : "—")}
             </span>
-            <span className={s.cell}>{labelFor(receipt.model)}</span>
+            <span className={s.modelCell} style={{ color: hueFor(receipt.model) }}>
+              {labelFor(receipt.model)}
+            </span>
             <span className={s.cell}>{PURPOSE_TITLE[receipt.purpose] ?? receipt.purpose}</span>
             <span className={s.num}>{(receipt.latencyMs / 1000).toFixed(1)}s</span>
             <span className={s.num}>{receipt.totalTokens || "—"}</span>

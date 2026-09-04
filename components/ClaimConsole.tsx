@@ -1,9 +1,12 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { CALLS_PER_RUN, PANEL, labelFor } from "@/lib/models";
+import { CALLS_PER_RUN, PANEL } from "@/lib/models";
 import type { ClaimPrep, ProbeResult, ReceiptView, RunEvent, VerificationRun } from "@/lib/types";
 import { Report } from "./Report";
+import { DetailsRail, OrbitalStage, type PanelStatus } from "./RunHero";
+import { ClaimScene, EvidenceScene, MirrorScene } from "./Scenes";
+import { ArrowRight, ImageIcon, LinkIcon, TextIcon, XIcon } from "./Icons";
 import s from "./quorum.module.css";
 
 /**
@@ -11,12 +14,36 @@ import s from "./quorum.module.css";
  * by topic. The first two have repeatedly produced a high nominal consensus next
  * to a low witness count; the third and fourth are here precisely because they
  * do not always, and a metric that only ever says "echo" would be worthless.
+ *
+ * The reference renders this row as icon buttons, so each example carries the
+ * icon for the kind of input it is — a post, a link, a plain sentence, the text
+ * lifted off a screenshot.
  */
-const EXAMPLES: Array<{ label: string; input: string }> = [
-  { label: "vitamin C prevents colds", input: "Taking vitamin C supplements prevents the common cold." },
-  { label: "a linked article", input: "https://en.wikipedia.org/wiki/Streisand_effect" },
-  { label: "the Great Wall from the Moon", input: "The Great Wall of China is visible from the Moon with the naked eye." },
-  { label: "Norway's fund owns 1.5% of listed shares", input: "Norway's sovereign wealth fund owns roughly 1.5% of all listed companies worldwide." },
+const EXAMPLES: Array<{
+  label: string;
+  input: string;
+  icon: React.ComponentType<{ size?: number }>;
+}> = [
+  {
+    label: "a post: vitamin C prevents colds",
+    input: "Taking vitamin C supplements prevents the common cold.",
+    icon: XIcon,
+  },
+  {
+    label: "a linked article",
+    input: "https://en.wikipedia.org/wiki/Streisand_effect",
+    icon: LinkIcon,
+  },
+  {
+    label: "a claim: the Great Wall from the Moon",
+    input: "The Great Wall of China is visible from the Moon with the naked eye.",
+    icon: TextIcon,
+  },
+  {
+    label: "text off a screenshot: Norway's fund owns 1.5% of listed shares",
+    input: "Norway's sovereign wealth fund owns roughly 1.5% of all listed companies worldwide.",
+    icon: ImageIcon,
+  },
 ];
 
 const PROBE_TITLE: Record<ProbeResult["kind"], string> = {
@@ -32,11 +59,6 @@ const STANCE_TONE: Record<string, string> = {
   UNCERTAIN: s.toneUncertain,
 };
 
-interface PanelStatus {
-  ok: boolean;
-  panel?: Array<{ id: string; label: string; online: boolean }>;
-}
-
 export function ClaimConsole() {
   const [input, setInput] = useState("");
   const [running, setRunning] = useState(false);
@@ -46,12 +68,28 @@ export function ClaimConsole() {
   const [receipts, setReceipts] = useState<ReceiptView[]>([]);
   const [run, setRun] = useState<VerificationRun | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<PanelStatus | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   // `running` in state drives the UI; the ref is what guards re-entry, because
   // the state value captured in this callback is a render behind.
   const runningRef = useRef(false);
 
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/health")
+      .then((r) => r.json())
+      .then((data: PanelStatus) => {
+        if (!cancelled) setStatus(data);
+      })
+      .catch(() => {
+        if (!cancelled) setStatus({ ok: false });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const start = useCallback(
     async (value: string) => {
@@ -152,75 +190,96 @@ export function ClaimConsole() {
     [],
   );
 
-  const engaged = running || Boolean(run) || probes.length > 0;
-
   return (
     <>
-      <header className={`${s.hero} ${engaged ? s.heroCompact : ""}`}>
-        <p className="eyebrow">
-          Independence-weighted fact verification · every inference on Gonka
-        </p>
-        <h1 className={s.thesis}>
-          Three models agreeing is <em>one witness</em> if they all read the same page.
-        </h1>
-        <p className={s.subthesis}>
-          Quorum does not count votes. It probes each model with the claim, with the claim negated,
-          and with a demand for its sources — then reports how many genuinely independent witnesses
-          are behind the verdict, and discounts the truth score by it.
-        </p>
-      </header>
-
-      <form
-        className={s.console}
-        onSubmit={(e) => {
-          e.preventDefault();
-          void start(input);
-        }}
-      >
-        <div className={s.field}>
-          <textarea
-            className={s.input}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Paste a claim, the text of a post, or a link to an article…"
-            spellCheck={false}
-            disabled={running}
-            onKeyDown={(e) => {
-              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                e.preventDefault();
-                void start(input);
-              }
+      {/* --- S7 | S1 | S6 : the hero band ------------------------------- */}
+      <div className={s.hero}>
+        <div className={s.heroLeft}>
+          <h1 className={s.thesis}>
+            <span className={s.thesisOne}>Decentralized.</span>
+            <span className={s.thesisTwo}>Verified.</span>
+            <span className={s.thesisThree}>Unbiased.</span>
+          </h1>
+          <div className={s.scanbar} aria-hidden="true" />
+          <form
+            className={s.console}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void start(input);
             }}
-          />
-          <button className={s.submit} type="submit" disabled={running || input.trim().length < 8}>
-            {running ? "Verifying…" : "Verify"}
-          </button>
+          >
+            <div className={s.field}>
+              <textarea
+                className={s.input}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="link, tweet, or claim to verify…"
+                spellCheck={false}
+                disabled={running}
+                aria-label="Claim, post text, or link to verify"
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                    e.preventDefault();
+                    void start(input);
+                  }
+                }}
+              />
+              <button
+                className={s.submit}
+                type="submit"
+                disabled={running || input.trim().length < 8}
+                aria-label={running ? "Verifying" : "Verify"}
+              >
+                {running ? (
+                  <span className={s.submitSpin} aria-hidden="true" />
+                ) : (
+                  <ArrowRight size={19} />
+                )}
+              </button>
+            </div>
+
+            <div className={s.examples}>
+              <span className={s.examplesLabel}>Example:</span>
+              {EXAMPLES.map((example) => {
+                const Icon = example.icon;
+                return (
+                  <button
+                    key={example.input}
+                    type="button"
+                    className={s.exampleChip}
+                    disabled={running}
+                    title={example.label}
+                    onClick={() => {
+                      setInput(example.input);
+                      void start(example.input);
+                    }}
+                  >
+                    <Icon size={15} />
+                    <span className={s.exampleName}>{example.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {error ? <p className={s.error}>{error}</p> : null}
+          </form>
+
+          {/* The pitch, verbatim. The reference has no paragraph in this column,
+              so it sits under the console at label size rather than competing
+              with the headline. */}
+          <p className={s.subthesis}>
+            Three models agreeing is one witness if they all read the same page — Quorum measures
+            how independent its verifiers actually are and prices the truth score by it.
+          </p>
         </div>
 
-        <div className={s.examples}>
-          <span className={s.examplesLabel}>Try</span>
-          {EXAMPLES.map((example) => (
-            <button
-              key={example.input}
-              type="button"
-              className={s.example}
-              disabled={running}
-              onClick={() => {
-                setInput(example.input);
-                void start(example.input);
-              }}
-            >
-              {example.label}
-            </button>
-          ))}
-        </div>
+        <OrbitalStage run={run} probes={probes} running={running} status={status} />
 
-        {error ? <p className={s.error}>{error}</p> : null}
-      </form>
+        <DetailsRail run={run} receipts={receipts} running={running} status={status} />
+      </div>
 
-      <PanelStatus />
-
-      {!engaged ? <Mechanism /> : null}
+      {/* --- S2 : the probe cards --------------------------------------- */}
+      <Mechanism />
 
       {(running || (probes.length > 0 && !run)) && !error ? (
         <LiveRun stage={stage} prep={prep} probes={probes} receipts={receipts} />
@@ -235,61 +294,81 @@ export function ClaimConsole() {
             </a>
           </p>
         </>
-      ) : null}
+      ) : (
+        <Provenance />
+      )}
     </>
   );
 }
 
 /**
- * The mechanism, on the landing page only. A visitor who never runs a check
- * should still leave knowing what is different about this one, and a visitor who
- * does run one wants the screen back.
+ * S2 — the mechanism, three probe cards. A visitor who never runs a check should
+ * still leave knowing what is different about this one.
  */
 function Mechanism() {
   return (
-    <>
-      <div className={s.mechanism}>
-        <div className={s.step}>
-          <span className={s.stepIndex}>probe 01 · the claim</span>
-          <h2 className={s.stepTitle}>What do you think?</h2>
-          <p className={s.stepBody}>
-            Every model on the panel assesses the claim and names the evidence it is leaning on.
-            This is the part every other fact checker stops at.
-          </p>
+    <div className={s.mechanism}>
+      <article className={s.step}>
+        <div className={s.stepScene}>
+          <ClaimScene />
         </div>
-        <div className={s.step}>
-          <span className={s.stepIndex}>probe 02 · the mirror</span>
-          <h2 className={s.stepTitle}>And the opposite?</h2>
-          <p className={s.stepBody}>
-            The claim is negated and put to each model again, blind, in a fresh request. A model that
-            answers both the same way is reading the sentence, not the fact — and its vote is thrown
-            out, with both answers shown.
-          </p>
+        <span className={s.stepIndex}>Probe 01 · the claim</span>
+        <h2 className={s.stepTitle}>What do you think?</h2>
+        <p className={s.stepBody}>
+          Every model on the panel assesses the claim and names the evidence it is leaning on. This
+          is the part every other fact checker stops at.
+        </p>
+        <span className={s.stepNumeral} aria-hidden="true">
+          01
+        </span>
+      </article>
+
+      <article className={s.step}>
+        <div className={s.stepScene}>
+          <MirrorScene />
         </div>
-        <div className={s.step}>
-          <span className={s.stepIndex}>probe 03 · the evidence</span>
-          <h2 className={s.stepTitle}>Says who?</h2>
-          <p className={s.stepBody}>
-            Models converging on one source are one witness, not three. The overlap is measured and
-            the truth score is discounted by it — so a unanimous panel can be worth 1.1 witnesses,
-            and the report says so.
-          </p>
+        <span className={s.stepIndex}>Probe 02 · the mirror</span>
+        <h2 className={s.stepTitle}>And the opposite?</h2>
+        <p className={s.stepBody}>
+          The claim is negated and put to each model again, blind, in a fresh request. A model that
+          answers both the same way is reading the sentence, not the fact — and its vote is thrown
+          out, with both answers shown.
+        </p>
+        <span className={s.stepNumeral} aria-hidden="true">
+          02
+        </span>
+      </article>
+
+      <article className={s.step}>
+        <div className={s.stepScene}>
+          <EvidenceScene />
         </div>
-      </div>
-      <p className={s.provenance}>
-        The correction is standard — Kish&apos;s effective sample size, applied to an LLM panel in{" "}
-        <a
-          href="https://arxiv.org/abs/2605.29800"
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          Nine Judges, Two Effective Votes
-        </a>
-        , which measures nine judges as worth about two independent votes. What is new here is
-        measuring that overlap per claim, from the models&apos; own stated evidence, and putting the
-        result in front of you as part of the verdict.
-      </p>
-    </>
+        <span className={s.stepIndex}>Probe 03 · the evidence</span>
+        <h2 className={s.stepTitle}>Says who?</h2>
+        <p className={s.stepBody}>
+          Models converging on one source are one witness, not three. The overlap is measured and the
+          truth score is discounted by it — so a unanimous panel can be worth 1.1 witnesses, and the
+          report says so.
+        </p>
+        <span className={s.stepNumeral} aria-hidden="true">
+          03
+        </span>
+      </article>
+    </div>
+  );
+}
+
+function Provenance() {
+  return (
+    <p className={s.provenance}>
+      The correction is standard — Kish&apos;s effective sample size, applied to an LLM panel in{" "}
+      <a href="https://arxiv.org/abs/2605.29800" target="_blank" rel="noreferrer noopener">
+        Nine Judges, Two Effective Votes
+      </a>
+      , which measures nine judges as worth about two independent votes. What is new here is
+      measuring that overlap per claim, from the models&apos; own stated evidence, and putting the
+      result in front of you as part of the verdict.
+    </p>
   );
 }
 
@@ -317,7 +396,7 @@ function LiveRun({
     <div className={s.live}>
       {stage ? (
         <div className={s.stageLine}>
-          <span className={s.stageDot} aria-hidden="true" />
+          <span className={s.liveDot} aria-hidden="true" />
           <span>{stage.detail}</span>
           <span className={s.dim}>
             · {receipts.length} of {CALLS_PER_RUN} inferences returned
@@ -338,16 +417,13 @@ function LiveRun({
 
         {PANEL.map((model) => (
           <Fragment key={model.id}>
-            <div className={`${s.probeCell} ${s.probeRowHead}`}>
+            <div className={`${s.probeCell} ${s.probeHeadCell}`}>
               <span className={s.probeModel}>{model.label}</span>
             </div>
             {kinds.map((kind) => {
               const probe = landed(model.id, kind);
               return (
-                <div
-                  key={kind}
-                  className={`${s.probeCell} ${probe ? "" : s.probeCellPending}`}
-                >
+                <div key={kind} className={s.probeCell}>
                   {probe ? (
                     <div className={`${s.probeBody} ${probe.stance ? STANCE_TONE[probe.stance] : ""}`}>
                       {probe.status === "failed"
@@ -372,46 +448,6 @@ function LiveRun({
       </div>
 
       {prep ? <p className={s.liveClaim}>{prep.claim}</p> : null}
-    </div>
-  );
-}
-
-/** Live confirmation that the panel is reachable on the Gonka Network. */
-function PanelStatus() {
-  const [status, setStatus] = useState<PanelStatus | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/health")
-      .then((r) => r.json())
-      .then((data: PanelStatus) => {
-        if (!cancelled) setStatus(data);
-      })
-      .catch(() => {
-        if (!cancelled) setStatus({ ok: false });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return (
-    <div className={s.status}>
-      <span>gonkarouter.io</span>
-      {status?.panel
-        ? status.panel.map((model) => (
-            <span key={model.id} className={s.statusNode}>
-              <span className={`${s.dot} ${model.online ? s.dotOn : s.dotOff}`} />
-              {model.label}
-            </span>
-          ))
-        : PANEL.map((model) => (
-            <span key={model.id} className={s.statusNode}>
-              <span className={s.dot} />
-              {model.label}
-            </span>
-          ))}
-      {status && !status.ok ? <span>router unreachable</span> : null}
     </div>
   );
 }

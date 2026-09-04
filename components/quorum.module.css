@@ -1,385 +1,1651 @@
-/* Quorum's component surfaces. See app/globals.css for the design rationale. */
+/*
+  Quorum's surface, rebuilt against visual-reference.png.
 
-/* --- masthead ------------------------------------------------------------ */
+  Structure of this file follows the locked section map in VISUAL_QA.md:
+  ground and chrome first, then the hero (S7/S1/S6), the probe cards (S2), the
+  metrics strip (S5), the panel (S4), the receipts ledger (S3), and the closing
+  panel (S8).
+*/
+
+/* --- S10 · ground and shared panel grammar -------------------------------- */
+
+.page {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* The hero's ambient light. Two greens and the Gonka blue, thrown from behind
+   the centre of the orbital scene, fading out well before the probe cards so the
+   cards sit on flat black the way they do in the reference. */
+.ambient {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 780px;
+  pointer-events: none;
+  background:
+    radial-gradient(52rem 30rem at 50% 24%, rgba(0, 255, 163, 0.11), transparent 62%),
+    radial-gradient(30rem 22rem at 74% 16%, rgba(139, 92, 246, 0.09), transparent 64%),
+    radial-gradient(26rem 20rem at 62% 42%, rgba(114, 220, 255, 0.07), transparent 66%);
+  z-index: 0;
+}
+
+.panel {
+  position: relative;
+  border: 1px solid var(--outline-green);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(46rem 22rem at 78% 0%, rgba(0, 255, 163, 0.035), transparent 70%),
+    var(--surface-low);
+}
+
+.panelHead {
+  padding: 1rem 1.15rem 0.35rem;
+}
+
+.panelTitle {
+  font-family: var(--ui);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  color: var(--primary-container);
+  margin: 0;
+}
+
+.panelSub {
+  font-size: 0.8125rem;
+  color: var(--paper-dim);
+  margin-top: 0.15rem;
+}
+
+/* --- S9 · masthead -------------------------------------------------------- */
 
 .masthead {
+  position: relative;
+  z-index: 3;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
-  padding: 1.5rem 0 1.25rem;
-  border-bottom: 1px solid var(--rule);
-  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.15rem 0 1.05rem;
 }
 
 .wordmark {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
   text-decoration: none;
+}
+
+.wordmarkMark {
+  color: var(--primary-container);
+  filter: drop-shadow(0 0 9px rgba(0, 255, 163, 0.45));
+  display: block;
 }
 
 .wordmarkName {
   font-family: var(--display);
-  font-size: 1.375rem;
-  font-weight: 600;
-  letter-spacing: -0.03em;
+  font-size: 1.3125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--paper);
 }
 
-.wordmarkDot {
-  width: 0.4rem;
-  height: 0.4rem;
-  border-radius: 50%;
-  background: var(--sodium);
-  align-self: center;
-}
-
-.mastheadNote {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--paper-faint);
-}
-
-.mastheadNote strong {
+.wordmarkBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.35rem;
+  padding: 0.26rem 0.7rem;
+  border: 1px solid rgba(0, 255, 163, 0.32);
+  border-radius: 999px;
+  font-size: 0.8125rem;
   color: var(--paper-dim);
-  font-weight: 500;
 }
 
-/* --- hero / thesis ------------------------------------------------------- */
+.wordmarkBadge strong {
+  font-weight: 600;
+  color: var(--primary-container);
+}
+
+.networkPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--outline);
+  border-radius: 12px;
+  background: var(--surface-high);
+  font-size: 0.875rem;
+  color: var(--paper);
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary-container);
+  box-shadow: 0 0 8px 1px rgba(0, 255, 163, 0.75);
+  animation: pulseDot 2.6s ease-in-out infinite;
+  flex: none;
+}
+
+.liveDotOff {
+  background: var(--paper-faint);
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes pulseDot {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 8px 1px rgba(0, 255, 163, 0.75);
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 3px 0 rgba(0, 255, 163, 0.4);
+  }
+}
+
+/* --- hero shell: S7 | S1 | S6 --------------------------------------------- */
 
 .hero {
-  padding: clamp(2rem, 5vw, 3.25rem) 0 clamp(1.25rem, 2.5vw, 2rem);
+  position: relative;
+  z-index: 2;
   display: grid;
+  grid-template-columns: minmax(290px, 0.92fr) minmax(430px, 1.5fr) 280px;
+  align-items: center;
   gap: 1.25rem;
-  max-width: 58rem;
+  min-height: 600px;
+  padding: 0.5rem 0 1.5rem;
+}
+
+/* --- S7 · hero left ------------------------------------------------------- */
+
+.heroLeft {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: 1.5rem;
+  max-width: 27rem;
 }
 
 .thesis {
-  font-family: var(--display);
-  font-size: clamp(2rem, 5.4vw, 3.4rem);
-  font-weight: 500;
-  line-height: 1.02;
-  letter-spacing: -0.035em;
-  text-wrap: balance;
+  font-size: clamp(2.25rem, 3.4vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
 }
 
-.thesis em {
-  font-style: italic;
-  color: var(--sodium);
-  font-variation-settings: "SOFT" 40, "WONK" 1;
+.thesis span {
+  display: block;
+}
+
+.thesisOne {
+  color: #f2f4f3;
+}
+
+.thesisTwo {
+  color: #8b918f;
+}
+
+.thesisThree {
+  color: var(--primary-container);
+  text-shadow: 0 0 26px rgba(0, 255, 163, 0.55);
+}
+
+/* The tapered glow bar under the headline, with the node riding its right end.
+   In the reference it reads as a scan in progress, so it is animated rather than
+   a static rule. */
+.scanbar {
+  position: relative;
+  width: 13.5rem;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(0, 255, 163, 0.15), rgba(0, 255, 163, 0.85));
+  border-radius: 2px;
+  box-shadow:
+    0 0 14px rgba(0, 255, 163, 0.55),
+    0 0 34px rgba(0, 255, 163, 0.3);
+}
+
+.scanbar::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border: 1.5px solid var(--primary-container);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 255, 163, 0.8);
+  animation: scanNode 4.5s ease-in-out infinite;
+}
+
+@keyframes scanNode {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-11rem);
+    opacity: 0.55;
+  }
 }
 
 .subthesis {
-  color: var(--paper-dim);
-  font-size: 1.0625rem;
-  max-width: 62ch;
+  font-size: 0.8125rem;
+  color: var(--paper-faint);
+  line-height: 1.6;
+  max-width: 24rem;
 }
 
-/* Once a verification is running, the pitch yields to the work. */
-.heroCompact {
-  padding: 2rem 0 1.25rem;
-  gap: 0.75rem;
-}
-
-.heroCompact .thesis {
-  font-size: clamp(1.5rem, 2.6vw, 1.875rem);
-}
-
-.heroCompact .subthesis {
-  display: none;
-}
-
-/* --- console ------------------------------------------------------------- */
+/* the console */
 
 .console {
   display: grid;
-  gap: 0.75rem;
-  padding-bottom: 1rem;
+  gap: 0.85rem;
 }
 
 .field {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  gap: 0.75rem;
-  border: 1px solid var(--rule-strong);
-  background: linear-gradient(180deg, var(--ink-850), var(--ink-900));
-  padding: 1rem 1rem 1rem 1.25rem;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--outline-strong);
+  border-radius: var(--radius);
+  background: rgba(12, 15, 14, 0.72);
+  padding: 5px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .field:focus-within {
-  border-color: var(--sodium-deep);
+  border-color: rgba(0, 255, 163, 0.5);
+  box-shadow: 0 0 0 3px rgba(0, 255, 163, 0.09);
 }
 
 .input {
-  width: 100%;
-  min-height: 4.5rem;
-  resize: vertical;
+  flex: 1;
+  min-width: 0;
+  resize: none;
   border: 0;
-  outline: 0;
+  outline: none;
   background: transparent;
   color: var(--paper);
-  font-family: var(--ui);
-  font-size: 1.0625rem;
-  line-height: 1.5;
-  padding: 0;
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  padding: 0.85rem 0.45rem 0.85rem 0.85rem;
+  height: 3.25rem;
+  field-sizing: content;
+  max-height: 8rem;
 }
 
 .input::placeholder {
-  color: var(--paper-faint);
+  color: #7b817f;
 }
 
 .submit {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  align-self: center;
   border: 0;
-  background: var(--sodium);
-  color: var(--ink-950);
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 0.75rem 1.25rem;
+  border-radius: 11px;
+  background: linear-gradient(150deg, #00ffa3, #00d47f);
+  color: #04150e;
   cursor: pointer;
-  transition: background 140ms ease;
-  white-space: nowrap;
+  box-shadow: 0 0 22px rgba(0, 255, 163, 0.4);
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
 }
 
 .submit:hover:not(:disabled) {
-  background: #ffb765;
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(0, 255, 163, 0.6);
 }
 
-/* Waiting, not dead: the primary action stays legible before anything is typed. */
 .submit:disabled {
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--sodium-deep);
-  color: var(--sodium);
-  cursor: default;
+  filter: saturate(0.75) brightness(0.72);
+  cursor: not-allowed;
+  box-shadow: 0 0 12px rgba(0, 255, 163, 0.2);
+}
+
+.submitSpin {
+  width: 17px;
+  height: 17px;
+  border: 2px solid rgba(4, 21, 14, 0.35);
+  border-top-color: #04150e;
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .examples {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
   align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .examplesLabel {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--paper-faint);
-  margin-right: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--paper-dim);
+  margin-right: 0.15rem;
 }
 
-.example {
-  border: 1px solid var(--rule);
+/* The reference's example row is four round icon buttons. Each one still loads a
+   real claim, so the icon says what kind of input it is: a post, a link, a
+   sentence, a screenshot's text. */
+.exampleChip {
+  display: grid;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  padding: 0;
+  border: 1px solid var(--outline-strong);
+  border-radius: 50%;
   background: transparent;
   color: var(--paper-dim);
-  font-size: 0.8125rem;
-  padding: 0.35rem 0.7rem;
   cursor: pointer;
-  transition:
-    border-color 140ms ease,
-    color 140ms ease;
+  transition: color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
 
-.example:hover:not(:disabled) {
-  border-color: var(--sodium-deep);
-  color: var(--paper);
+.exampleChip:hover:not(:disabled) {
+  color: var(--primary-container);
+  border-color: rgba(0, 255, 163, 0.5);
+  box-shadow: 0 0 14px rgba(0, 255, 163, 0.25);
 }
 
-.example:disabled {
-  cursor: default;
+.exampleChip:disabled {
   opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.exampleName {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .error {
-  border-left: 2px solid var(--refute);
-  padding-left: 0.85rem;
-  color: var(--paper-dim);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
+  color: var(--refute);
 }
 
-/* --- panel status strip --------------------------------------------------- */
+/* --- S1 · the orbital scene ---------------------------------------------- */
 
-.status {
+.stage {
+  position: relative;
+  height: 560px;
+  display: grid;
+  place-items: center;
+}
+
+.stageInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.orbScore {
+  font-family: var(--ui);
+  font-size: 4.75rem;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  text-shadow: 0 0 30px rgba(0, 255, 163, 0.35);
+}
+
+.orbCaption {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #3ee89f;
+}
+
+.orbLabel {
+  font-size: 1.375rem;
+  font-weight: 500;
+  color: var(--primary-container);
+  letter-spacing: -0.01em;
+}
+
+.orbHint {
+  font-size: 0.8125rem;
+  color: var(--paper-dim);
+  max-width: 12rem;
+  line-height: 1.45;
+}
+
+/* Satellites are absolutely placed around the centre, each with its label on the
+   side that keeps it inside the stage. */
+.satWrap {
+  position: absolute;
   display: flex;
-  gap: 1.25rem;
-  flex-wrap: wrap;
   align-items: center;
-  padding: 0.85rem 0;
-  border-top: 1px solid var(--rule);
-  font-family: var(--mono);
-  font-size: 0.75rem;
+  gap: 0.85rem;
+  z-index: 2;
+}
+
+.satTopRight {
+  top: 10%;
+  left: 68%;
+}
+
+.satTopLeft {
+  top: 9%;
+  left: 2%;
+}
+
+.satBottomRight {
+  top: 66%;
+  left: 71%;
+}
+
+.satLabel {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 5.5rem;
+}
+
+.satName {
+  font-family: var(--display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--paper);
+  line-height: 1.15;
+}
+
+.satEyebrow {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+  margin-top: 0.5rem;
+}
+
+.satValue {
+  font-size: 1.625rem;
+  font-weight: 500;
+  color: var(--paper);
+  line-height: 1.1;
+}
+
+.satStance {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--primary-container);
+}
+
+.satStanceDim {
   color: var(--paper-faint);
 }
 
-.statusNode {
+.shardOne {
+  position: absolute;
+  left: 6%;
+  bottom: 26%;
+  opacity: 0.8;
+}
+
+.shardTwo {
+  position: absolute;
+  right: 16%;
+  bottom: 6%;
+  opacity: 0.65;
+}
+
+.stagePill {
+  position: absolute;
+  bottom: 4%;
+  left: 50%;
+  transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--outline);
+  border-radius: 10px;
+  background: rgba(12, 15, 14, 0.72);
+  backdrop-filter: blur(6px);
+  font-size: 0.875rem;
+  color: var(--paper-dim);
+  white-space: nowrap;
+  z-index: 3;
 }
 
-.dot {
-  width: 0.375rem;
-  height: 0.375rem;
+/* --- S6 · verification details rail --------------------------------------- */
+
+.rail {
+  position: relative;
+  z-index: 3;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  background: var(--surface-low);
+  padding: 1.05rem 1.1rem 1.1rem;
+  display: grid;
+  gap: 0.85rem;
+  align-self: center;
+}
+
+.railHead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--paper);
+}
+
+.railHead svg {
+  color: var(--primary-container);
+  filter: drop-shadow(0 0 6px rgba(0, 255, 163, 0.5));
+}
+
+.railGroup {
+  display: grid;
+  gap: 0.15rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--outline);
+}
+
+.railGroupLast {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.railLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--paper-dim);
+}
+
+.railValue {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--paper);
+  word-break: break-word;
+}
+
+.railValueMono {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+}
+
+.railRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.railCopy {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: none;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--paper-faint);
+  cursor: pointer;
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.railCopy:hover {
+  color: var(--primary-container);
+  background: rgba(0, 255, 163, 0.08);
+}
+
+.railAvatars {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: 50%;
-  background: var(--paper-faint);
+  font-family: var(--display);
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #04150e;
+  flex: none;
 }
 
-.dotOn {
-  background: var(--verify);
-  box-shadow: 0 0 0 3px rgba(107, 189, 136, 0.15);
+.avatarLg {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.8125rem;
 }
 
-.dotOff {
-  background: var(--refute);
+.railIds {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
 }
 
-/* --- how it works, on the landing page only ------------------------------ */
+.railId {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--paper);
+}
+
+.railIdDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.railMore {
+  padding-left: 1.4rem;
+  font-size: 0.8125rem;
+  color: var(--paper-faint);
+}
+
+.railButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--outline-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--paper);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+
+.railButton:hover {
+  border-color: rgba(0, 255, 163, 0.45);
+  background: rgba(0, 255, 163, 0.06);
+  box-shadow: 0 0 18px rgba(0, 255, 163, 0.15);
+}
+
+/* --- S2 · probe cards ----------------------------------------------------- */
 
 .mechanism {
+  position: relative;
+  z-index: 2;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1px;
-  background: var(--rule);
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-  margin-top: 2.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.9rem;
+  margin-top: 0.5rem;
 }
 
 .step {
-  background: var(--ink-950);
-  padding: 1.5rem clamp(1rem, 2vw, 1.5rem);
-  display: grid;
-  gap: 0.5rem;
-  align-content: start;
+  position: relative;
+  overflow: hidden;
+  min-height: 21rem;
+  padding: 1.15rem 1.2rem 1.2rem;
+  border: 1px solid var(--outline-green);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(22rem 16rem at 82% 62%, rgba(0, 255, 163, 0.09), transparent 68%),
+    linear-gradient(160deg, #0c100e 0%, #080a09 60%);
 }
 
 .stepIndex {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.16em;
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.075em;
   text-transform: uppercase;
-  color: var(--sodium);
+  color: var(--primary-container);
 }
 
 .stepTitle {
-  font-family: var(--display);
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 2;
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--paper);
 }
 
 .stepBody {
+  position: relative;
+  z-index: 2;
+  margin-top: 0.55rem;
+  max-width: 17.5rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--paper-dim);
+}
+
+.stepNumeral {
+  position: absolute;
+  left: 1.05rem;
+  bottom: 0.15rem;
+  font-family: var(--display);
+  font-size: 5.5rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: rgba(0, 255, 163, 0.09);
+  user-select: none;
+  pointer-events: none;
+}
+
+.stepScene {
+  position: absolute;
+  right: -2.25rem;
+  bottom: -1.5rem;
+  width: 22rem;
+  height: 20rem;
+  pointer-events: none;
+}
+
+/* --- S5 · metrics strip --------------------------------------------------- */
+
+.metrics {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 0.95fr 0.7fr 0.95fr 1.5fr;
+  margin-top: 0.9rem;
+  border: 1px solid var(--outline-green);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(40rem 18rem at 88% 40%, rgba(0, 255, 163, 0.045), transparent 70%),
+    var(--surface-low);
+  overflow: hidden;
+}
+
+.metricCell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.1rem 1.15rem;
+  border-left: 1px solid var(--outline);
+  min-height: 9.5rem;
+}
+
+.metricCell:first-child {
+  border-left: 0;
+}
+
+.metricBody {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 0.2rem;
+  align-content: center;
+}
+
+.metricArt {
+  margin-left: auto;
+  opacity: 0.9;
+  flex: none;
+}
+
+.metricValue {
+  font-size: 2.75rem;
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--paper);
+}
+
+.metricValueSodium {
+  color: var(--sodium);
+  text-shadow: 0 0 24px rgba(0, 255, 163, 0.4);
+}
+
+.metricUnit {
+  font-weight: 300;
+  color: var(--paper-dim);
+}
+
+.metricSlash {
+  color: var(--paper-faint);
+  padding: 0 0.1rem;
+}
+
+.metricNote {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--paper-dim);
+}
+
+.metricNoteSmall {
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: var(--paper-faint);
+}
+
+/* The reference sets this label in two tones — the noun dim, the measurement
+   bright — so the eye lands on the word that is doing the work. */
+.eyebrowSplit {
+  color: #2fa876;
+}
+
+.eyebrowSplit strong {
+  font-weight: 600;
+  color: var(--primary-container);
+}
+
+.metricSmall {
+  display: block;
+  font-size: 1.625rem;
+  font-weight: 400;
+  color: var(--paper);
+  line-height: 1.25;
+}
+
+.metricSmallSteel {
+  color: var(--steel);
+}
+
+.metricStack {
+  display: grid;
+  gap: 0.7rem;
+}
+
+/* Each reading in the fourth cell is a label above a number, never beside it. */
+.metricReading {
+  display: grid;
+  gap: 0.05rem;
+}
+
+.metricReading > :global(.eyebrow) {
+  display: block;
+  font-size: 0.625rem;
+  letter-spacing: 0.05em;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.verdictPill {
+  justify-self: start;
+  margin-top: 0.35rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.labelSupported,
+.labelLeansTrue {
+  color: var(--verify);
+  border: 1px solid rgba(0, 229, 143, 0.45);
+  background: rgba(0, 229, 143, 0.08);
+}
+
+.labelUnresolved,
+.labelNoSignal {
+  color: var(--neutral);
+  border: 1px solid rgba(167, 139, 250, 0.45);
+  background: rgba(167, 139, 250, 0.08);
+}
+
+.labelLeansFalse,
+.labelRefuted {
+  color: var(--refute);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.formula {
   font-size: 0.9375rem;
+  color: var(--paper);
+  margin-bottom: 0.4rem;
+}
+
+.meter {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.55rem;
+}
+
+.meterHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.8125rem;
+  color: var(--paper-dim);
+}
+
+.meterHead strong {
+  font-weight: 500;
+  color: var(--paper);
+}
+
+.meterTrack {
+  position: relative;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.meterFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 2px;
+  animation: meterGrow 900ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  transform-origin: left center;
+}
+
+.meterFillRefute {
+  background: linear-gradient(90deg, rgba(248, 113, 113, 0.35), #f87171);
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+}
+
+.meterFillVerify {
+  background: linear-gradient(90deg, rgba(0, 255, 163, 0.25), #00ffa3);
+  box-shadow: 0 0 10px rgba(0, 255, 163, 0.5);
+}
+
+@keyframes meterGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.metricScan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.32;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0 7px,
+    rgba(0, 255, 163, 0.05) 7px 8px
+  );
+  mask-image: linear-gradient(90deg, transparent, #000 55%, transparent);
+}
+
+/* --- report shell: S4 + S8 beside S3 -------------------------------------- */
+
+.report {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.reportGrid {
+  display: grid;
+  grid-template-columns: 0.98fr 1.02fr;
+  gap: 0.9rem;
+  align-items: start;
+}
+
+.reportColumn {
+  display: grid;
+  gap: 0.9rem;
+}
+
+/* The claim under test. Not a section of the reference, but it is existing
+   behaviour and a report that never shows the sentence it checked would be
+   useless — so it is kept as a slim bar above the metrics rather than a block
+   that would push the strip off the fold. */
+.claimBar {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+  padding: 0.95rem 1.15rem;
+  border: 1px solid var(--outline-green);
+  border-radius: var(--radius);
+  background: var(--surface-low);
+}
+
+.claimBarHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.claim {
+  font-family: var(--display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--paper);
+}
+
+.claimMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--paper-dim);
+}
+
+.claimMeta a {
+  color: var(--steel);
+}
+
+.negation {
+  font-size: 0.8125rem;
+  color: var(--paper-dim);
+  padding-left: 0.75rem;
+  border-left: 2px solid rgba(0, 255, 163, 0.3);
+}
+
+.negation strong {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+  margin-bottom: 0.15rem;
+}
+
+/* --- S4 · the panel ------------------------------------------------------- */
+
+.witnesses {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem 1.15rem 1.15rem;
+}
+
+.witness {
+  display: grid;
+  grid-template-columns: minmax(12.75rem, 1.4fr) 5.25rem minmax(6.25rem, 0.8fr) minmax(9.75rem, 1.05fr) minmax(8.5rem, 1fr);
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  background: #080b0a;
+  overflow: hidden;
+  min-height: 4.5rem;
+}
+
+/* A witness whose vote actually counted is edged in brand green; one that was
+   thrown out or never answered is not, so the count is legible at a glance
+   without reading a single number. */
+.witnessCounted {
+  border-color: rgba(0, 255, 163, 0.4);
+  box-shadow: inset 3px 0 0 0 var(--primary-container), 0 0 18px rgba(0, 255, 163, 0.06);
+}
+
+.witnessEcho {
+  border-color: rgba(248, 113, 113, 0.35);
+  box-shadow: inset 3px 0 0 0 var(--refute);
+}
+
+.witnessCol {
+  padding: 0.6rem 0.7rem;
+  border-left: 1px solid var(--outline);
+  align-self: stretch;
+  display: grid;
+  align-content: center;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.witnessIdent {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.75rem;
+  min-width: 0;
+}
+
+.witnessName {
+  font-family: var(--display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--paper);
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.witnessHouse {
+  font-size: 0.8125rem;
+  color: var(--paper-dim);
+}
+
+.witnessMetaLabel {
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--paper-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The mirror-probe note is the one label allowed to wrap; it is a sentence, not
+   a column header. */
+.witnessMetaNote {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: var(--paper-dim);
+  white-space: nowrap;
+}
+
+.witnessMetaValue {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--paper);
+  line-height: 1.2;
+}
+
+.witnessMetaValueZero {
+  color: var(--paper-faint);
+}
+
+.stanceWord {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.stanceSupported {
+  color: var(--verify);
+}
+
+.stanceRefuted {
+  color: var(--refute);
+}
+
+.stanceUncertain {
+  color: var(--neutral);
+}
+
+.stanceNone,
+.stanceDiscounted {
+  color: var(--paper-faint);
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: var(--paper);
+  white-space: nowrap;
+}
+
+.tagCoherent {
+  color: var(--verify);
+}
+
+.tagEcho {
+  color: var(--refute);
+}
+
+.tagPartial {
+  color: var(--warn);
+}
+
+.tagUnavailable {
+  color: var(--paper-faint);
+}
+
+.anchorChips {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.anchorChip {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1px solid var(--outline-strong);
+  border-radius: 8px;
+  background: var(--surface-high);
+  color: var(--paper-dim);
+  flex: none;
+}
+
+.anchorMore {
+  font-size: 0.8125rem;
+  color: var(--paper-dim);
+}
+
+.anchorNone {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--paper-dim);
+}
+
+.anchorShared {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--sodium);
+  margin-top: 0.2rem;
+}
+
+/* The full answer text no longer fits a reference row, so it lives in a
+   disclosure under the panel rather than being deleted. */
+.witnessDetail {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--outline);
+  padding: 0.85rem 0.9rem;
+  display: grid;
+  gap: 0.6rem;
+  background: #060807;
+}
+
+.witnessDetailToggle {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.3rem 0.75rem;
+  border: 0;
+  border-top: 1px solid var(--outline);
+  background: transparent;
+  color: #5d6462;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: right;
+  transition: color 140ms ease;
+}
+
+.witnessDetailToggle:hover {
+  color: var(--primary-container);
+}
+
+.reasoning {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--paper-dim);
+  white-space: pre-wrap;
+}
+
+.detailLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--paper-faint);
+}
+
+.mirrorQuote {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--paper-dim);
+  padding-left: 0.7rem;
+  border-left: 2px solid var(--outline-strong);
+}
+
+.mirrorNote {
+  font-size: 0.8125rem;
+  color: var(--paper-faint);
+}
+
+/* --- S3 · receipts ledger ------------------------------------------------- */
+
+.ledgerWrap {
+  padding: 0.75rem 1.15rem 1.15rem;
+}
+
+.ledger {
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #070908;
+}
+
+.ledgerRow {
+  display: grid;
+  grid-template-columns: 4.4rem 12.6rem 8.4rem minmax(0, 1fr) 3.5rem 3.5rem;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: transparent;
+  text-align: left;
+  font-size: 0.8125rem;
+  color: var(--paper);
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.ledgerRow:hover {
+  background: rgba(0, 255, 163, 0.04);
+}
+
+.ledgerHead {
+  background: #101413;
+  cursor: default;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  padding: 0.7rem 0.85rem;
+}
+
+.ledgerHead:hover {
+  background: #101413;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--primary-container);
+}
+
+.nodeDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary-container);
+  box-shadow: 0 0 6px rgba(0, 255, 163, 0.7);
+  flex: none;
+}
+
+.nodeDotRing {
+  background: transparent;
+  border: 1.5px solid var(--primary-container);
+  box-shadow: none;
+}
+
+.nodeMissing {
+  color: var(--paper-faint);
+}
+
+.reqId {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: #00c97a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reqIdMissing {
+  color: var(--paper-faint);
+}
+
+.cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modelCell {
+  font-weight: 500;
+  font-size: 0.8125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.rowFailed .reqId {
+  color: var(--refute);
+}
+
+.detail {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: #050706;
+}
+
+.detailBlock {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.pre {
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  max-height: 14rem;
+  overflow: auto;
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  background: #000;
+  font-family: var(--mono);
+  font-size: 0.75rem;
   line-height: 1.5;
   color: var(--paper-dim);
-  text-wrap: pretty;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
-.provenance {
-  padding: 1.25rem 0 0;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: var(--paper-faint);
-  max-width: 62ch;
-}
-
-.provenance a {
+.copy {
+  justify-self: start;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--outline-strong);
+  border-radius: 6px;
+  background: transparent;
   color: var(--paper-dim);
-  text-decoration: none;
-  border-bottom: 1px solid var(--rule-strong);
+  font-size: 0.75rem;
+  cursor: pointer;
 }
 
-.provenance a:hover {
-  color: var(--sodium);
+.copy:hover {
+  color: var(--primary-container);
+  border-color: rgba(0, 255, 163, 0.45);
 }
 
-/* --- live run ------------------------------------------------------------ */
+.totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--paper-dim);
+}
+
+.totals strong {
+  font-weight: 600;
+  color: var(--paper);
+}
+
+/* --- S8 · what this rests on ---------------------------------------------- */
+
+.hinge {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr 1fr 1.1fr;
+  padding: 0.4rem 0 0.3rem;
+}
+
+.hingeCell {
+  position: relative;
+  overflow: hidden;
+  padding: 0.6rem 0.8rem 1rem;
+  border-left: 1px solid var(--outline);
+  min-height: 11rem;
+}
+
+.hingeCell:first-child {
+  border-left: 0;
+  padding-left: 1.15rem;
+}
+
+.hingeHead {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--paper);
+}
+
+.hingeHead svg {
+  color: var(--primary-container);
+  flex: none;
+}
+
+.hingeBody {
+  position: relative;
+  z-index: 2;
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--paper-dim);
+}
+
+.hingeArt {
+  position: absolute;
+  right: -0.5rem;
+  bottom: -0.75rem;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.hingeMark {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  margin-top: 0.9rem;
+}
+
+/* --- live run ------------------------------------------------------------- */
 
 .live {
+  position: relative;
+  z-index: 2;
   display: grid;
-  gap: 1.5rem;
-  padding: 2rem 0 1rem;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+  padding: 1rem 1.15rem 1.15rem;
+  border: 1px solid var(--outline-green);
+  border-radius: var(--radius);
+  background: var(--surface-low);
 }
 
 .stageLine {
   display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  font-family: var(--mono);
-  font-size: 0.8125rem;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.875rem;
+  color: var(--paper);
+}
+
+.dim {
   color: var(--paper-dim);
-}
-
-.stageDot {
-  width: 0.5rem;
-  height: 0.5rem;
-  background: var(--sodium);
-  animation: pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.25;
-  }
 }
 
 .probeGrid {
   display: grid;
-  grid-template-columns: minmax(7rem, 0.8fr) repeat(3, minmax(6rem, 1fr));
+  grid-template-columns: minmax(9rem, 1fr) repeat(3, 1fr);
   gap: 1px;
-  background: var(--rule);
-  border: 1px solid var(--rule);
+  background: var(--outline);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
 .probeCell {
-  background: var(--ink-900);
-  padding: 0.85rem 1rem;
+  position: relative;
+  overflow: hidden;
   display: grid;
-  gap: 0.35rem;
   align-content: center;
-  min-height: 4.25rem;
-  animation: land 320ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  min-height: 3.1rem;
+  padding: 0.55rem 0.75rem;
+  background: #080b0a;
 }
 
 .probeHeadCell {
-  background: var(--ink-850);
-  min-height: 0;
-  padding: 0.5rem 1rem;
-  animation: none;
+  background: #101413;
+  min-height: 2.4rem;
 }
 
 .probeColumn,
 .probeModel {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--paper-faint);
-}
-
-.probeRowHead {
-  background: var(--ink-850);
-  animation: none;
-}
-
-.probeModel {
   color: var(--paper-dim);
 }
 
-/* Sodium is reserved for the independence story — the effective count, and the
-   votes thrown out. A stance is not that, so the probe grid uses the verdict
-   palette instead. */
+.probeModel {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.875rem;
+  color: var(--paper);
+}
+
+.probeBody {
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: land 320ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@keyframes land {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .toneSupported {
   color: var(--verify);
 }
@@ -392,817 +1658,194 @@
   color: var(--neutral);
 }
 
-/* The claim under test, restated below the grid rather than above it, so the
-   work stays the tallest thing on screen while a run is in flight. */
-.liveClaim {
-  font-family: var(--display);
-  font-size: clamp(1.125rem, 2vw, 1.375rem);
-  font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: -0.015em;
-  max-width: var(--measure);
-  color: var(--paper-dim);
-}
-
-@keyframes land {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.probeCellPending {
-  background: var(--ink-950);
-  animation: none;
-}
-
-.probeHead {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--paper-faint);
-}
-
-.probeBody {
-  font-family: var(--mono);
-  font-size: 0.8125rem;
-  letter-spacing: 0.06em;
-  color: var(--paper);
-}
-
 .probeWaiting {
-  font-family: var(--mono);
   font-size: 0.75rem;
   color: var(--paper-faint);
 }
 
 .shimmer {
-  height: 0.5rem;
-  background: linear-gradient(90deg, var(--ink-800), var(--ink-700), var(--ink-800));
-  background-size: 200% 100%;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 25%,
+    rgba(0, 255, 163, 0.07) 50%,
+    transparent 75%
+  );
+  background-size: 220% 100%;
   animation: shimmer 1.6s linear infinite;
 }
 
 @keyframes shimmer {
-  from {
-    background-position: 200% 0;
-  }
   to {
-    background-position: -200% 0;
+    background-position: -220% 0;
   }
 }
 
-/* --- report -------------------------------------------------------------- */
-
-.report {
-  display: grid;
-  gap: clamp(1.75rem, 3.5vw, 2.75rem);
-  padding: 1.25rem 0 6rem;
-}
-
-.section {
-  display: grid;
-  gap: 1rem;
-}
-
-.sectionHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.sectionTitle {
+.liveClaim {
   font-family: var(--display);
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-/* --- claim --------------------------------------------------------------- */
-
-.claim {
-  font-family: var(--display);
-  font-size: clamp(1.375rem, 2.6vw, 1.875rem);
-  font-weight: 500;
-  line-height: 1.22;
-  letter-spacing: -0.02em;
-  max-width: var(--measure);
-  text-wrap: pretty;
-}
-
-.claimMeta {
-  display: grid;
-  gap: 0.4rem;
-  font-size: 0.875rem;
-  color: var(--paper-dim);
-  max-width: var(--measure);
-}
-
-.claimMeta code {
-  font-family: var(--mono);
-  font-size: 0.8125rem;
-  color: var(--paper-dim);
-}
-
-.negation {
-  border-left: 2px solid var(--rule-strong);
-  padding-left: 0.85rem;
-  color: var(--paper-dim);
-  font-size: 0.9375rem;
-}
-
-/* --- the hero: verdict --------------------------------------------------- */
-
-.verdict {
-  border: 1px solid var(--rule-strong);
-  background:
-    radial-gradient(60rem 24rem at 78% -8rem, rgba(237, 161, 60, 0.09), transparent 70%),
-    linear-gradient(180deg, var(--ink-850), var(--ink-900));
-  display: grid;
-  grid-template-columns: minmax(15rem, 22rem) 1fr;
-}
-
-@media (max-width: 60rem) {
-  .verdict {
-    grid-template-columns: 1fr;
-  }
-}
-
-.verdictScore {
-  padding: clamp(1.5rem, 3vw, 2.25rem);
-  border-right: 1px solid var(--rule);
-  display: grid;
-  grid-template-rows: auto auto auto auto 1fr;
-  align-content: start;
-  gap: 0.35rem;
-}
-
-/* The number the product exists to report. Everything else in this cell is
-   subordinate to it, including the truth score. */
-.witnessNumber {
-  font-family: var(--display);
-  font-size: clamp(4.5rem, 11vw, 7rem);
-  font-weight: 600;
-  line-height: 0.82;
-  letter-spacing: -0.05em;
-  font-variation-settings: "opsz" 144;
-  color: var(--sodium);
-}
-
-.scoreBlock {
-  margin-top: 1.5rem;
-  padding-top: 1.1rem;
-  border-top: 1px solid var(--rule);
-  display: grid;
-  gap: 0.3rem;
-}
-
-@media (max-width: 60rem) {
-  .verdictScore {
-    border-right: 0;
-    border-bottom: 1px solid var(--rule);
-  }
-}
-
-.scoreNumber {
-  font-family: var(--display);
-  font-size: 2.75rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
-}
-
-.scoreUnit {
-  font-family: var(--mono);
   font-size: 1rem;
-  color: var(--paper-faint);
-  letter-spacing: 0;
-}
-
-.scoreBand {
-  font-family: var(--mono);
-  font-size: 0.875rem;
-  color: var(--paper-dim);
-}
-
-.scoreLabel {
-  font-family: var(--mono);
-  font-size: 0.8125rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.labelSupported {
-  color: var(--verify);
-}
-.labelLeansTrue {
-  color: var(--verify);
-}
-.labelUnresolved {
-  color: var(--neutral);
-}
-.labelLeansFalse {
-  color: var(--refute);
-}
-.labelRefuted {
-  color: var(--refute);
-}
-.labelNoSignal {
-  color: var(--sodium);
-}
-
-/* the score showing its working — a truth score nobody can audit is a number,
-   not a fact check */
-.derivation {
-  margin-top: auto;
-  padding-top: 1.75rem;
-  display: grid;
-  gap: 0.35rem;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--paper-faint);
-}
-
-.derivationRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  border-top: 1px solid var(--rule);
-  padding-top: 0.35rem;
-}
-
-.derivationTotal {
-  color: var(--sodium);
-}
-
-/* the collapse: nominal consensus vs what it is actually worth */
-
-.collapse {
-  padding: clamp(1.5rem, 3vw, 2.25rem);
-  display: grid;
-  gap: 1.5rem;
-  align-content: start;
-}
-
-.gauge {
-  display: grid;
-  gap: 0.55rem;
-}
-
-.gaugeHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.gaugeLabel {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--paper-faint);
-}
-
-.gaugeValue {
-  font-family: var(--display);
-  font-size: 1.75rem;
   font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1;
+  color: var(--paper);
 }
 
-.gaugeValueNominal {
-  color: var(--steel);
-}
+/* --- provenance + footer -------------------------------------------------- */
 
-.gaugeValueEffective {
-  color: var(--sodium);
-}
-
-.track {
-  height: 0.75rem;
-  background: var(--ink-800);
+.provenance {
   position: relative;
-  overflow: hidden;
-}
-
-/* the nominal reading: one discrete slot per model on the panel */
-.slots {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 3px;
-  height: 0.75rem;
-}
-
-.slot {
-  background: var(--ink-800);
-}
-
-.slotOn {
-  background: var(--steel);
-  animation: grow 420ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
-  transform-origin: left center;
-}
-
-/* the effective reading: the same three places, filled only as far as the
-   evidence actually goes */
-.slotsEffective {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  gap: 3px;
-  height: 0.75rem;
-}
-
-.slotEmpty {
-  border: 1px solid var(--sodium-deep);
-  background: transparent;
-}
-
-.slotFill {
-  height: 100%;
-  background: var(--sodium);
-  animation: grow 900ms 320ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
-  transform-origin: left center;
-}
-
-@keyframes grow {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: none;
-  }
-}
-
-/* The best sentence on the page; it was set in the smallest type in the card. */
-.lost {
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  color: var(--sodium);
-  max-width: 62ch;
-  text-wrap: pretty;
-}
-
-/* the moment the whole product exists for: a vote that had to be thrown out */
-.excluded {
-  border: 1px solid var(--sodium-deep);
-  background: rgba(237, 161, 60, 0.07);
-  padding: 0.85rem 1rem;
-  display: grid;
-  gap: 0.3rem;
-}
-
-.excludedLabel {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--sodium);
-}
-
-.excludedBody {
-  font-size: 0.9375rem;
-  line-height: 1.45;
-  color: var(--paper);
-}
-
-.headline {
-  font-size: 1.0625rem;
-  line-height: 1.45;
-  color: var(--paper);
-  max-width: 56ch;
-  border-top: 1px solid var(--rule);
-  padding-top: 1.25rem;
-  text-wrap: pretty;
-}
-
-/* --- witness panel ------------------------------------------------------- */
-
-.witnesses {
-  display: grid;
-  gap: 1px;
-  background: var(--rule);
-  border: 1px solid var(--rule);
-}
-
-.witness {
-  background: var(--ink-900);
-  padding: 1.25rem clamp(1rem, 2vw, 1.5rem);
-  display: grid;
-  grid-template-columns: minmax(9rem, 12rem) minmax(0, 1fr) minmax(10rem, 15rem);
-  gap: clamp(1rem, 2vw, 2rem);
-  align-items: start;
-}
-
-@media (max-width: 60rem) {
-  .witness {
-    grid-template-columns: 1fr;
-    gap: 0.85rem;
-  }
-}
-
-.witnessEcho {
-  background: linear-gradient(90deg, rgba(237, 161, 60, 0.07), var(--ink-900) 40%);
-}
-
-.witnessName {
-  display: grid;
-  gap: 0.2rem;
-}
-
-.witnessLabel {
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.witnessHouse {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  color: var(--paper-faint);
-}
-
-.stanceRow {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.5rem;
-}
-
-.stanceTag {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.12em;
-  padding: 0.15rem 0.45rem;
-  border: 1px solid currentColor;
-}
-
-.stanceSupported {
-  color: var(--verify);
-}
-.stanceRefuted {
-  color: var(--refute);
-}
-.stanceUncertain {
-  color: var(--neutral);
-}
-.stanceNone {
-  color: var(--paper-faint);
-}
-
-/* A vote that was thrown out, painted like one. */
-.stanceDiscounted {
-  color: var(--paper-faint);
-  text-decoration: line-through;
-  text-decoration-thickness: 1px;
-}
-
-.voteWeight {
-  font-family: var(--mono);
+  z-index: 2;
+  margin-top: 0.9rem;
+  padding: 0.9rem 1.15rem;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  background: var(--surface-low);
   font-size: 0.8125rem;
+  line-height: 1.6;
   color: var(--paper-dim);
 }
 
-.voteWeight strong {
-  font-weight: 500;
-}
-
-.voteWeightZero {
-  color: var(--sodium);
-  font-size: 0.875rem;
-}
-
-.confidence {
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--paper-faint);
-}
-
-.reasoning {
-  font-size: 0.9375rem;
-  color: var(--paper-dim);
-  white-space: pre-wrap;
-  max-width: 62ch;
-}
-
-.mirrorBox {
-  display: grid;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
-}
-
-.verdictTag {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.tagEcho {
-  color: var(--sodium);
-}
-.tagCoherent {
-  color: var(--verify);
-}
-.tagPartial {
-  color: var(--neutral);
-}
-.tagUnavailable {
-  color: var(--paper-faint);
-}
-
-.mirrorNote {
-  color: var(--paper-dim);
-  line-height: 1.45;
-  border-top: 1px solid var(--rule);
-  padding-top: 0.6rem;
-}
-
-/* The two answers, stacked so they can be read against each other. When a model
-   argues confidently for both sides, seeing it in its own words is the evidence;
-   the stance chips alone are just a claim about it. */
-.mirrorSide {
-  display: grid;
-  gap: 0.3rem;
-}
-
-.mirrorQuote {
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--paper-dim);
-  border-left: 1px solid var(--rule-strong);
-  padding-left: 0.6rem;
-  text-wrap: pretty;
-}
-
-.anchorList {
-  display: grid;
-  gap: 0.3rem;
-  margin-top: 0.75rem;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--paper-faint);
-}
-
-.anchorShared {
-  color: var(--sodium);
-}
-
-.weightBar {
-  height: 3px;
-  background: var(--ink-700);
-  margin-top: 0.6rem;
-}
-
-.weightFill {
-  height: 100%;
-  background: var(--sodium);
-}
-
-/* --- adjudication -------------------------------------------------------- */
-
-/* Column rules framed a lot of empty space when one answer was three lines and
-   its neighbour was nine. Spaced blocks, top-aligned, with no vertical rules. */
-.hinge {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-  gap: clamp(1.25rem, 3vw, 2.5rem);
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-  padding: 1.5rem 0;
-}
-
-.hingeCell {
-  display: grid;
-  gap: 0.6rem;
-  align-content: start;
-}
-
-.hingeLabel {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--sodium);
-}
-
-.hingeBody {
-  font-size: 1rem;
-  line-height: 1.5;
-  color: var(--paper);
-  text-wrap: pretty;
-}
-
-.hingeBodyDim {
-  color: var(--paper-dim);
-  font-size: 0.9375rem;
-}
-
-/* --- receipt ledger ------------------------------------------------------ */
-
-.ledger {
-  border: 1px solid var(--rule);
-  font-family: var(--mono);
-  font-size: 0.8125rem;
-  overflow-x: auto;
-  position: relative;
-}
-
-/* On a narrow screen the table scrolls sideways; without this it just looks
-   like text clipped mid-word. */
-@media (max-width: 60rem) {
-  .ledger {
-    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 2.5rem), transparent);
-    mask-image: linear-gradient(90deg, #000 calc(100% - 2.5rem), transparent);
-  }
-}
-
-.ledgerRow {
-  display: grid;
-  grid-template-columns: 5rem minmax(15rem, 1.1fr) 9.5rem 11rem 5rem 4.5rem;
-  gap: 1rem;
-  padding: 0.6rem clamp(0.75rem, 1.5vw, 1.1rem);
-  border-bottom: 1px solid var(--rule);
-  align-items: center;
-  text-align: left;
-  width: 100%;
-  background: transparent;
-  border-left: 0;
-  border-right: 0;
-  border-top: 0;
-  cursor: pointer;
-  min-width: 46rem;
-}
-
-.ledgerHead {
-  color: var(--paper-dim);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-size: 0.6875rem;
-  cursor: default;
-  background: var(--ink-850);
-}
-
-.ledgerRow:hover:not(.ledgerHead) {
-  background: var(--ink-850);
-}
-
-.ledgerRow:last-child {
-  border-bottom: 0;
-}
-
-/* The ids are proof, not headline: dimmed until the row is hovered, so the
-   columns a reader actually scans are the loudest ones. */
-.reqId {
-  color: var(--paper-dim);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ledgerRow:hover .reqId {
-  color: var(--sodium);
-}
-
-.cell {
-  color: var(--paper-dim);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.num {
-  color: var(--paper-dim);
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.node {
+.provenance a {
   color: var(--steel);
-}
-
-.dim {
-  color: var(--paper-faint);
-}
-
-.rowFailed .reqId {
-  color: var(--refute);
-}
-
-.detail {
-  background: var(--ink-950);
-  border-bottom: 1px solid var(--rule);
-  padding: 1rem clamp(0.75rem, 1.5vw, 1.1rem);
-  display: grid;
-  gap: 1rem;
-  min-width: 46rem;
-}
-
-.detailBlock {
-  display: grid;
-  gap: 0.4rem;
-}
-
-.detailLabel {
-  font-size: 0.6875rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--paper-faint);
-}
-
-.pre {
-  margin: 0;
-  padding: 0.75rem;
-  background: var(--ink-900);
-  border: 1px solid var(--rule);
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 22rem;
-  overflow: auto;
-  color: var(--paper-dim);
-  font-size: 0.75rem;
-  line-height: 1.5;
-}
-
-.copy {
-  border: 1px solid var(--rule-strong);
-  background: transparent;
-  color: var(--paper-dim);
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 0.3rem 0.6rem;
-  cursor: pointer;
-  justify-self: start;
-}
-
-.copy:hover {
-  border-color: var(--sodium-deep);
-  color: var(--paper);
-}
-
-.totals {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--paper-faint);
-}
-
-.totals strong {
-  color: var(--paper-dim);
-  font-weight: 500;
-}
-
-/* --- footer -------------------------------------------------------------- */
-
-.footer {
-  border-top: 1px solid var(--rule);
-  padding: 1.5rem 0 3rem;
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--paper-faint);
 }
 
 .permalink {
-  display: inline-flex;
-  gap: 0.5rem;
-  align-items: center;
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  margin-top: 0.9rem;
   font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--paper-dim);
-  text-decoration: none;
-  border-bottom: 1px solid var(--rule-strong);
-  padding-bottom: 0.15rem;
+  font-size: 0.8125rem;
+  color: var(--primary-container);
 }
 
-.permalink:hover {
-  color: var(--sodium);
-  border-color: var(--sodium-deep);
+.footer {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--outline);
+  font-size: 0.8125rem;
+  color: var(--paper-faint);
+}
+
+.footer strong {
+  font-weight: 500;
+  color: var(--paper-dim);
+}
+
+/* --- report header (permalink route) -------------------------------------- */
+
+.reportStamp {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding-top: 0.5rem;
+}
+
+/* --- responsive ----------------------------------------------------------- */
+
+@media (max-width: 1180px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    min-height: 0;
+  }
+
+  .heroLeft {
+    max-width: 34rem;
+  }
+
+  .stage {
+    height: 440px;
+  }
+
+  .rail {
+    max-width: 26rem;
+  }
+
+  .mechanism {
+    grid-template-columns: 1fr;
+  }
+
+  .step {
+    min-height: 17rem;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .reportGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .hinge {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .metricCell {
+    border-left: 0;
+    border-top: 1px solid var(--outline);
+    min-height: 0;
+  }
+
+  .metricCell:first-child {
+    border-top: 0;
+  }
+
+  .hinge {
+    grid-template-columns: 1fr;
+  }
+
+  .hingeCell {
+    border-left: 0;
+    border-top: 1px solid var(--outline);
+    min-height: 0;
+    padding-left: 1.15rem;
+  }
+
+  .hingeCell:first-child {
+    border-top: 0;
+  }
+
+  .witness {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .witnessIdent {
+    grid-column: 1 / -1;
+  }
+
+  .stage {
+    height: 360px;
+  }
+
+  .satWrap {
+    transform: scale(0.75);
+  }
+
+  .ledgerRow {
+    grid-template-columns: 4.5rem minmax(0, 1fr) 4rem 4rem;
+    font-size: 0.8125rem;
+  }
+
+  .ledgerRow > :nth-child(3),
+  .ledgerRow > :nth-child(4) {
+    display: none;
+  }
 }

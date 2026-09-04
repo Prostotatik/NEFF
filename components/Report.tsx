@@ -1,6 +1,20 @@
 import { labelFor, modelByHouse } from "@/lib/models";
 import type { Stance, VerdictLabel, VerificationRun, WitnessAssessment } from "@/lib/types";
 import { ReceiptLedger } from "./ReceiptLedger";
+import { Balance, Icosahedron, Ridge, Spiral } from "./Orbs";
+import {
+  CheckCircle,
+  DocIcon,
+  GonkaMark,
+  MinusCircle,
+  MirrorIcon,
+  ScaleIcon,
+  SearchIcon,
+  ShieldCheck,
+  SplitCircle,
+} from "./Icons";
+import { avatarStyle } from "./palette";
+import { WitnessDetail } from "./WitnessDetail";
 import s from "./quorum.module.css";
 
 const LABEL_CLASS: Record<VerdictLabel, string> = {
@@ -26,23 +40,23 @@ const DISCRIMINATION_CLASS: Record<WitnessAssessment["discriminationVerdict"], s
 };
 
 const DISCRIMINATION_TITLE: Record<WitnessAssessment["discriminationVerdict"], string> = {
-  echo: "Echo — failed the mirror probe",
-  coherent: "Coherent — passed the mirror probe",
-  partial: "Partial — decisive on one side only",
+  echo: "Echo",
+  coherent: "Coherent",
+  partial: "Partial",
   unavailable: "Not measurable",
+};
+
+const DISCRIMINATION_NOTE: Record<WitnessAssessment["discriminationVerdict"], string> = {
+  echo: "failed the mirror probe",
+  coherent: "passed the mirror probe",
+  partial: "decisive on one side only",
+  unavailable: "the mirror probe did not return",
 };
 
 /** "A, B and C" rather than "A and B and C". */
 function list(items: string[]): string {
   if (items.length <= 1) return items[0] ?? "";
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
-}
-
-/** The panel card has room for the gist, not the whole answer; the ledger has the rest. */
-function truncate(text: string | undefined, max = 260): string {
-  if (!text) return "";
-  const flat = text.split("\n\nDecisive evidence:")[0].trim();
-  return flat.length > max ? `${flat.slice(0, max).trimEnd()}…` : flat;
 }
 
 /**
@@ -57,338 +71,443 @@ function stanceClass(stance: Stance | null | undefined, counted: boolean): strin
 }
 
 export function Report({ run }: { run: VerificationRun }) {
-  const { prep, consensus, witnesses, adjudication, receipts, totals } = run;
-  const probeFor = (modelId: string, kind: "direct" | "mirror") =>
-    run.probes.find((p) => p.modelId === modelId && p.kind === kind);
+  const { prep } = run;
 
   return (
     <div className={s.report}>
       {/* --- what was actually checked ------------------------------------ */}
-      <section className={s.section}>
-        <div className={s.sectionHead}>
+      <section className={s.claimBar}>
+        <div className={s.claimBarHead}>
           <span className="eyebrow">Claim under test</span>
-          <span className="eyebrow mono">
+          <span className="eyebrow-dim">
             {run.inputKind === "url" ? "extracted from a link" : "as submitted"}
           </span>
         </div>
         <p className={s.claim}>{prep.claim}</p>
         <div className={s.claimMeta}>
-          {prep.rationale ? <p>{prep.rationale}</p> : null}
+          {prep.rationale ? <span>{prep.rationale}</span> : null}
           {prep.sourceUrl ? (
-            <p>
+            <span>
               Source:{" "}
               <a href={prep.sourceUrl} target="_blank" rel="noreferrer noopener nofollow">
                 {prep.sourceTitle || prep.sourceUrl}
               </a>
-            </p>
+            </span>
           ) : null}
         </div>
         <p className={s.negation}>
-          <span className="eyebrow">Mirror form, asked blind</span>
-          <br />
+          <strong>Mirror form, asked blind</strong>
           {prep.negation}
         </p>
       </section>
 
-      {/* --- the hero ------------------------------------------------------ */}
-      <VerdictCard run={run} />
+      {/* --- S5 : the metrics strip --------------------------------------- */}
+      <MetricsStrip run={run} />
 
-      {/* --- what the verdict hinges on ------------------------------------ */}
-      <section className={s.section}>
-        <div className={s.sectionHead}>
-          <h2 className={s.sectionTitle}>What this rests on</h2>
-          <span className="eyebrow">adjudicated on Gonka</span>
+      {/* --- S4 + S8 beside S3 -------------------------------------------- */}
+      <div className={s.reportGrid}>
+        <div className={s.reportColumn}>
+          <ThePanel run={run} />
+          <WhatThisRestsOn run={run} />
         </div>
-        <div className={s.hinge}>
-          <div className={s.hingeCell}>
-            <span className={s.hingeLabel}>Load-bearing fact</span>
-            <p className={s.hingeBody}>
-              {adjudication.loadBearingFact || "The adjudicating node did not return this field."}
-            </p>
-          </div>
-          <div className={s.hingeCell}>
-            <span className={s.hingeLabel}>What would flip it</span>
-            <p className={s.hingeBody}>
-              {adjudication.falsifier || "The adjudicating node did not return this field."}
-            </p>
-          </div>
-          <div className={s.hingeCell}>
-            <span className={s.hingeLabel}>
-              {consensus.contested ? "Where the panel splits" : "Why they agreed"}
-            </span>
-            <p className={s.hingeBodyDim}>
-              {consensus.contested && adjudication.contention
-                ? adjudication.contention
-                : adjudication.agreementDiagnosis || "No closing note was returned."}
-            </p>
-          </div>
-        </div>
-      </section>
 
-      {/* --- the panel, witness by witness --------------------------------- */}
-      <section className={s.section}>
-        <div className={s.sectionHead}>
-          <h2 className={s.sectionTitle}>The panel</h2>
-          <span className="eyebrow">
-            each model asked three ways · claim, mirror, evidence
-          </span>
-        </div>
-        <div className={s.witnesses}>
-          {witnesses.map((w) => (
-            <article
-              key={w.modelId}
-              className={`${s.witness} ${w.discriminationVerdict === "echo" ? s.witnessEcho : ""}`}
-            >
-              <div className={s.witnessName}>
-                <span className={s.witnessLabel}>{labelFor(w.modelId)}</span>
-                <span className={s.witnessHouse}>{modelByHouse(w.modelId)?.house ?? ""}</span>
-                <div className={s.weightBar} aria-hidden="true">
-                  <div className={s.weightFill} style={{ width: `${w.discrimination * 100}%` }} />
-                </div>
-                <span
-                  className={`${s.voteWeight} ${w.discrimination === 0 ? s.voteWeightZero : ""}`}
-                >
-                  vote weight <strong>{w.discrimination.toFixed(2)}</strong>
+        <section className={s.panel}>
+          <div className={s.panelHead}>
+            <h2 className={s.panelTitle}>Reasoning trace &amp; receipts</h2>
+            <p className={s.panelSub}>every inference, on a named Gonka node</p>
+          </div>
+          <div className={s.ledgerWrap}>
+            <ReceiptLedger receipts={run.receipts} />
+            <div className={s.totals}>
+              <span>
+                <strong>{run.totals.calls}</strong> inferences on Gonka
+              </span>
+              <span>
+                <strong>{run.totals.tokens.toLocaleString("en-US")}</strong> tokens
+              </span>
+              <span>
+                <strong>{(run.totals.wallMs / 1000).toFixed(1)}s</strong> wall clock
+              </span>
+              <span>
+                <strong>
+                  {new Set(run.receipts.map((r) => r.devshardId).filter(Boolean)).size}
+                </strong>{" "}
+                distinct nodes
+              </span>
+              {run.totals.failedCalls > 0 ? (
+                <span>
+                  <strong>{run.totals.failedCalls}</strong> failed, shown honestly above
                 </span>
-              </div>
-
-              <div>
-                <div className={s.stanceRow}>
-                  <span className={`${s.stanceTag} ${stanceClass(w.stance, w.discrimination > 0)}`}>
-                    {w.stance ?? "NO ANSWER"}
-                  </span>
-                  {w.stance ? (
-                    <span className={s.confidence}>self-reported confidence {w.confidence.toFixed(2)}</span>
-                  ) : null}
-                </div>
-                <p className={s.reasoning}>
-                  {probeFor(w.modelId, "direct")?.reasoning ||
-                    probeFor(w.modelId, "direct")?.error ||
-                    "This Gonka node did not return an answer."}
-                </p>
-                {w.anchors.length > 0 ? (
-                  <div className={s.anchorList}>
-                    <span className="eyebrow">evidence it leaned on</span>
-                    {w.anchors.map((anchor) => (
-                      <span key={anchor}>— {anchor}</span>
-                    ))}
-                    {w.echoesWith.length > 0 ? (
-                      <span className={s.anchorShared}>
-                        shares this evidence base with {w.echoesWith.map(labelFor).join(", ")}
-                      </span>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className={s.anchorList}>
-                    <span className="eyebrow">evidence it leaned on</span>
-                    <span className={s.anchorShared}>
-                      — named no source, so its independence is assumed, not measured
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className={s.mirrorBox}>
-                <span className={`${s.verdictTag} ${DISCRIMINATION_CLASS[w.discriminationVerdict]}`}>
-                  {DISCRIMINATION_TITLE[w.discriminationVerdict]}
-                </span>
-                {/* The claim-side prose is already in the column to the left; only the
-                    stance is repeated here, so the two answers can be read against each
-                    other without saying the same thing twice. */}
-                <div className={s.stanceRow}>
-                  <span className={s.confidence}>on the claim</span>
-                  <span className={`${s.stanceTag} ${stanceClass(w.stance, w.discrimination > 0)}`}>
-                    {w.stance ?? "—"}
-                  </span>
-                </div>
-
-                <div className={s.mirrorSide}>
-                  <div className={s.stanceRow}>
-                    <span className={s.confidence}>on its negation, blind</span>
-                    <span className={`${s.stanceTag} ${stanceClass(w.mirrorStance, w.discrimination > 0)}`}>
-                      {w.mirrorStance ?? "—"}
-                    </span>
-                  </div>
-                  <p className={s.mirrorQuote}>
-                    {truncate(probeFor(w.modelId, "mirror")?.reasoning) ||
-                      probeFor(w.modelId, "mirror")?.error ||
-                      "This probe did not return."}
-                  </p>
-                </div>
-
-                <p className={s.mirrorNote}>{w.note}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {/* --- the proof ----------------------------------------------------- */}
-      <section className={s.section}>
-        <div className={s.sectionHead}>
-          <h2 className={s.sectionTitle}>Reasoning trace &amp; receipts</h2>
-          <span className="eyebrow">every inference, on a named Gonka node</span>
-        </div>
-        <ReceiptLedger receipts={receipts} />
-        <div className={s.totals}>
-          <span>
-            <strong>{totals.calls}</strong> inferences on Gonka
-          </span>
-          <span>
-            <strong>{totals.tokens.toLocaleString("en-US")}</strong> tokens
-          </span>
-          <span>
-            <strong>{(totals.wallMs / 1000).toFixed(1)}s</strong> wall clock
-          </span>
-          <span>
-            <strong>{new Set(receipts.map((r) => r.devshardId).filter(Boolean)).size}</strong> distinct
-            nodes
-          </span>
-          {totals.failedCalls > 0 ? (
-            <span>
-              <strong>{totals.failedCalls}</strong> failed, shown honestly above
-            </span>
-          ) : null}
-        </div>
-      </section>
+              ) : null}
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
 
-function VerdictCard({ run }: { run: VerificationRun }) {
-  const { verdict, consensus, witnesses } = run;
-  // Both gauges are drawn against the same denominator — the size of the panel —
-  // so the sodium bar can be read directly against the steel one. Scaling them
-  // separately would make an echo look like corroboration.
-  const panelSize = Math.max(witnesses.length, 1);
-  const lost = consensus.nominalAgree - consensus.effectiveWitnesses;
-  const echoed = witnesses.filter((w) => w.discriminationVerdict === "echo");
+/**
+ * S5 — the metrics strip, and the hero moment of the whole product: a high
+ * nominal consensus sitting immediately beside a low Effective Witness Count.
+ * The two are deliberately in the same band, at the same size, so the gap
+ * between them is the thing you cannot avoid reading.
+ */
+function MetricsStrip({ run }: { run: VerificationRun }) {
+  const { verdict, consensus } = run;
   const survived = consensus.effectiveWitnesses;
+  const lost = consensus.nominalAgree - survived;
 
   return (
-    <section className={s.section}>
-      <div className={s.sectionHead}>
-        <h2 className={s.sectionTitle}>Verdict</h2>
-        <span className="eyebrow">truth score, discounted by measured independence</span>
+    <section className={s.metrics}>
+      <div className={s.metricCell}>
+        <div className={s.metricBody}>
+          <span className="eyebrow">Effective witnesses</span>
+          <span className={`${s.metricValue} ${s.metricValueSodium}`}>{survived.toFixed(1)}</span>
+          <span className={s.metricNote}>
+            of {consensus.nominalAgree} that agreed,
+            <br />
+            out of {consensus.respondents} that answered
+          </span>
+        </div>
+        <span className={s.metricArt}>
+          <Icosahedron size={124} />
+        </span>
       </div>
-      <div className={s.verdict}>
-        {/* The Effective Witness Count is the argument, so it is the loudest
-            thing on the page. The truth score sits under it: a judge should read
-            "0.0 witnesses" first and "50/100" second, because the second only
-            means anything in light of the first. */}
-        <div className={s.verdictScore}>
-          <span className={s.gaugeLabel}>Effective witnesses</span>
-          <div className={s.witnessNumber}>{survived.toFixed(1)}</div>
-          <div className={s.scoreBand}>
-            of {consensus.nominalAgree} that agreed, out of {consensus.respondents} that answered
-          </div>
 
-          <div className={s.scoreBlock}>
-            <span className={s.gaugeLabel}>Truth score</span>
-            <div className={s.scoreNumber}>
-              {verdict.truthScore}
-              <span className={s.scoreUnit}>/100</span>
-            </div>
-            <div className={s.scoreBand}>± {verdict.band} credible band</div>
-            <div className={`${s.scoreLabel} ${LABEL_CLASS[verdict.label]}`}>{verdict.label}</div>
-          </div>
+      <div className={s.metricCell}>
+        <div className={s.metricBody}>
+          <span className={`eyebrow ${s.eyebrowSplit}`}>
+            Truth <strong>score</strong>
+          </span>
+          <span className={s.metricValue}>
+            {verdict.truthScore}
+            <span className={s.metricSlash}>/</span>
+            <span className={s.metricUnit}>100</span>
+          </span>
+          <span className={s.metricNote}>± {verdict.band} credible band</span>
+          <span className={`${s.verdictPill} ${LABEL_CLASS[verdict.label]}`}>{verdict.label}</span>
+        </div>
+      </div>
 
-          <div className={s.derivation}>
-            <span className="eyebrow">its own arithmetic</span>
-            <div className={s.derivationRow}>
+      <div className={s.metricCell}>
+        <div className={s.metricBody}>
+          <span className="eyebrow">Its own arithmetic</span>
+          <p className={s.formula}>
+            50 + 50 × balance × weight = {verdict.truthScore}
+          </p>
+          <div className={s.meter}>
+            <span className={s.meterHead}>
               <span>stance balance</span>
-              <span>
-                {verdict.balance >= 0 ? `+${verdict.balance.toFixed(2)}` : verdict.balance.toFixed(2)}
-              </span>
-            </div>
-            <div className={s.derivationRow}>
+              <strong>
+                {verdict.balance >= 0
+                  ? `+${verdict.balance.toFixed(2)}`
+                  : verdict.balance.toFixed(2)}
+              </strong>
+            </span>
+            <span className={s.meterTrack}>
+              <span
+                className={`${s.meterFill} ${verdict.balance >= 0 ? s.meterFillVerify : s.meterFillRefute}`}
+                style={{ width: `${Math.abs(verdict.balance) * 100}%` }}
+              />
+            </span>
+          </div>
+          <div className={s.meter}>
+            <span className={s.meterHead}>
               <span>
                 evidence weight, {survived.toFixed(1)} / ({survived.toFixed(1)} + 1)
               </span>
-              <span>{verdict.shrink.toFixed(2)}</span>
-            </div>
-            <div className={s.derivationRow}>
-              <span>50 + 50 × balance × weight</span>
-              <span className={s.derivationTotal}>{verdict.truthScore}</span>
-            </div>
+              <strong>{verdict.shrink.toFixed(2)}</strong>
+            </span>
+            <span className={s.meterTrack}>
+              <span
+                className={`${s.meterFill} ${s.meterFillVerify}`}
+                style={{ width: `${verdict.shrink * 100}%` }}
+              />
+            </span>
           </div>
         </div>
+      </div>
 
-        <div className={s.collapse}>
-          <div className={s.gauge}>
-            <div className={s.gaugeHead}>
-              <span className={s.gaugeLabel}>Nominal consensus — what a vote would show</span>
-              <span className={`${s.gaugeValue} ${s.gaugeValueNominal}`}>
-                {consensus.nominalAgree}/{consensus.respondents}
-              </span>
-            </div>
-            <div className={s.slots} aria-hidden="true">
-              {Array.from({ length: panelSize }, (_, i) => (
-                <div key={i} className={i < consensus.nominalAgree ? s.slotOn : s.slot} />
-              ))}
-            </div>
-          </div>
-
-          <div className={s.gauge}>
-            <div className={s.gaugeHead}>
-              <span className={s.gaugeLabel}>Effective witnesses — what it is actually worth</span>
-              <span className={`${s.gaugeValue} ${s.gaugeValueEffective}`}>
-                {survived.toFixed(1)}
-              </span>
-            </div>
-            {/* Same slot geometry as the gauge above, so an empty bar reads as
-                "three places, none filled" rather than as a horizontal rule. */}
-            <div className={s.slotsEffective} aria-hidden="true">
-              {Array.from({ length: panelSize }, (_, i) => (
-                <div key={i} className={s.slotEmpty}>
-                  <div
-                    className={s.slotFill}
-                    style={{ width: `${Math.min(1, Math.max(0, survived - i)) * 100}%` }}
-                  />
-                </div>
-              ))}
-            </div>
-            {lost > 0.05 ? (
-              <p className={s.lost}>
-                {lost.toFixed(1)} of {consensus.nominalAgree} apparent witnesses did not survive:{" "}
-                {[
-                  consensus.lostToEcho > 0.05 &&
-                    `${consensus.lostToEcho.toFixed(1)} to echo${
-                      consensus.lostToEcho > 1.05
-                        ? ", models that answered the claim and its negation the same way"
-                        : ", a model that answered the claim and its negation the same way"
-                    }`,
-                  consensus.lostToUnmeasured > 0.05 &&
-                    `${consensus.lostToUnmeasured.toFixed(1)} to a mirror probe that never came back, so that independence could not be tested`,
-                  consensus.lostToPartial > 0.05 &&
-                    `${consensus.lostToPartial.toFixed(1)} to a model that was decisive one way and uncertain the other`,
-                  consensus.lostToRedundancy > 0.05 &&
-                    `${consensus.lostToRedundancy.toFixed(1)} to redundancy, ${Math.round(consensus.meanAnchorOverlap * 100)}% ${consensus.overlapMeasured ? "measured" : "assumed"} overlap in the evidence the agreeing models lean on${consensus.overlapMeasured ? "" : ", because at least one named no source"}`,
-                ]
-                  .filter(Boolean)
-                  .join("; ")}
-              </p>
-            ) : null}
-          </div>
-
-          {echoed.length > 0 ? (
-            <div className={s.excluded}>
-              <span className={s.excludedLabel}>
-                {echoed.length === 1 ? "Vote thrown out" : "Votes thrown out"}
-              </span>
-              <p className={s.excludedBody}>
-                {list(echoed.map((w) => labelFor(w.modelId)))}{" "}
-                {echoed.length === 1 ? "answered" : "each answered"} the claim and its negation the
-                same way
-                {echoed.length === 1 && echoed[0].stance ? ` — ${echoed[0].stance} to both` : ""}.
-                {echoed.length === 1
-                  ? " That is a model reading the shape of the sentence rather than the fact, so its vote carries no information and is excluded from the count."
-                  : " Those are models reading the shape of the sentence rather than the fact, so their votes carry no information and are excluded from the count."}
-              </p>
-            </div>
+      <div className={s.metricCell}>
+        <span className={s.metricScan} aria-hidden="true" />
+        <div className={`${s.metricBody} ${s.metricStack}`}>
+          <span className={s.metricReading}>
+            <span className="eyebrow">Nominal consensus — what a vote would show</span>
+            <span className={`${s.metricSmall} ${s.metricSmallSteel}`}>
+              {consensus.nominalAgree}/{consensus.respondents}
+            </span>
+          </span>
+          <span className={s.metricReading}>
+            <span className="eyebrow">Effective witnesses — what it is actually worth</span>
+            <span className={`${s.metricSmall} ${s.metricValueSodium}`}>
+              {survived.toFixed(1)}
+            </span>
+          </span>
+          {lost > 0.05 ? (
+            <span className={s.metricNoteSmall}>{lostSentence(run)}</span>
           ) : null}
+        </div>
+        <span className={s.metricArt}>
+          <Balance size={132} />
+        </span>
+      </div>
+    </section>
+  );
+}
 
-          <p className={s.headline}>{verdict.headline}</p>
+/** The one sentence that says where the missing witnesses went. */
+function lostSentence(run: VerificationRun): string {
+  const { consensus } = run;
+  const lost = consensus.nominalAgree - consensus.effectiveWitnesses;
+  const reasons = [
+    consensus.lostToEcho > 0.05 &&
+      `${consensus.lostToEcho.toFixed(1)} to echo${
+        consensus.lostToEcho > 1.05
+          ? ", models that answered the claim and its negation the same way"
+          : ", a model that answered the claim and its negation the same way"
+      }`,
+    consensus.lostToUnmeasured > 0.05 &&
+      `${consensus.lostToUnmeasured.toFixed(1)} to a mirror probe that never came back, so that independence could not be tested`,
+    consensus.lostToPartial > 0.05 &&
+      `${consensus.lostToPartial.toFixed(1)} to a model that was decisive one way and uncertain the other`,
+    consensus.lostToRedundancy > 0.05 &&
+      `${consensus.lostToRedundancy.toFixed(1)} to redundancy, ${Math.round(
+        consensus.meanAnchorOverlap * 100,
+      )}% ${consensus.overlapMeasured ? "measured" : "assumed"} overlap in the evidence the agreeing models lean on${
+        consensus.overlapMeasured ? "" : ", because at least one named no source"
+      }`,
+  ].filter(Boolean);
+
+  return `${lost.toFixed(1)} of ${consensus.nominalAgree} apparent witnesses did not survive: ${reasons.join("; ")}`;
+}
+
+/**
+ * S4 — the panel, witness by witness. One row per model, columns exactly as the
+ * reference lays them out: who, what its vote was worth, what it said, whether
+ * it survived the mirror probe, and what it leaned on.
+ */
+function ThePanel({ run }: { run: VerificationRun }) {
+  const { witnesses, consensus } = run;
+  const echoed = witnesses.filter((w) => w.discriminationVerdict === "echo");
+  const probeFor = (modelId: string, kind: "direct" | "mirror") =>
+    run.probes.find((p) => p.modelId === modelId && p.kind === kind);
+
+  return (
+    <section className={s.panel}>
+      <div className={s.panelHead}>
+        <h2 className={s.panelTitle}>The panel</h2>
+        <p className={s.panelSub}>each model asked three ways · claim, mirror, evidence</p>
+      </div>
+
+      <div className={s.witnesses}>
+        {witnesses.map((w) => {
+          const counted = w.discrimination > 0;
+          const model = modelByHouse(w.modelId);
+          const direct = probeFor(w.modelId, "direct");
+          const Icon =
+            w.discriminationVerdict === "coherent"
+              ? CheckCircle
+              : w.discriminationVerdict === "echo"
+                ? MirrorIcon
+                : w.discriminationVerdict === "partial"
+                  ? SplitCircle
+                  : MinusCircle;
+
+          return (
+            <article
+              key={w.modelId}
+              className={`${s.witness} ${
+                w.discriminationVerdict === "echo"
+                  ? s.witnessEcho
+                  : counted
+                    ? s.witnessCounted
+                    : ""
+              }`}
+            >
+              <div className={s.witnessIdent}>
+                <span
+                  className={`${s.avatar} ${s.avatarLg}`}
+                  style={avatarStyle(w.modelId)}
+                  aria-hidden="true"
+                >
+                  {model?.sigil ?? "??"}
+                </span>
+                <span>
+                  <span className={s.witnessName}>{labelFor(w.modelId)}</span>
+                  <br />
+                  <span className={s.witnessHouse}>{model?.house ?? ""}</span>
+                </span>
+              </div>
+
+              <div className={s.witnessCol}>
+                <span className={s.witnessMetaLabel}>vote weight</span>
+                <span
+                  className={`${s.witnessMetaValue} ${counted ? "" : s.witnessMetaValueZero}`}
+                >
+                  {w.discrimination.toFixed(2)}
+                </span>
+              </div>
+
+              <div className={s.witnessCol}>
+                <span className={`${s.stanceWord} ${stanceClass(w.stance, counted)}`}>
+                  {w.stance ?? "NO ANSWER"}
+                </span>
+                <span className={s.witnessMetaLabel}>
+                  {w.stance
+                    ? `confidence ${w.confidence.toFixed(2)}`
+                    : direct?.error
+                      ? direct.error.slice(0, 40)
+                      : "no response"}
+                </span>
+              </div>
+
+              <div className={s.witnessCol}>
+                <span className={s.checkRow}>
+                  <span className={DISCRIMINATION_CLASS[w.discriminationVerdict]}>
+                    <Icon size={19} />
+                  </span>
+                  {DISCRIMINATION_TITLE[w.discriminationVerdict]}
+                </span>
+                <span className={s.witnessMetaNote}>
+                  {DISCRIMINATION_NOTE[w.discriminationVerdict]}
+                </span>
+              </div>
+
+              <div className={s.witnessCol}>
+                {w.anchors.length > 0 ? (
+                  <>
+                    <span className={s.witnessMetaLabel}>evidence it leaned on</span>
+                    <span className={s.anchorChips}>
+                      {w.anchors.slice(0, 3).map((anchor, i) => (
+                        <span key={anchor} className={s.anchorChip} title={anchor}>
+                          {i === 0 ? <DocIcon size={15} /> : i === 1 ? <SearchIcon size={15} /> : <ScaleIcon size={15} />}
+                        </span>
+                      ))}
+                      {w.anchors.length > 3 ? (
+                        <span className={s.anchorMore}>+{w.anchors.length - 3}</span>
+                      ) : null}
+                    </span>
+                    {w.echoesWith.length > 0 ? (
+                      <span className={s.anchorShared}>
+                        shares evidence with {w.echoesWith.map(labelFor).join(", ")}
+                      </span>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <span className={s.witnessMetaLabel}>evidence it leaned on</span>
+                    <span className={s.anchorNone}>
+                      {w.reachable
+                        ? "named no source, independence assumed"
+                        : "this Gonka node did not return a usable answer"}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              <WitnessDetail
+                reasoning={
+                  direct?.reasoning || direct?.error || "This Gonka node did not return an answer."
+                }
+                mirrorStance={w.mirrorStance}
+                mirrorReasoning={
+                  probeFor(w.modelId, "mirror")?.reasoning ||
+                  probeFor(w.modelId, "mirror")?.error ||
+                  "This probe did not return."
+                }
+                note={w.note}
+                anchors={w.anchors}
+                stanceClassName={stanceClass(w.mirrorStance, counted)}
+              />
+            </article>
+          );
+        })}
+      </div>
+
+      {echoed.length > 0 ? (
+        <p className={s.panelSub} style={{ padding: "0 1.15rem 1.15rem" }}>
+          {list(echoed.map((w) => labelFor(w.modelId)))}{" "}
+          {echoed.length === 1 ? "answered" : "each answered"} the claim and its negation the same
+          way
+          {echoed.length === 1 && echoed[0].stance ? ` — ${echoed[0].stance} to both` : ""}. That is
+          a model reading the shape of the sentence rather than the fact, so the vote carries no
+          information and is excluded from the count.
+        </p>
+      ) : null}
+
+      {consensus.contested && consensus.dissenters.length > 0 ? (
+        <p className={s.panelSub} style={{ padding: "0 1.15rem 1.15rem" }}>
+          The panel is split. On the minority side: {list(consensus.dissenters.map(labelFor))}.
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+/** S8 — what the verdict rests on, adjudicated on Gonka. */
+function WhatThisRestsOn({ run }: { run: VerificationRun }) {
+  const { adjudication, consensus } = run;
+
+  return (
+    <section className={s.panel}>
+      <div className={s.panelHead}>
+        <h2 className={s.panelTitle}>What this rests on</h2>
+      </div>
+      <div className={s.hinge}>
+        <div className={s.hingeCell}>
+          <span className={s.hingeHead}>
+            <ShieldCheck size={17} />
+            adjudicated on Gonka
+          </span>
+          <span className={s.hingeMark}>
+            <GonkaMark size={68} className={s.wordmarkMark} />
+          </span>
+          {/* The plain-language verdict sentence. The reference gives this cell
+              only the mark; a reader who reads one line of the report should
+              read this one, so it goes under it rather than nowhere. */}
+          <p className={s.hingeBody}>{run.verdict.headline}</p>
+        </div>
+
+        <div className={s.hingeCell}>
+          <span className={s.hingeArt} aria-hidden="true">
+            <Ridge size={128} />
+          </span>
+          <span className={s.hingeHead}>
+            <DocIcon size={17} />
+            Load-bearing fact
+          </span>
+          <p className={s.hingeBody}>
+            {adjudication.loadBearingFact || "The adjudicating node did not return this field."}
+          </p>
+        </div>
+
+        <div className={s.hingeCell}>
+          <span className={s.hingeArt} aria-hidden="true">
+            <Spiral size={112} />
+          </span>
+          <span className={s.hingeHead}>
+            <SearchIcon size={17} />
+            What would flip it
+          </span>
+          <p className={s.hingeBody}>
+            {adjudication.falsifier || "The adjudicating node did not return this field."}
+          </p>
+        </div>
+
+        <div className={s.hingeCell}>
+          <span className={s.hingeArt} aria-hidden="true">
+            <Spiral size={148} />
+          </span>
+          <span className={s.hingeHead}>
+            <ScaleIcon size={17} />
+            {consensus.contested ? "Where the panel splits" : "Why they agreed"}
+          </span>
+          <p className={s.hingeBody}>
+            {consensus.contested && adjudication.contention
+              ? adjudication.contention
+              : adjudication.agreementDiagnosis || "No closing note was returned."}
+          </p>
         </div>
       </div>
     </section>

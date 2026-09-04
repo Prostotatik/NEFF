@@ -1,23 +1,25 @@
 import type { Metadata } from "next";
-import { Archivo, Fraunces, IBM_Plex_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const display = Fraunces({
+/* Gonka's own type system: Plus Jakarta Sans for headlines, Inter for body,
+   JetBrains Mono for anything that is a machine identifier — node numbers,
+   request IDs, hashes. See gonka-colors.md. */
+const display = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-display",
-  axes: ["SOFT", "WONK", "opsz"],
-  weight: "variable",
+  weight: ["600", "700", "800"],
   display: "swap",
 });
 
-const ui = Archivo({
+const ui = Inter({
   subsets: ["latin"],
   variable: "--font-ui",
-  weight: ["400", "500", "600"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
-const mono = IBM_Plex_Mono({
+const mono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
   weight: ["400", "500"],

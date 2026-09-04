@@ -1,52 +1,69 @@
 /*
-  Quorum's design system.
+  Quorum's design system, rebuilt against visual-reference.png.
 
-  The point of view is a forensic instrument, not a SaaS product: this is a tool
-  that reports measurements about a panel of witnesses, so the surface reads like
-  a lab bench and a ledger rather than a marketing page. Warm ink ground, bone
-  paper text, hairline rules instead of boxes, and exactly two signal colours
-  that carry the whole argument:
+  The point of view is the Gonka Network's own: neon green on near-black, with
+  the network's blue as the secondary gradient accent. Colour is not decoration
+  here — the two numbers that carry the whole argument are coloured apart:
 
     steel  — the nominal consensus. The number every other fact checker prints.
     sodium — the effective witness count. The number that is actually true.
 
-  Those two colours are never used decoratively. Wherever the interface is steel
-  it is showing you the naive reading; wherever it is sodium it is showing you
-  what the evidence supports once the echo is priced out.
+  Those two roles survive from the previous system; what changed is the palette
+  they are drawn from. Base hues come from gonka-colors.md (the source of truth
+  for anything it covers); glow intensities, opacities and gradient stops are
+  read off the reference image, which is the source of truth for what
+  gonka-colors.md does not specify.
 */
 
 :root {
-  --ink-950: #0a0a0b;
-  --ink-900: #0e0e10;
-  --ink-850: #131316;
-  --ink-800: #191a1e;
-  --ink-700: #22232a;
+  /* --- Gonka surfaces (gonka-colors.md, Material Design 3 token names) ---- */
+  --surface: #0a0a0a; /* the reference's page ground, a shade under Gonka's #0e0e0e */
+  --surface-lowest: #000000;
+  --surface-low: #0d0f0e;
+  --surface-high: #131615;
+  --surface-highest: #1b1f1d;
+  --outline: rgba(255, 255, 255, 0.07);
+  --outline-strong: rgba(255, 255, 255, 0.13);
+  --outline-green: rgba(0, 255, 163, 0.16);
 
-  /* Every foreground here clears WCAG AA (4.5:1) against the ink grounds, checked
-     rather than eyeballed. --paper-faint carries the small uppercase labels, so
-     it is the one that matters most and the one that was failing at 3.6:1. */
-  --paper: #ece8e1; /* 15.8:1 */
-  --paper-dim: #a8a49d; /* 7.8:1 */
-  --paper-faint: #84807a; /* 4.9:1 */
+  /* --- Gonka brand greens ------------------------------------------------- */
+  --primary: #006d43;
+  --primary-dim: #00ef99;
+  --primary-container: #00ffa3; /* the brand accent */
+  --mint: #64fcc9;
+  --tertiary: #72dcff; /* the blue end of the brand gradient */
 
-  --steel: #7fa8c9; /* 7.7:1 — the nominal reading */
-  --steel-dim: #3f5a72;
-  --sodium: #eda13c; /* 9.0:1 — the effective one */
-  --sodium-deep: #b4761f;
+  --brand-gradient: linear-gradient(135deg, #00ef99, #00ffa3 45%, #72dcff);
 
-  --verify: #6bbd88; /* 8.5:1 */
-  --refute: #e07257; /* 6.2:1 */
-  --neutral: #9b96b8; /* 6.8:1 */
+  /* --- Text --------------------------------------------------------------- */
+  --paper: #f2f4f3; /* 17.4:1 on --surface */
+  --paper-dim: #9aa0a0; /* 7.3:1 */
+  --paper-faint: #7e8584; /* 5.1:1 — the smallest labels, so the one that matters */
 
-  --rule: rgba(236, 232, 225, 0.1);
-  --rule-strong: rgba(236, 232, 225, 0.2);
+  /* --- The two argument colours ------------------------------------------- */
+  --steel: #72dcff; /* 11.0:1 — the nominal reading */
+  --steel-dim: rgba(114, 220, 255, 0.28);
+  --sodium: #00ffa3; /* 15.5:1 — the effective one */
+  --sodium-deep: rgba(0, 255, 163, 0.3);
 
-  --display: var(--font-display), "Iowan Old Style", Georgia, serif;
-  --ui: var(--font-ui), "Helvetica Neue", Arial, sans-serif;
-  --mono: var(--font-mono), "SFMono-Regular", Consolas, monospace;
+  /* --- Status ------------------------------------------------------------- */
+  --verify: #00e58f;
+  --refute: #f87171;
+  --neutral: #a78bfa;
+  --warn: #facc15;
 
-  --gutter: clamp(1.25rem, 4vw, 3.5rem);
-  --measure: 68ch;
+  /* --- Per-model identity, used for orb hue, dots and ledger names -------- */
+  --house-a: #4da3ff;
+  --house-b: #b57af8;
+  --house-c: #00ffa3;
+
+  --display: var(--font-display), "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+  --ui: var(--font-ui), Inter, "Helvetica Neue", Arial, sans-serif;
+  --mono: var(--font-mono), "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+  --gutter: clamp(1rem, 2.2vw, 1.75rem);
+  --radius: 14px;
+  --radius-sm: 10px;
 
   color-scheme: dark;
 }
@@ -64,29 +81,23 @@ body {
 }
 
 body {
-  background:
-    radial-gradient(120rem 60rem at 50% -20rem, #16171c 0%, transparent 60%),
-    var(--ink-950);
+  background: var(--surface);
   color: var(--paper);
   font-family: var(--ui);
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   font-variant-numeric: tabular-nums;
-}
-
-::selection {
-  background: var(--sodium);
-  color: var(--ink-950);
+  overflow-x: hidden;
 }
 
 h1,
 h2,
 h3 {
   font-family: var(--display);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  line-height: 1.08;
   margin: 0;
 }
 
@@ -103,27 +114,55 @@ button {
   color: inherit;
 }
 
+::selection {
+  background: var(--primary-container);
+  color: #00291a;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-lowest);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e2321;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00ffa359;
+}
+
 /* --- shared primitives --------------------------------------------------- */
 
 .shell {
-  max-width: 78rem;
+  max-width: 1536px;
   margin: 0 auto;
-  padding: 0 var(--gutter);
+  padding: 0 var(--gutter) 3rem;
 }
 
+/* The green all-caps section labels. In the reference these are the only thing
+   besides the verdict that is allowed to be full-strength brand green. */
 .eyebrow {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.18em;
+  font-family: var(--ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--primary-container);
+}
+
+.eyebrow-dim {
+  font-family: var(--ui);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--paper-faint);
-}
-
-.rule {
-  height: 1px;
-  background: var(--rule);
-  border: 0;
-  margin: 0;
 }
 
 .mono {

@@ -1,13 +1,15 @@
 import { ClaimConsole } from "@/components/ClaimConsole";
 import { Masthead, Footer } from "@/components/Chrome";
+import s from "@/components/quorum.module.css";
 
 export default function Home() {
   return (
     <main className="shell">
+      {/* The hero's ambient light sits behind everything and is purely
+          decorative, so it is a sibling rather than a background on .shell —
+          that keeps it from tinting the panels stacked on top of it. */}
+      <div className={s.ambient} aria-hidden="true" />
       <Masthead />
-      {/* The hero lives inside the console because it has to get out of the way
-          the moment a verification starts — during a run the thing worth looking
-          at is the probe grid, not the pitch. */}
       <ClaimConsole />
       <Footer />
     </main>
