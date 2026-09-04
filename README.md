@@ -21,6 +21,35 @@ app. · **[SUBMISSION.md](SUBMISSION.md)** — how to get a live URL in thirty s
 
 ---
 
+## In ninety seconds
+
+**The problem.** Fact checkers poll several models and average the votes, assuming the models are
+independent. They are not: they share training data and make the same mistakes, and a measured panel
+of nine LLM judges is worth about [two independent votes](https://arxiv.org/abs/2605.29800). So they
+are most confident exactly when the models are wrong together.
+
+**Why not the obvious approach.** N verifiers, averaged scores, request IDs on screen — that build has
+already won a hackathon, and it ships the bug above.
+
+**How it works.** Each model is asked three things, in three separate requests: the claim; the claim
+*negated*, presented blind as though it were the original; and what evidence it is leaning on. Answer
+the claim and its negation the same way and you are reading the sentence, not the fact — vote
+discounted to zero. Lean on the same evidence as another model and you are one witness, not two. Out
+comes an **Effective Witness Count**, and the truth score is shrunk to match.
+
+**What that buys.** The screenshot above: three models unanimously agreeing, scored at **0.0 effective
+witnesses**, with the six answers that prove it. No vote can produce that sentence.
+
+**How to see it.** `./init.sh`, then click an example — or watch
+[the recording](evidence/pitch/pitch.mp4). All eleven inferences per check run on the Gonka Network,
+each listed with its request ID and serving node.
+
+**Why it is not a reskin.** Everything else treats agreement as evidence. Quorum treats agreement as a
+claim that has to be verified. Full search in [`PRIOR_ART.md`](PRIOR_ART.md); honest limits
+[below](#what-this-does-not-do).
+
+---
+
 ## The problem with the obvious build
 
 The obvious decentralised fact checker asks N models "is this true?", averages their answers, and
