@@ -51,7 +51,7 @@ const ANCHOR_STOPWORDS = new Set([
  * echo as independent corroboration. So spelling variants are folded together
  * and a light suffix stemmer collapses inflections before comparison.
  */
-export function anchorTokens(anchor: string): Set<string> {
+function anchorTokens(anchor: string): Set<string> {
   return new Set(
     anchor
       .toLowerCase()

@@ -25,7 +25,7 @@ const SCHEMA = 2;
 
 const ID_PATTERN = /^[a-z2-9]{6,16}$/;
 
-export function isValidRunId(id: string): boolean {
+function isValidRunId(id: string): boolean {
   return ID_PATTERN.test(id);
 }
 

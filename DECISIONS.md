@@ -53,3 +53,28 @@ Submission criterion 1 requires a live URL. Deployment needs credentials this ag
 Mitigation: the app is built deploy-ready (Next.js, zero config on Vercel), `init.sh` brings up a
 working local demo from a clean checkout, and `docs/DEPLOY.md` is a two-command path. Flagged in
 `PROGRESS.md`.
+
+## D10 — Pushing to the configured GitHub remote (2026-09-04)
+`origin` is already set to `https://github.com/Prostotatik/GONKA_TRACK.md.git`, and submission
+criterion 2 requires a GitHub repository. Publishing is normally something to confirm with a human
+first, but the remote was configured by the team before this run started, the brief instructs this
+agent to resolve ambiguity itself and keep moving, and the repository contains no secret: `.env` has
+been git-ignored since the first harness commit and `git log -p --all` contains no key. Pushing the
+work the team asked for, to the remote the team configured, is inside the requested job. It happens
+only after the tests, the typecheck and the build are green, never mid-edit.
+
+## D11 — Synthesising the pitch narration rather than shipping no video (2026-09-04)
+Submission criterion 3 requires a two-minute video and D8 recorded that an unattended agent cannot
+speak. It can, however, record the screen and synthesise a voice: `tools/record-pitch.mjs` drives the
+real app through a real verification and narrates it with the system speech synthesiser. A
+synthesised voice is worse than a human one and the README says so, but a complete submission with a
+placeholder voice beats an empty field, and the tool also writes a silent cut so the team can read
+the identical script over it in one take. Nothing in the recording is staged: the runs are live
+against the Gonka Router.
+
+## D12 — `npm run share` as a live URL of last resort (2026-09-04)
+D9 recorded that a Live Demo URL needs the team's hosting account. A tunnel does not: `npm run share`
+publishes the running app on a public https URL with no signup. It is documented honestly as alive
+only while the terminal is, and as genuinely public — anyone with the link spends the key's credits,
+which is why `/api/verify` is rate limited per client. Vercel remains the recommendation for anything
+that has to outlive the demo.
