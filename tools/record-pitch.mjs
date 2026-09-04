@@ -237,14 +237,21 @@ async function act(segment) {
       })()`);
       return;
     case "awaitVerdict": {
-      // Bounded by the probe phase budget in lib/verify.ts: past that, the run
-      // has already given up on the stragglers and the report is on its way.
-      const ceiling = 85;
-      for (let i = 0; i < ceiling; i++) {
-        if (await evaluate(`Boolean(document.body.innerText.match(/credible band/))`)) return;
+      const shows = () => evaluate(`document.body.innerText.includes("credible band")`);
+      // The previous report is still on screen for a moment after Verify is
+      // clicked; waiting for it to clear first stops this returning instantly
+      // against the last run's verdict.
+      for (let i = 0; i < 12 && (await shows()); i++) await sleep(300);
+      // Generous on purpose. A congested router has been observed taking two
+      // minutes for a run that normally takes twenty seconds, and the point of
+      // the recording is a real verdict. The wait is timelapsed in the cut, so
+      // being patient costs the finished video nothing.
+      const ceilingSeconds = 240;
+      for (let i = 0; i < ceilingSeconds; i++) {
+        if (await shows()) return;
         await sleep(1000);
       }
-      console.warn("  (the verdict did not arrive within 85s; recording continues)");
+      console.warn(`  (no verdict within ${ceilingSeconds}s; recording continues)`);
       return;
     }
     default:
