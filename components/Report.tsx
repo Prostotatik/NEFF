@@ -64,7 +64,10 @@ const DISCRIMINATION_NOTE: Record<WitnessAssessment["discriminationVerdict"], st
  */
 function shortError(error: string | undefined): string {
   if (!error) return "no response";
-  const status = error.match(/([45]\d{2})/);
+  // Anchored to the literal "HTTP " the gateway writes, not to any 4xx/5xx-shaped
+  // run of digits — an unrelated number in a future error message must not be
+  // relabelled as a status code.
+  const status = error.match(/HTTP (\d{3})/);
   if (status) return `HTTP ${status[1]}`;
   return error.length > 22 ? `${error.slice(0, 22).trimEnd()}…` : error;
 }

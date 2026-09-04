@@ -127,6 +127,49 @@ nodes in card 3 were stacked on the origin** — the `bob` CSS transform was ove
 `transform` attribute on the same element, so placement and motion now live on separate groups.
 **Compared at 1536px** (`v13-probe.png`, `v14-probe.png` @2.6): matches.
 
+### S5 · Metrics strip — DONE
+
+Observed on re-view (`ref-metrics.png` @1.9, `ref-icosa.png` @3.0): four cells divided by hairlines;
+the witness count is a *light* 44px numeral; "TRUTH SCORE" is set in two tones; the verdict is a
+bordered capsule in red; the arithmetic rows each carry a full-width 2px meter, red for the negative
+one and green for the positive; the fourth cell puts each label on its own line above its number.
+Built all of it, wired to `verdict` and `consensus`. Deltas found and fixed: (1) the fourth cell's
+labels wrapped *into* their values — labels are now `display:block` + `nowrap` in a `.metricReading`
+grid and the cell is wider; (2) the icosahedron was a hexagon with spokes — replaced with a true
+icosahedron (the standard (0, ±1, ±φ) vertices, rotated 36°/12°); (3) the balance had detached pans —
+rebuilt with cords, and it rocks (`tilt`, 9s); (4) at 3× zoom the solid was still a flat green
+tangle where the reference's near edges are close to **white** over **filled facets** on a **lit**
+plinth — the ten front-facing faces are now filled and their edges drawn pale, which is what makes it
+read as a body rather than a cage.
+**Compared at 1536px** (`final-metrics.png` @1.6, `final-icosa.png` @3.0): matches, with the one
+deliberate colour deviation recorded below.
+
+### S4 · The panel — DONE
+
+Observed on re-view (`ref-panel.png` @2.1): each witness is its own rounded row, ~72px, divided into
+five columns by hairlines, and a row whose vote counted carries a **bright green left edge** that the
+no-answer row does not. Nothing in the row wraps.
+Built exactly that, and the left edge is driven by `discrimination > 0` so it is a measurement rather
+than decoration; an echo row is edged in red instead. The model's full answer, its blind answer to
+the negation and the sources it named do not fit a reference row, so they sit in a disclosure under
+it rather than being deleted.
+Deltas found and fixed over six compare passes: the name overran the vote-weight divider, "vote
+weight" truncated to "vote we…", "passed the mirror probe" wrapped to two lines, "evidence it leaned
+on" truncated, `confidence 0.95` truncated, and the whole row overflowed its column at 1536px. The
+five minimums now sum to 674px, which is exactly what the left report column gives, and the rule
+carries a comment saying any future change to one column has to come out of another.
+**Compared at 1536px** (`final-panel.png` @2.0): matches.
+
+### S3 · Reasoning trace & receipts — DONE
+
+Observed on re-view (`ref-receipts.png` @2.1): the header row is a lighter band; node numbers and
+request ids are mono green; **the model name is coloured per model**; latency and tokens are right
+aligned; a node that answered has a filled dot and one that did not has a hollow ring.
+Built that, with the per-model hue shared with the hero orbs and the rail dots, so one model can be
+followed down the page by colour alone. Deltas found and fixed: the request id, then the model name,
+then the step were each being ellipsised — column widths re-cut until every column shows in full.
+**Compared at 1536px** (`v9-panel.png` @1.7, `final-composite-1536.png`): matches.
+
 ### S8 · What this rests on — DONE, with one accepted deviation
 
 Observed on re-view (`ref-rests.png` @2.4): four columns behind neon wireframe illustrations that
