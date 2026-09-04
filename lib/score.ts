@@ -321,12 +321,23 @@ export function computeConsensus(witnesses: WitnessAssessment[]): Consensus {
   const distinctStances = new Set(witnesses.filter((w) => w.stance).map((w) => w.stance));
   const round = (n: number) => Math.round(n * 100) / 100;
 
+  // Each lost witness is attributed to the reason it was lost. Lumping them
+  // together would report a model whose mirror probe never returned as one that
+  // answered the claim and its negation the same way — an accusation the
+  // evidence does not support.
+  const shortfall = (verdict: WitnessAssessment["discriminationVerdict"]) =>
+    agreeing
+      .filter((w) => w.discriminationVerdict === verdict)
+      .reduce((sum, w) => sum + (1 - w.discrimination), 0);
+
   return {
     nominalAgree: agreeing.length,
     respondents,
     majorityStance: majority,
     effectiveWitnesses: round(ewc),
-    lostToEcho: round(agreeing.length - k),
+    lostToEcho: round(shortfall("echo")),
+    lostToUnmeasured: round(shortfall("unavailable")),
+    lostToPartial: round(shortfall("partial")),
     lostToRedundancy: round(k - ewc),
     meanAnchorOverlap: round(rho),
     overlapMeasured,

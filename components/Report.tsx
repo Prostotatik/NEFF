@@ -32,10 +32,17 @@ const DISCRIMINATION_TITLE: Record<WitnessAssessment["discriminationVerdict"], s
   unavailable: "Not measurable",
 };
 
+/** The panel card has room for the gist, not the whole answer; the ledger has the rest. */
+function truncate(text: string | undefined, max = 260): string {
+  if (!text) return "";
+  const flat = text.split("\n\nDecisive evidence:")[0].trim();
+  return flat.length > max ? `${flat.slice(0, max).trimEnd()}…` : flat;
+}
+
 export function Report({ run }: { run: VerificationRun }) {
   const { prep, consensus, witnesses, adjudication, receipts, totals } = run;
-  const directProbe = (modelId: string) =>
-    run.probes.find((p) => p.modelId === modelId && p.kind === "direct");
+  const probeFor = (modelId: string, kind: "direct" | "mirror") =>
+    run.probes.find((p) => p.modelId === modelId && p.kind === kind);
 
   return (
     <div className={s.report}>
@@ -138,8 +145,8 @@ export function Report({ run }: { run: VerificationRun }) {
                   ) : null}
                 </div>
                 <p className={s.reasoning}>
-                  {directProbe(w.modelId)?.reasoning ||
-                    directProbe(w.modelId)?.error ||
+                  {probeFor(w.modelId, "direct")?.reasoning ||
+                    probeFor(w.modelId, "direct")?.error ||
                     "This Gonka node did not return an answer."}
                 </p>
                 {w.anchors.length > 0 ? (
@@ -168,20 +175,32 @@ export function Report({ run }: { run: VerificationRun }) {
                 <span className={`${s.verdictTag} ${DISCRIMINATION_CLASS[w.discriminationVerdict]}`}>
                   {DISCRIMINATION_TITLE[w.discriminationVerdict]}
                 </span>
+                {/* The claim-side prose is already in the column to the left; only the
+                    stance is repeated here, so the two answers can be read against each
+                    other without saying the same thing twice. */}
                 <div className={s.stanceRow}>
                   <span className={s.confidence}>on the claim</span>
                   <span className={`${s.stanceTag} ${w.stance ? STANCE_CLASS[w.stance] : s.stanceNone}`}>
                     {w.stance ?? "—"}
                   </span>
                 </div>
-                <div className={s.stanceRow}>
-                  <span className={s.confidence}>on its negation</span>
-                  <span
-                    className={`${s.stanceTag} ${w.mirrorStance ? STANCE_CLASS[w.mirrorStance] : s.stanceNone}`}
-                  >
-                    {w.mirrorStance ?? "—"}
-                  </span>
+
+                <div className={s.mirrorSide}>
+                  <div className={s.stanceRow}>
+                    <span className={s.confidence}>on its negation, blind</span>
+                    <span
+                      className={`${s.stanceTag} ${w.mirrorStance ? STANCE_CLASS[w.mirrorStance] : s.stanceNone}`}
+                    >
+                      {w.mirrorStance ?? "—"}
+                    </span>
+                  </div>
+                  <p className={s.mirrorQuote}>
+                    {truncate(probeFor(w.modelId, "mirror")?.reasoning) ||
+                      probeFor(w.modelId, "mirror")?.error ||
+                      "This probe did not return."}
+                  </p>
                 </div>
+
                 <p className={s.mirrorNote}>{w.note}</p>
               </div>
             </article>
@@ -293,24 +312,18 @@ function VerdictCard({ run }: { run: VerificationRun }) {
             {lost > 0.05 ? (
               <span className={s.lost}>
                 {lost.toFixed(1)} of {consensus.nominalAgree} apparent witnesses did not survive:{" "}
-                {consensus.lostToEcho > 0.05 ? (
-                  <>
-                    {consensus.lostToEcho.toFixed(1)} to echo, a model that answered the claim and
-                    its negation the same way
-                    {consensus.lostToRedundancy > 0.05 ? "; " : ""}
-                  </>
-                ) : null}
-                {consensus.lostToRedundancy > 0.05 ? (
-                  <>
-                    {consensus.lostToRedundancy.toFixed(1)} to redundancy,{" "}
-                    {Math.round(consensus.meanAnchorOverlap * 100)}%{" "}
-                    {consensus.overlapMeasured ? "measured" : "assumed"} overlap in the evidence the
-                    agreeing models lean on
-                    {consensus.overlapMeasured
-                      ? ""
-                      : ", because at least one named no source and its independence could not be observed"}
-                  </>
-                ) : null}
+                {[
+                  consensus.lostToEcho > 0.05 &&
+                    `${consensus.lostToEcho.toFixed(1)} to echo, a model that answered the claim and its negation the same way`,
+                  consensus.lostToUnmeasured > 0.05 &&
+                    `${consensus.lostToUnmeasured.toFixed(1)} to a mirror probe that never came back, so that model's independence could not be tested`,
+                  consensus.lostToPartial > 0.05 &&
+                    `${consensus.lostToPartial.toFixed(1)} to a model that was decisive one way and uncertain the other`,
+                  consensus.lostToRedundancy > 0.05 &&
+                    `${consensus.lostToRedundancy.toFixed(1)} to redundancy, ${Math.round(consensus.meanAnchorOverlap * 100)}% ${consensus.overlapMeasured ? "measured" : "assumed"} overlap in the evidence the agreeing models lean on${consensus.overlapMeasured ? "" : ", because at least one named no source"}`,
+                ]
+                  .filter(Boolean)
+                  .join("; ")}
               </span>
             ) : null}
           </div>

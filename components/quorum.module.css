@@ -820,6 +820,25 @@
 .mirrorNote {
   color: var(--paper-dim);
   line-height: 1.45;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.6rem;
+}
+
+/* The two answers, stacked so they can be read against each other. When a model
+   argues confidently for both sides, seeing it in its own words is the evidence;
+   the stance chips alone are just a claim about it. */
+.mirrorSide {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.mirrorQuote {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--paper-dim);
+  border-left: 1px solid var(--rule-strong);
+  padding-left: 0.6rem;
+  text-wrap: pretty;
 }
 
 .anchorList {

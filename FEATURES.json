@@ -15,8 +15,8 @@
       "criterion": "C4",
       "action": "User pastes a public article URL instead of text and presses Verify.",
       "expected": "The server fetches the page, extracts the central checkable claim, displays the extracted claim back to the user for confirmation, and verifies that claim.",
-      "passes": false,
-      "evidence": null
+      "passes": true,
+      "evidence": "E:/Projects/GONKA_TRACK/evidence/qa/f2url/live-mid-run.png + E:/Projects/GONKA_TRACK/evidence/qa/F2-live-url-run.png — typed https://en.wikipedia.org/wiki/Krakatoa into the box and clicked Verify in headless Chrome: stage line \"Probing 3 models…\" with the extracted claim \"The 1883 eruption of Krakatoa had a volcanic explosivity index of 6.\" displayed above the probe grid before any verdict; run completed in 74s, permalink /r/j9k38jrtz7cg, zero console errors. Separately POST {\"input\":\"https://en.wikipedia.org/wiki/Mariana_Trench\"} to /api/verify streamed stage \"prep — Fetching the page and isolating the checkable claim\", then prep event {claim:\"The Mariana Trench is the deepest oceanic trench on Earth.\", sourceUrl, sourceTitle:\"Mariana Trench - Wikipedia\"} and verdict 86/100 SUPPORTED (/r/yy5dn6kjyhy7, rendered with \"EXTRACTED FROM A LINK\" and a clickable Source link). Home-page chip \"a linked article\" also runs the Streisand URL path end to end (/r/zdp2td7hsbdm)."
     },
     {
       "id": "F3",
@@ -47,8 +47,8 @@
       "criterion": "C3",
       "action": "User inspects a model that failed the mirror probe.",
       "expected": "The UI shows that the model affirmed both the claim and its negation, quotes both answers side by side, and shows that model's vote weight discounted toward zero as a result.",
-      "passes": false,
-      "evidence": null
+      "passes": true,
+      "evidence": "E:/Projects/GONKA_TRACK/evidence/qa/F6-kimi-card.png (+ F6-mirror-full.png, F6-kimi-zoom.png) — /r/mywty8firb rendered in headless Chrome: Kimi K2.6 card is tagged \"ECHO — FAILED THE MIRROR PROBE\" with the two probe answers stacked side by side, \"on the claim SUPPORTED\" / \"on its negation SUPPORTED\", the note \"Returned SUPPORTED for both the claim and its negation. It is responding to the shape of the sentence, not to the fact, so its vote is discounted to zero\", and \"vote weight 0.00\". The verdict panel carries a VOTE THROWN OUT callout naming Kimi K2.6, and the effective witness meter drops 3/3 → 1.0."
     },
     {
       "id": "F7",
@@ -63,8 +63,8 @@
       "criterion": "C3",
       "action": "User runs a verification where the models disagree with each other.",
       "expected": "The app does not average the disagreement away: it names the split, identifies the specific point of contention, and lowers confidence rather than reporting a misleading mid-range score.",
-      "passes": false,
-      "evidence": null
+      "passes": true,
+      "evidence": "E:/Projects/GONKA_TRACK/evidence/qa/F8-split.png — /r/sf6mcc6r4e (\"Iceland has no mosquitoes\") rendered in headless Chrome: verdict panel states \"The panel is split. 2/3 took the leading position, worth 1.2 independent witnesses once the dissent is priced in\" (nominal 2/3 vs 1.2 effective); a \"WHERE THE PANEL SPLITS\" card names the contention — \"whether the absence of mosquitoes in Iceland is documented by authoritative, specific scientific sources: the supporting models cited such sources, while the uncertain model could not name a definitive study\"; MiniMax M2.7 is shown dissenting UNCERTAIN, \"PARTIAL — DECISIVE ON ONE SIDE ONLY\", vote weight 0.50. Score is 74/100 LEANS TRUE with the band widened to ±23 (vs ±14 on the 3/3 unanimous run yy5dn6kjyhy7) — confidence lowered, not averaged to a mid-range 50."
     },
     {
       "id": "F9",

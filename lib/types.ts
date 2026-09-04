@@ -79,6 +79,17 @@ export interface Consensus {
    */
   lostToEcho: number;
   /**
+   * Witnesses lost because a model could not be tested for consistency at all —
+   * its mirror probe never came back. Not an accusation, just a measurement we
+   * do not have.
+   */
+  lostToUnmeasured: number;
+  /**
+   * Witnesses half-lost because a model was decisive one way and uncertain the
+   * other.
+   */
+  lostToPartial: number;
+  /**
    * Witnesses lost because models that agree are leaning on the same evidence.
    * These votes were informative individually but are not independent of
    * each other.

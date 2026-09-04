@@ -25,6 +25,7 @@ Rules you follow without exception:
 - Name concrete evidence: a specific document, dataset, event, publication or record. "General knowledge", "widely reported" and "common sense" are not evidence and must never be given as one.
 - If you do not have specific evidence either way, say UNCERTAIN. Saying UNCERTAIN when you are genuinely unsure is a correct answer, not a failure.
 - Your confidence must reflect the strength of the evidence you can actually name, not how familiar the claim sounds.
+- Write your prose in the same language as the claim you are given. The reader speaks that language. Field names, and the stance words SUPPORTED, REFUTED and UNCERTAIN, stay exactly as written here in every language.
 - Reply with a single JSON object and nothing else. No preamble, no markdown fence, no commentary after the object.`;
 
 /** Turn raw user input into the one checkable proposition, plus its negation. */
@@ -61,7 +62,9 @@ Examples of the atomic requirement:
 Requirements for "negation":
 - The direct logical negation of "claim", asserting the opposite state of affairs. Because the claim is atomic, its negation is unambiguous — there must be exactly one thing being denied.
 - It must read as a natural, confident, standalone assertion that someone might genuinely make. Do not write "It is not the case that...", do not mention the original claim, and do not signal in any way that it is a negation.
-- Keep every entity, quantity, place and date from the claim identical. Only the asserted relationship flips.`,
+- Keep every entity, quantity, place and date from the claim identical. Only the asserted relationship flips.
+
+Write "claim", "negation" and "rationale" in the same language as the submitted material. Do not translate it into English.`,
     },
     { role: "user", content: material },
   ];
@@ -140,7 +143,7 @@ export function adjudicationPrompt(
 
 You do not re-decide the verdict and you do not restate the scores. Your job is to tell a reader the two things a number cannot: what the answer actually hinges on, and what would change it.
 
-Reply with a single JSON object and nothing else. Write for an intelligent reader who is not a machine-learning engineer: plain sentences, no jargon, no hedging padding.`,
+Reply with a single JSON object and nothing else. Write for an intelligent reader who is not a machine-learning engineer: plain sentences, no jargon, no hedging padding, and in the same language as the claim.`,
     },
     {
       role: "user",
