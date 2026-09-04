@@ -92,23 +92,43 @@ changed the product:
   comparison vocabulary) and tokenisation is script-aware regardless.
 - **Pushed** to `origin` (`github.com/Prostotatik/GONKA_TRACK.md`).
 
-### Still open — both need a person, neither needs code
+## Phase 8 — where the definition of done actually stands (2026-09-04)
 
-- **The GitHub repository is private.** An anonymous fetch 404s, so a judge cannot read it. One
-  setting to change; see `SUBMISSION.md` and `DECISIONS.md` D13. Nothing in the tree is sensitive —
-  that was verified before pushing.
-- **There is no Live Demo URL** (submission criterion 1). `npm run share` produces one in thirty
-  seconds with no account, and Vercel is four commands, but opening a public tunnel backed by the
-  team's API key is not this build's call to make. See `DECISIONS.md` D9 and D12.
+Checked one item at a time, with the evidence for each. Two are open and neither is a code problem.
 
-Until those two are done the submission is incomplete, and no amount of further code changes that.
+| # | Item | State | Evidence |
+|---|---|---|---|
+| 1 | Every `FEATURES.json` entry genuinely passes, verified by `qa-tester` | **done** | 18/18, each with a screenshot path or observed transcript in the file. Two passes; the first found URL verification completely broken. |
+| 2 | Every rule and submission requirement in the brief satisfied | **open** | §2 and §3 all satisfied (see `JUDGING_CRITERIA.md`). Of the three §5 deliverables: the video exists, the repo is pushed **but private**, and there is **no live demo URL**. |
+| 3 | `judge-simulator` has no unaddressed critical finding | see `JUDGE_FEEDBACK.md` | second pass run after the fixes; its first pass scored 74/100 and every finding was worked. |
+| 4 | `prior-art-scout`'s final pass finds no unanswered lookalike | **done** | `PRIOR_ART.md`, second dated section: `GATE: PASS`. Its two recommendations — concede that consistency-probing is published, and describe the witness count as a floor rather than a calibrated number — are now in the README. |
+| 5 | `design-critic` signs off on the rendered demo | **done** | `DESIGN SIGN-OFF: YES`, after one `NO` whose five blocking defects were all fixed. |
+| 6 | Gonka works live, no key in git history | **done** | `npm run test:live` 9/9 against the router; `git log -p --all` contains only a placeholder and a redaction test fixture. |
+| 7 | A README a judge can read in ninety seconds | **done** | the image, the video link, and a six-paragraph block covering problem, why not the obvious approach, how it works, how to see it, and why it is not a reskin — about 100 seconds; depth below it. |
+| 8 | Clean repo, `init.sh` brings up a working demo from a clean checkout | **done** | exercised from a `git archive` extract with no `.env`: it explains itself, installs, checks the router, exits 0. No TODOs, no debug prints, no dead exports. |
+
+### The two open items, stated plainly
+
+**The repository is private.** An anonymous fetch of
+`https://github.com/Prostotatik/GONKA_TRACK.md` returns 404, so a judge cannot read the code the
+submission points at. Settings → General → Change visibility → Public. Nothing in the tree is
+sensitive; that was verified before pushing.
+
+**There is no Live Demo URL.** `npm run share` produces one in thirty seconds with no account, and
+Vercel is four commands — both in `SUBMISSION.md`. This build did not open a public tunnel on its
+own: it exposes the Gonka key's credits to anyone with the link, and a URL that dies with the
+terminal is worse in a submission form than an empty field. `DECISIONS.md` D9, D12, D13.
+
+Until those two are done the submission is incomplete, and no further code changes that.
 
 ### Next session
 
 1. `./init.sh --check`, then a verification, before touching anything.
-2. Work `FEATURES.json` top to bottom with the qa-tester agent and the CDP driver. Flip only what was
-   observed.
-3. Re-run judge-simulator and design-critic after that, then the Phase 8 checklist line by line.
+2. Read the Phase 8 table above. Two items are open and both are one human action.
+3. If anything in the product changed, re-run `qa-tester` on the features it touched and
+   `design-critic` on the screens it touched — every agent pass so far has found something real.
+4. If the pitch needs re-recording, `npm run record:pitch` checks its own take and will tell you when
+   the router gave it a result the narration does not match.
 
 ---
 
