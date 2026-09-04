@@ -260,7 +260,7 @@ function MetricsStrip({ run }: { run: VerificationRun }) {
           </span>
           <span className={s.metricReading}>
             <span className="eyebrow">Effective witnesses — what it is actually worth</span>
-            <span className={`${s.metricSmall} ${s.metricValueSodium}`}>
+            <span className={`${s.metricSmall} ${s.metricSmallSodium}`}>
               {survived.toFixed(1)}
             </span>
           </span>

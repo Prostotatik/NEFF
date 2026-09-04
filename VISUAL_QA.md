@@ -295,6 +295,35 @@ The critic also read the hero's orbit trails as "generic sci-fi beams" and the o
 The haze was already fixed in the commit after its screenshot was taken (the bloom ring was landing
 inside the sphere); the trails are the reference's own sweeping orbit arcs and are kept.
 
+### design-critic re-review — and a claim in this file that was false
+
+The re-review cleared the balance, the spirals, the model marks and the orb haze, and blocked on two
+things. Both were right.
+
+**The colour deviation recorded above was not what actually rendered.** This file asserted that the
+effective witness count carries brand green "in both the strip and everywhere else those two figures
+appear". It did not. `.metricValueSodium` was declared at line 843 and `.metricSmall` at line 881 —
+same specificity, so the later rule won and the metrics strip's `1.4` rendered in `--paper`
+near-white while `2/2` beside it rendered blue, because `.metricSmallSteel` happens to be declared
+*after* `.metricSmall`. So the one cell built to put the nominal and effective readings side by side
+showed "one number flagged, one not" — the opposite of the distinction the whole product is for.
+Fixed with a `.metricSmallSodium` modifier declared after the base rule, and the rule now carries a
+comment saying why the order matters. **Verified by sampling the rendered PNG**, not the stylesheet:
+`2/2` = rgb(114,220,255) = `--steel`, `1.4` = rgb(0,255,163) = `--sodium`. `tools/`-side helper for
+this lives in the scratchpad; the crop is `v23-cell4.png`.
+
+The lesson worth keeping: a colour claim about a CSS-modules class is not evidence. Two rules of
+equal specificity in the wrong order fail silently and look deliberate.
+
+**S2 second pass.** The spheres were still ~43% of the card where the reference's are ~68%, and they
+reused the hero orb's deliberately *dark* interior at a smaller size, so they read as line-art globes
+rather than as the brightest thing in the card. The body gradient now carries a hot core falling off
+to the shell — the hero orb is dark glass because it is a body being measured; a probe sphere is the
+probe firing, and they should not look the same. Radii went 104→124 (card 1) and 58/66→66/74
+(card 2), the document glyph and pedestal grew with them, and the scene box was re-anchored after
+card 2's right sphere started overrunning the card edge. Card 3's store and source chips grew to
+match. Re-checked at 390px: the stacked layout still puts the copy above the illustration.
+
 ## Definition of Done — status
 
 - [x] Every section in the locked section map has been implemented, screenshot-compared at 1536px,

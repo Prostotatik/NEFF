@@ -724,7 +724,7 @@
 .step {
   position: relative;
   overflow: hidden;
-  min-height: 23rem;
+  min-height: 24rem;
   padding: 1.15rem 1.2rem 1.2rem;
   border: 1px solid var(--outline-green);
   border-radius: var(--radius);
@@ -781,10 +781,10 @@
    its width and sitting under the copy rather than beside it. */
 .stepScene {
   position: absolute;
-  right: -1.5rem;
-  bottom: 0.15rem;
-  width: 23rem;
-  height: 19.5rem;
+  right: -0.4rem;
+  bottom: -0.1rem;
+  width: 24rem;
+  height: 21.5rem;
   pointer-events: none;
 }
 
@@ -886,8 +886,19 @@
   line-height: 1.25;
 }
 
+/* The two argument colours, as modifiers on .metricSmall. They have to be
+   declared AFTER it: same specificity, so the later rule wins, and putting one
+   before it silently loses to .metricSmall's own colour. That is exactly what
+   happened — the effective witness count rendered plain white beside a blue
+   nominal consensus, which reads as "one number is flagged" rather than as two
+   colours carrying a distinction. */
 .metricSmallSteel {
   color: var(--steel);
+}
+
+.metricSmallSodium {
+  color: var(--sodium);
+  text-shadow: 0 0 22px rgba(0, 255, 163, 0.35);
 }
 
 .metricStack {
