@@ -249,6 +249,10 @@ animations: `twinkle` ×232 (point lights), `spin` ×16 and `sceneSpin` ×13 (or
 (the icosahedron and the balance beam), `drift` ×2 (debris), `pulseDot` ×2, `scanNode`, `flarePulse`.
 `meterGrow` is a one-shot entrance and so is correctly absent from a list taken 8s after load.
 
+Under `prefers-reduced-motion: reduce`, emulated in the browser, the same page reports **0** running
+animations — the global reduce rule in `globals.css` genuinely stops all of it rather than only
+shortening it.
+
 Frame pacing sampled over 180 consecutive frames on both routes: median 10.0ms, p95 10.1ms, worst
 10.2ms — no frame took measurably longer than any other, so there is no jank. Caveat recorded
 honestly: headless Chrome runs on a fixed ~100Hz clock rather than a real vsync, so this shows the
