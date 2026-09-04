@@ -236,12 +236,17 @@ async function act(segment) {
         return rows.length;
       })()`);
       return;
-    case "awaitVerdict":
-      for (let i = 0; i < 90; i++) {
+    case "awaitVerdict": {
+      // Bounded by the probe phase budget in lib/verify.ts: past that, the run
+      // has already given up on the stragglers and the report is on its way.
+      const ceiling = 85;
+      for (let i = 0; i < ceiling; i++) {
         if (await evaluate(`Boolean(document.body.innerText.match(/credible band/))`)) return;
         await sleep(1000);
       }
+      console.warn("  (the verdict did not arrive within 85s; recording continues)");
       return;
+    }
     default:
       return;
   }
