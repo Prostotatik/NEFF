@@ -1,5 +1,6 @@
 # VISUAL_QA.md — working log for the visual redesign phase
 
+Phase brief: `VISUAL_REDESIGN_PROMPT.md` (git-ignored). General operating brief: `PROMT.md`.
 Reference: `./visual-reference.png` (1536 × 1670). Colours: `./gonka-colors.md` wins on what it
 covers; the reference image wins on what it does not (glow falloff, opacity, gradient stops).
 
@@ -187,7 +188,9 @@ The adjudicating node's real closing note runs 3–4× the length of the other f
   ruled out simple truncation.
 **Compared at 1536px** (`v15-rests.png` @2.4, `final-composite-1536.png`): matches.
 
-### Deliberate colour deviation in S5, and why it is not a fidelity failure
+### S5 colour — a deliberate deviation, with what was actually tried
+
+Phase brief: `VISUAL_REDESIGN_PROMPT.md`. Where it and CLAUDE.md conflict, CLAUDE.md wins.
 
 In the reference, the metrics strip sets every number in white. In the build, **1.4 (effective
 witnesses) is brand green and 2/2 (nominal consensus) is Gonka blue**, in both the strip and
@@ -205,6 +208,22 @@ exact screen the project calls its hero moment. The hues themselves come from `g
 Everything else in the strip — the light weight of the numerals, the two-tone TRUTH/SCORE label, the
 bordered verdict capsule, the 2px meters under the arithmetic rows, the label-above-value stacking in
 the fourth cell — follows the reference.
+
+**What was tried, per rule 5.** This is not a detail that could not be matched; matching it is one
+line. It is a conflict between two sources of truth, resolved against CLAUDE.md.
+
+- *Both figures white, as the reference has them.* This actually shipped, by accident, for several
+  commits — the `.metricValueSodium` rule was losing to `.metricSmall` on rule order. It is therefore
+  the one variant that was genuinely rendered and looked at rather than reasoned about, and it read
+  exactly as the design critic reported independently: blue beside plain white, i.e. "one number is
+  flagged and one is not", rather than two colours carrying a distinction. On the one screen built to
+  put the nominal and the effective reading side by side, that inverts the argument.
+- *Both figures in the same brand green.* Rejected without rendering: it would make the two numbers
+  look like the same kind of quantity, which is the misreading — three models agreeing counting as
+  three witnesses — the whole product exists to correct.
+- *Resolved:* keep steel for nominal and sodium for effective, and let the reference's white go. The
+  hues are `gonka-colors.md`'s own `--tertiary` and `--primary-container`, and each figure sits under
+  a label naming which reading it is.
 
 ### Addition the reference has no slot for
 
@@ -358,13 +377,16 @@ them. Their resolution rests on the measurements in this section, not on an agen
 ## Definition of Done — status
 
 - [x] Every section in the locked section map has been implemented, screenshot-compared at 1536px,
-      and is marked matching or an accepted deviation — **all 10 marked**; S8 carries the one
-      accepted deviation, with the two attempts that failed recorded above
+      and is marked matching or an accepted deviation — **all 10 marked, none left unmarked**. Two
+      deviations are recorded, each with what was actually tried: S8's clamped closing note, and S5's
+      steel/sodium colouring of the two consensus figures where the reference sets both white
 - [x] Everything that appears animated/glowing/in-motion in the reference is actually animated —
       verified from `document.getAnimations()`, not from the stylesheet
 - [x] The reference image is not present anywhere in the shipped build — there is no `public/`
-      directory, no import and no CSS `url()` referencing it; the only occurrences of the string are
-      two source comments, and `grep` over `.next/static` finds nothing
+      directory, no import, no CSS `url()` and no `<img>` referencing it. Re-verified against a
+      freshly deleted and rebuilt output: `grep -rl visual-reference .next/static .next/server`
+      returns nothing. The only occurrences anywhere in source are two comments naming what the
+      design was built against
 - [x] A final full-page screenshot at 1536px compared against the reference using the section map as
       the checklist — `evidence/visual/final-composite-1536.png`, from a live run, all ten sections
       present on one page
