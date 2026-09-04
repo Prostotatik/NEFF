@@ -32,10 +32,12 @@ Re-run before any completion claim. Last full pass: 2026-09-04 (concept lock).
   worth of information"; three quarters of the panel's nominal independence is lost to shared
   mistakes, and its accuracy falls 8–22 points short of independent voting.
   <https://arxiv.org/abs/2605.29800>
-- *How Independent are Large Language Models? A Statistical Framework for Auditing Behavioral
-  Entanglement and Reweighting Verifier Ensembles* — arXiv 2604.07650. A dependence metric predicts
-  judge-precision degradation (Spearman 0.64 and 0.71), and entanglement-aware reweighting beats
-  majority voting by up to 4.5%. <https://arxiv.org/abs/2604.07650v1>
+- arXiv 2604.07650, which has been retitled between versions — v1 is *How Independent are Large
+  Language Models? A Statistical Framework for Auditing Behavioral Entanglement and Reweighting
+  Verifier Ensembles*, and the current version is *A Statistical Framework for Auditing Behavioral
+  Dependence and Induced Bias in LLM Judges*. A dependence metric predicts judge-precision
+  degradation (Spearman 0.64 and 0.71), and entanglement-aware reweighting beats majority voting by
+  up to 4.5%. <https://arxiv.org/abs/2604.07650>
   (Corrected 2026-09-04: an earlier draft of this file attributed "r ≈ 0.77, three models ≈ 1.3
   independent" to this paper. That figure is not in it. Every number quoted in the repo now comes
   from an abstract that has been read.)

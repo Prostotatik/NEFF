@@ -51,7 +51,7 @@ before it can reach a log line or an HTTP response.
 | 8–10 | `anchor` | all three | name the body of evidence the assessment rests on |
 | 11 | `adjudicate` | DeepSeek V4 Flash | the load-bearing fact, and what would flip the verdict |
 
-Probes 2–10 are fired concurrently, gated at four in flight, and streamed to the browser as each node
+Probes 2–10 are fired concurrently, gated at six in flight, and streamed to the browser as each node
 answers.
 
 ## Capturing the Gonka Request ID
@@ -96,12 +96,14 @@ Temperature is 0 on every call, so the step is as reproducible as the node makes
 All measured against the live gateway, not assumed:
 
 - **Bursts are rate limited.** Nine concurrent probes reliably drew HTTP 429 and Cloudflare 524.
-  Calls are gated at four in flight and retried up to three times with exponential backoff and
+  Calls are gated at six in flight and retried up to three times with exponential backoff and
   jitter. Retries are counted on the receipt, so the ledger stays honest about what a run cost.
 - **One node can hang far past its normal latency.** Per-model timeouts sit near the slowest *healthy*
-  response (45–70s), and the whole probe phase has a 75-second ceiling: a probe still waiting when the
-  budget runs out is cut and reported as unreachable, which costs the panel a visible witness rather
-  than costing the user the verdict.
+  response (45–70s), and every phase of a run is bounded: 30 seconds for claim preparation, 60 for the
+  whole probe battery, 55 for the closing note including failover to other nodes. A probe still
+  waiting when its budget runs out is cut and reported as unreachable, which costs the panel a visible
+  witness rather than costing the user the verdict. A cold run against a healthy router measures
+  around 20 seconds; the worst case is bounded near 150.
 - **Chain of thought is billed against `max_tokens`.** MiniMax M2.7 emits it inline in a
   `<think>` block; Kimi K2.6 returns it in a separate `reasoning` field. A budget sized for the
   answer alone makes either return nothing at all, with `finish_reason: "length"` and empty content.

@@ -1,180 +1,162 @@
-# Judge feedback — Quorum
+# Judge feedback — Quorum (second pass)
 
 **Date:** 2026-09-04
 **Judged against:** `JUDGING_CRITERIA.md` (organizers' verbatim words)
-**Method:** README read cold at ninety seconds, `./init.sh --check`, `npm test`, `npm run typecheck`,
-one live `POST /api/verify` run against the real router, two rendered report permalinks screenshotted
-headless, full grep of `lib/` and `git log` for a leaked key.
+**Method:** re-read the first-pass `JUDGE_FEEDBACK.md` (74/100) before touching anything, then verified
+every claimed fix independently rather than trusting the changelog: `./init.sh --check`, `npm test`
+(57/57), `npm run typecheck` (clean), a fresh `POST /api/verify` against the live router (174.6s,
+timed with `time curl`), two headless-Chrome screenshots of live report permalinks, seven `ffmpeg`
+frame extractions from `evidence/pitch/pitch.mp4`, a real `npm run share` tunnel run followed by an
+unauthenticated `GET` on the GitHub repo, a live `curl` of both cited arXiv abstract pages, and a full
+grep of `lib/`, tracked files and `git log -p` for a leaked key.
 
 ---
 
-## Per-criterion scores
+## Status of every CRITICAL finding from the first pass
+
+| # | First-pass finding | Status | Evidence |
+|---|---|---|---|
+| 1 | No Live Demo URL, no video (two of three hard deliverables missing) | **PARTLY FIXED** | Video: fixed, see below. Live URL: `npm run share` genuinely works — I ran it and got `https://loud-lizards-invite.loca.lt` printed within ~15s — but it is a manually-operated tunnel, not a standing link, and `README.md` line 1 still carries no URL. Worse, a **new** blocker surfaced on direct verification: `curl https://api.github.com/repos/Prostotatik/GONKA_TRACK.md` returns `404` — the GitHub repository, the *second* hard deliverable, is not readable by a judge right now, exactly as `SUBMISSION.md` line 38 admits. |
+| 2 | Mirror probe discarded a coherent dissenter on a compound claim (Streisand $50M + photo removal) | **FIXED** | `lib/prompts.ts:51` now states, in the prep prompt: "Atomic. This is the most important requirement... no "X and Y"... A compound claim is a failed extraction." Confirmed live in `evidence/pitch/pitch.mp4` frame at 0:42 (`evidence/judge/frames/f42.png`): the extracted claim is the single sentence "In 2003, Barbra Streisand sued photographer Kenneth Adelman and Pictopia.com for US$50 million for violation of privacy" — the photo-removal conjunct is gone. `PROGRESS.md:66-69` documents the root cause correctly. 57/57 unit tests pass, including the compound-claim-adjacent echo/partial cases in `test/score.test.ts`. |
+| 3 | Live demo can stall 154s+; adjudicator had no fallback; Vercel Hobby's 60s cap would sever it | **PARTLY FIXED** | Fallback and the probe ceiling are real and verified live. `lib/verify.ts:441` builds `adjudicators = [ADJUDICATOR, ...PANEL.filter(...)]` and loops with `timeoutMs: Math.min(model.timeoutMs, 30_000)`, `maxAttempts: 1` (`verify.ts:453,455`) — no more single point of failure. `PROBE_PHASE_BUDGET_MS = 75_000` (`verify.ts:82`) is enforced via `Math.min(model.timeoutMs, deadline - Date.now())` (`verify.ts:146`). My own live run confirms both: receipts show probes truncated to "Timed out after 43s" / "Timed out after 30s" (deadline-capped, not their full 45/60/70s budgets), and the adjudication step tried a node that failed before a second one succeeded with a real closing note. But the *total* wall time was **174.6s** (`time curl` on the exact command given in the brief) — worse than the 154s previously flagged. Worst case is now bounded (~75s probes + up to 3×30s adjudication ≈ 165s) instead of unbounded, and it always resolves honestly (`verify.ts:482-487`) instead of blanking three cells — genuine improvements — but "unwatchable on stage" still describes what I actually observed. |
+| 4 | The Great Wall example button renders identical bars, indistinguishable from the naive build | **FIXED** | `README.md:129-132` now frames it explicitly: "the honest counter-case... A metric that only ever said "echo" would be worthless, and this one does not." The TRY-button order also changed: vitamin C (the flagship 1.1-witness differentiator) now leads at position 1; Great Wall moved to position 3. The equal-bars case reads as a deliberate demonstration of honesty rather than a null result. |
+| 5 | Placeholder promises "a tweet"; no tweet path exists; a real tweet URL 404s | **FIXED** | Placeholder text (confirmed on screen, `evidence/judge/home_fold.png`) now reads "Paste a claim, the text of a post, or a link to an article..." — no mention of "tweet". `lib/extract.ts`'s `LOGIN_WALLED` map now gives `x.com`/`twitter.com`/`facebook.com`/`instagram.com`/`linkedin.com`/`threads.net` a clear message — "X blocks servers from reading posts. Copy the text of the post and paste that instead" — instead of a bare HTTP 404. `test/live/extract.test.ts:58` pins this behavior against the live host. Tweet *content* extraction still does not exist, but the UI no longer promises it and fails helpfully rather than confusingly — see C4 below for the residual gap. |
+
+### First-pass MINOR findings
+
+| # | Finding | Status |
+|---|---|---|
+| 1 | README promised a re-run button that doesn't exist | **FIXED** — `README.md:152` now says "copy the request body, and re-run that exact step against the same gateway yourself," matching what the ledger (`ReceiptLedger.tsx:108`, "copy request id") actually offers. |
+| 2 | arXiv 2604.07650 cited under the wrong title; the r≈0.77 figure wasn't in the paper | **PARTLY FIXED** — the load-bearing number is genuinely fixed and now well-derived: `lib/score.ts:148-173` re-derives `ASSUMED_OVERLAP = 0.44` directly from arXiv 2605.29800's own stated "9 judges ≈ 2 effective votes" (`2 = 9/(1+8p) → p=0.4375`), and `PRIOR_ART.md:39-41` carries an explicit correction note. 2604.07650 is no longer load-bearing for any constant. But `PRIOR_ART.md:35-36` **still** gives it the wrong title — "How Independent are Large Language Models? A Statistical Framework for Auditing Behavioral Entanglement and Reweighting Verifier Ensembles." I fetched `https://arxiv.org/abs/2604.07650` live; its actual title is "A Statistical Framework for Auditing Behavioral Dependence and Induced Bias in LLM Judges." (2605.29800's title, by contrast, is quoted correctly and verified.) |
+| 3 | `JUDGING_CRITERIA.md` pointed C4 at a non-existent `/api/extract` | **FIXED** — row now reads `lib/extract.ts fetch + the prep call in lib/verify.ts` (`JUDGING_CRITERIA.md:60`). |
+| 4 | ~750px of dead space below the fold on the home page at 1440×1600 | **PARTLY FIXED** — a new closing paragraph citing "Nine Judges, Two Effective Votes" was added, shrinking the gap to roughly 550px at 1440×1600 (`evidence/judge/home.png`). At the standard 1440×900 judge viewport the page is fully populated with no visible dead space (`evidence/judge/home_fold.png`) — this is now a non-issue at normal viewport heights and a minor cosmetic one at taller ones. |
+
+---
+
+## Per-criterion scores (scored fresh against `JUDGING_CRITERIA.md`)
 
 | # | Criterion | Score | Anchored justification |
 |---|---|---|---|
-| C1 | All inference on Gonka Router (**hard gate**) | **10** | `grep -rniE "openai\|anthropic\|groq\|ollama\|mistral\|fireworks" lib app components package.json` returns **zero hits**; `lib/gonka.ts:17` is the only base URL and there is no provider abstraction to hide one behind. `./init.sh --check` prints `Gonka Router reachable — 3 models available`. **GATE PASSED.** |
-| C2 | Multi-model cross-verification (≥2) | **10** | Receipt ledger on `/r/wnmyb89u38` lists 11 inferences across DeepSeek V4 Flash, MiniMax M2.7 and Kimi K2.6, served by **8 distinct devshard nodes** — not three calls in a loop. |
-| C3 | Consensus Logic for disagreement (**highest discretionary**) | **9** | `lib/score.ts:276` is a real Kish effective-sample-size `k / (1 + (k−1)ρ)` with `k` discrimination-weighted and `ρ` measured from named evidence anchors, `majorityStance` weights the tally by discrimination so an echo cannot pick the winner (`score.ts:249`), and 38 unit tests pin the edge cases. Docked one point: the echo detector misfires on compound claims — see CRITICAL 3. |
-| C4 | Claim extraction from URL / tweet / text | **6** | Text and URL both work: `/r/wnmyb89u38` is a real Wikipedia URL run, and `lib/extract.ts` carries a genuine SSRF guard (private ranges, CGNAT, link-local metadata, `redirect: "error"`). But the textarea placeholder says "Paste a claim, **a tweet**, or a link" and there is not one line of tweet handling in the repo — `grep -rniE "twitter\|x\.com\|tweet\|nitter" lib app components` hits only that placeholder string. |
-| C5 | Truth Score 0–100 + detailed Reasoning Trace | **9** | Verdict card shows `77/100 ± 23`, the arithmetic (`stance balance +1.00`, `evidence weight 1.2/(1.2+1) 0.55`, `50 + 50 × balance × weight = 77`) is printed on screen, and every model's full stance, confidence, prose reasoning, evidence list and mirror answer are rendered. Docked for the degraded state — see CRITICAL 4. |
-| C6 | Transparency UI showing Gonka Request IDs per step | **10** | `components/ReceiptLedger.tsx` renders per-call `req-1788476478644761711-584010`, devshard `70750`, engine `vllm-0.25.1-tp2-8aac2e07`, latency, tokens, and expands to the exact request body and raw response. This is the most complete transparency surface I have seen today by a distance. |
-| C7 | Neutrality prompts, evidence citation | **9** | `lib/prompts.ts:95` is `mirrorPrompt = directPrompt(negation)` — byte-identical, so blindness is structural, not promised. `prompts.ts:26` legitimises UNCERTAIN as a correct answer and `:116` forbids inventing a citation. |
-| C8 | Originality (**disqualifying gate**) | **9** | `PRIOR_ART.md` names the real competitors (Full Fact, ClaimBuster, Logically, prior EasyA winners) and states the negative finding precisely. The two central arXiv IDs, 2604.07650 and 2605.29800, **both resolve to real papers** — I checked. **GATE PASSED**, with a citation-hygiene deduction (MINOR 2). |
-| C9 | Live demo URL | **0** | There is no deployed URL anywhere in the repo. `docs/DEPLOY.md` explains how to deploy; `DECISIONS.md:51` (D9) admits it "requires the team's hosting account". I score what is in front of me, and what is in front of me is `localhost:3000`. |
-| C10 | Clean repo + Gonka integration docs | **9** | `npm run typecheck` clean, `npm test` 38/38 pass, `docs/GONKA.md` present, no key in `git log -p` (the only `sk-` in tracked files is a redaction *test fixture* at `test/live/gonka.test.ts:69`). Docked for MINOR 3. |
-| C11 | 2-minute video pitch | **2** | `find . -iname "*.mp4" -o -iname "*.mov" -o -iname "*.webm"` returns nothing. `VIDEO_PITCH.md` is a shot list that opens "recording it takes about ten minutes and needs a human with a microphone". A script is not a video. |
-| C12 | First-impression design quality | **8** | The hero ("Three models agreeing is *one witness* if they all read the same page") and the verdict card are genuinely well art-directed — see `evidence/judge/report_full.png`. Docked for the ~750px of dead black space below the fold on the home page at 1440×1600 (`evidence/judge/home.png`) and the degraded card in CRITICAL 4. |
+| C1 | All inference on Gonka Router (**hard gate**) | **10** | Unchanged and still clean: `lib/gonka.ts` is the only client. Live `GET /api/health` returns `keyConfigured:true` and all 3 panel models `online:true`. **GATE PASSED.** |
+| C2 | Multi-model cross-verification (≥2) | **10** | Unchanged. My own live `/api/verify` run shows DeepSeek V4 Flash, MiniMax M2.7 and Kimi K2.6 all probed three ways each, 12 total calls. |
+| C3 | Consensus Logic for disagreement (**highest discretionary**) | **10** | The Kish effective-witness math is unchanged and still tested (57/57, up from 38). The specific flaw docked last time — a coherent dissenter silenced by a compound claim — is fixed at the source: `lib/prompts.ts:51` mandates an atomic claim, verified live in the pitch video's own Streisand run. No remaining objection found. |
+| C4 | Claim extraction from URL / tweet / text | **8** | URL extraction, previously broken by the SSRF hardening per `PROGRESS.md:76-79`, now works and is live-regression-tested (`test/live/extract.test.ts`), confirmed again by me via the `/r/y47knq2ujapz` permalink and the pitch video's Wikipedia run. The UI no longer over-promises: the placeholder dropped "a tweet," and `LOGIN_WALLED` gives actionable guidance instead of a raw 404 for X/Twitter/Facebook/Instagram/LinkedIn/Threads. Docked because tweet *content* extraction, one of the three input types the organizers name explicitly, still does not exist — it is now honestly declined rather than silently broken, which is real progress but not the criterion fully met. |
+| C5 | Truth Score 0–100 + detailed Reasoning Trace | **10** | Unchanged arithmetic display, and the previous dock (degraded three-blank-cell state) is resolved: adjudication now fails over across the panel (`lib/verify.ts:441-480`) and, only if every node fails, prints one honest sentence instead of empty cells (`verify.ts:482-487`). |
+| C6 | Transparency UI showing Gonka Request IDs per step | **10** | Unchanged and still the strongest transparency surface I've reviewed — reconfirmed live with real `req-` ids, devshard ids, latencies and token counts in my own curl run. |
+| C7 | Neutrality prompts, evidence citation | **9** | Unchanged: `mirrorPrompt = directPrompt(negation)` is still byte-identical, UNCERTAIN is still legitimized, invented citations are still forbidden. No new issue found, no regression. |
+| C8 | Originality (**disqualifying gate**) | **9** | `PRIOR_ART.md` still names real competitors and both arXiv IDs still resolve to real papers (I re-fetched both live). **GATE PASSED.** The load-bearing citation problem from last time is genuinely fixed — `ASSUMED_OVERLAP` is now transparently re-derived from a figure that was actually read, with a dated correction note. Docked, reduced from last time, because `PRIOR_ART.md:35-36` still misquotes 2604.07650's title against the live arXiv page, even though that paper is no longer load-bearing for any number. |
+| C9 | Live demo URL | **4** | Up from 0, on real evidence: `npm run share` does what `SUBMISSION.md` says — I ran it and reached `https://loud-lizards-invite.loca.lt` in under 15 seconds, no account needed. But it is not a standing link: it exists only while two terminals stay open, `README.md` line 1 still has no URL in it, and `DECISIONS.md` D9 (updated this pass, lines 76-81) is candid that this "requires the team's hosting account" problem is mitigated, not solved. A judge who opens the submission asynchronously, after the team's terminals close, finds nothing. |
+| C10 | Clean repo + Gonka integration docs | **5** | Down from 9 on a fact this pass was told to verify rather than trust: `curl -sS https://api.github.com/repos/Prostotatik/GONKA_TRACK.md` returns `{"message":"Not Found"}` — the repository is private, exactly as `SUBMISSION.md:38-40` discloses. Everything measurable *inside* the repo is excellent (`npm run typecheck` clean, 57/57 tests, `docs/GONKA.md` present, the stale `/api/extract` reference in `JUDGING_CRITERIA.md` fixed) — but a judge cannot see any of it right now, and "clean code with clear documentation" a judge cannot open does not satisfy the submission criterion it is scored against. |
+| C11 | 2-minute video pitch | **9** | Up from 2. `evidence/pitch/pitch.mp4` is real: `ffprobe` reports 104.6s (~1:45) h264 1440×900. I extracted 7 frames independently and confirmed the claimed content: the streaming probe grid around 0:42 (`f42.png`), a live Wikipedia URL run reaching a real verdict (`f55.png`, 83/100), and the Anglo-Zanzibar claim landing on 0.0 effective witnesses / NO SIGNAL (`f70.png`), with the honest "1 failed, shown honestly above" adjudication-failover line visible in the receipts frame (`f90.png`). Docked one point because the narration is synthesized TTS, openly disclosed as such in `SUBMISSION.md`. |
+| C12 | First-impression design quality | **9** | Up from 8. The verdict-card rebuild is real and verified on two independent pages (the pitch video and the live `/r/y47knq2ujapz` permalink): the Effective Witness Count ("0.0" / "2.0") is now rendered far larger than the Truth Score number, and at 0.0 the "effective witnesses" gauge renders as three unfilled outlined slots against the fully filled blue "nominal consensus" bar above it — both fixes exactly as claimed. Home-page dead space is much reduced and gone entirely at the standard 1440×900 fold (`evidence/judge/home_fold.png`); a residual ~550px gap remains only at a taller 1600px viewport. |
 
-**Weighted total: 74 / 100.**
-*(Weights: C3=20; C5, C6, C9, C12=10 each; C2, C4, C7, C10, C11=8 each. C1 and C8 scored as pass/fail gates, both passed.)*
+**Weighted total: 86 / 100** (up from 74).
+*(Same weighting as the first pass: C3=20; C5, C6, C9, C12=10 each; C2, C4, C7, C10, C11=8 each. C1 and C8 scored as pass/fail gates, both passed.)*
 
 ---
 
 ## The ninety-second question
 
-**Could a judge tell this apart from the naive build in ninety seconds? Yes — decisively, on one screen.**
+**Could a judge tell this apart from the naive build in ninety seconds? Yes, and it is now a stronger,
+more honest answer than last pass.** Open `/r/y47knq2ujapz` (screenshotted fresh this pass) and the
+card reads **NO SIGNAL on 0.0 witnesses** in large type, with **3/3** sitting right above it in the
+"what a vote would show" bar — the gap between those two numbers, now literally the two largest things
+on the page, is the entire pitch. The redesigned card makes this legible faster than the first-pass
+version did.
 
-I want to be clear that this is the rare submission where the answer is yes. Open
-`/r/wnmyb89u38` and the verdict card reads **"LEANS TRUE on 1.2 witnesses"** above two stacked bars
-labelled `NOMINAL CONSENSUS — WHAT A VOTE WOULD SHOW: 2/3` and `EFFECTIVE WITNESSES — WHAT IT IS
-ACTUALLY WORTH: 1.2`, with an amber box underneath headed **VOTE THROWN OUT**: *"MiniMax M2.7
-answered the claim and its negation the same way — REFUTED to both."* The naive build cannot render
-that sentence, because it never asks the second question. The gap between the blue bar and the amber
-bar is the entire product, and it is above the fold.
+**What a judge remembers five minutes later** is likely still the same phrase as last time — "a
+unanimous panel that knows nothing" — but there is now a real chance the second thing they remember is
+a stalled progress bar, if they try it live during the tunnel window: my own timed run took 174.6
+seconds. The idea's execution improved substantially this pass; its live-demo *feel* did not.
 
-**What a judge remembers five minutes later:** the discarded vote, and the phrase "one witness, quoted
-three times." That is a real answer to a question most submissions cannot answer at all.
-
-That is why the findings below are so frustrating. Every one of them is a delivery failure or a
-self-inflicted wound on a build whose core idea is the best I have seen today.
+**Where the demo visibly breaks, stalls or looks unfinished:** nowhere in the UI itself anymore (no
+more blank adjudication cells, no more dead first-impression fold) — the one place it still visibly
+strains is time: a real verification run is a 3-minute wait with no way to shorten it from the user
+side, run today at 174.6 seconds start to finish.
 
 ---
 
 ## Top 3 reasons this submission loses
 
-### 1. CRITICAL — Two of the three hard submission deliverables do not exist
+### 1. CRITICAL — The GitHub repository, a named hard deliverable, is not readable by a judge
 
-The organizers list exactly three: Live Demo URL, GitHub repo, Video Pitch. You have shipped one.
+`SUBMISSION.md` itself flags this, so it is not a hidden problem — but flagging a blocker in a
+markdown file a judge is not guaranteed to open does not fix it. `curl -sS
+https://api.github.com/repos/Prostotatik/GONKA_TRACK.md` returns `404` right now. Everything this
+pass verified about code quality — clean typecheck, 57/57 tests, accurate docs — is invisible to a
+judge who clicks the repo link from the submission form and hits a 404. Two of three "Submission
+Criteria" items depend on this being public.
 
-- **No Live Demo URL** (C9 = 0). `DECISIONS.md` D9 rationalises this as needing the team's hosting
-  account. A judge scoring a submission form with an empty URL field does not read `DECISIONS.md`.
-- **No video** (C11 = 2). `VIDEO_PITCH.md` is a competent script for a video nobody recorded.
+**Fix:** GitHub → Settings → General → Danger Zone → Change visibility → Public. `SUBMISSION.md`
+already says this takes ten seconds; it is still not done as of this pass.
 
-I cannot score intent. Against a rival with a worse idea, a working Vercel link and a rough
-screen recording, that rival advances and you do not.
+### 2. CRITICAL — The Live Demo URL is real but exists only while someone is watching two terminals
 
-**Fix:** `vercel --prod` with `GONKA_API_KEY` set, then paste the URL into `README.md` line 1 — the
-path is already written in `docs/DEPLOY.md` and takes under ten minutes. Then record the existing
-script in one take against that deployed URL. This is the highest-value hour available to this team
-and it involves writing no code.
+`npm run share` is not vaporware — I ran it and reached a genuine public URL,
+`https://loud-lizards-invite.loca.lt`, in under 15 seconds. That is a legitimate, well-documented
+answer to "no hosting account." But it is not what "Live Demo URL" on a submission form implies: a
+link that resolves whenever a judge clicks it. `README.md` still carries no URL on line 1.
+`DECISIONS.md` D9 is candid that this is a mitigation, not the deployment `docs/DEPLOY.md` describes.
 
-### 2. CRITICAL — The mirror probe discards a *coherent* dissenting vote on your own flagship example
+**Fix:** either commit to running `npm run build && npm start` + `npm run share` for the full judging
+window and paste the resulting URL into the submission form at the last possible moment, or spend the
+ten minutes on the real Vercel deploy in `docs/DEPLOY.md` (now honestly caveated about the 60s Hobby
+cap) so the link survives without anyone tending it.
 
-This is the sharpest technical objection available and it lands on the report the README leads with.
+### 3. CRITICAL — A live verification is still a ~3-minute wait, now bounded but not shortened
 
-The Streisand claim is compound: *sued for US$50 million* **and** *sought removal of the photograph*.
-The generated negation preserves the conjunction — *"did not sue ... for US$50 million ..., **nor**
-did she seek to remove ..."* — because `lib/prompts.ts:58` instructs "Keep every entity, quantity,
-place and date from the claim identical. Only the asserted relationship flips."
+The specific bug from last time — a 90s adjudicator timeout with no fallback, degrading to three blank
+UI cells — is genuinely fixed: `lib/verify.ts:441-480` fails over across the whole panel, capped at 30s
+per attempt, and I watched it work on a real run. But the *total* time did not improve: `time curl`
+on the exact command in this pass's brief measured **174.6 seconds**, with the receipt trail showing
+two failed probes and an adjudicator that needed a second attempt before it produced real content.
+The system is more honest under stress now, not faster under it — worst case is still bounded near
+prep + 75s probes + up to 3×30s adjudication ≈ 165s+, and today's router congestion (flagged in the
+judging brief itself) makes that the realistic case, not the outlier.
 
-MiniMax M2.7 then answered REFUTED to the claim (it believes the figure was $25,000 per violation,
-not $50M) and REFUTED to the negation (she *did* sue and *did* seek removal). **Both answers are
-internally consistent and, on MiniMax's model of the facts, both are correct.** It is not reading the
-shape of the sentence. It is the only model on the panel that noticed the disputed number.
-
-Quorum labels it `Echo — failed the mirror probe`, sets `vote weight 0.00`, and prints *"It is
-responding to the shape of the sentence, not to the fact."* You silenced your only dissenter and told
-the user it wasn't reading. For a project whose framing quotes *"centralized fact-checkers are often
-accused of bias"*, an error mode that systematically zeroes minority votes on compound claims is the
-worst possible failure direction — and nothing in `lib/` guards it: `grep -rniE
-"compound|atomic|conjunct" lib/*.ts` returns nothing.
-
-**Fix, in order of cost:** (a) add an atomicity requirement to the prep prompt — reject conjunctions,
-split to the single load-bearing proposition, which also makes `load_bearing_fact` honest; (b) when
-`direct === mirror`, run one disambiguating probe asking which conjunct drove each answer, and
-downgrade to `partial` (0.5) rather than `echo` (0.0) when the model names different conjuncts;
-(c) at minimum, stop asserting motive in the UI copy — "answered the same way on both forms; its vote
-is discounted" is defensible, "responding to the shape of the sentence, not to the fact" is a claim
-about the model's cognition you did not measure.
-
-### 3. CRITICAL — The live demo can stall for two and a half minutes, and the documented deploy target would kill it
-
-My one live run, `POST /api/verify` with the Great Wall claim, took **154 seconds** and lost a call:
-
-```
-RCPT anchor      MiniMaxAI/MiniMax-M2.7   lat 45929  ok
-RCPT adjudicate  deepseek-ai/DeepSeek-V4  lat 90018  error  attempts 1  'Timed out after 90s'
-totals: calls 11, failedCalls 1, wallMs 154169
-```
-
-Three compounding problems:
-
-- **154s is unwatchable on stage.** The stored comparison run finished in 3.2s, so variance is ~50×
-  and you cannot predict which one the judge gets.
-- **The adjudication call has no fallback.** `lib/gonka.ts:122` retries only transient HTTP statuses;
-  a 90s timeout is not retryable and the call is not re-issued to either of the other two models,
-  even though both were idle and healthy. It is a single point of failure for the most
-  narrative-carrying output in the product.
-- **`docs/DEPLOY.md` names Vercel as "the Live Demo URL" and then admits the Hobby ceiling is 60
-  seconds.** My run would have been severed at second 60 on the very host you recommend.
-
-The failure is honest — the report degrades to "The closing note could not be produced: that Gonka
-node did not answer" — but the visible result (`evidence/judge/degraded.png`) is a three-column
-"What this rests on" card where two cells read **"The adjudicating node did not return this field."**
-Two thirds of your second-best section is missing, in a card whose eyebrow still says
-`ADJUDICATED ON GONKA`.
-
-**Fix:** cut the adjudication timeout to ~25s and on timeout re-issue to the next model in the panel
-(you have two healthy idle nodes and the receipt ledger already handles `attempts > 1`); when all
-three fail, hide the "What this rests on" section entirely rather than rendering placeholder cells.
-Deploy on a host without a 60s cap, or state the real ceiling in the README.
+**Fix:** race the panel for adjudication instead of trying nodes serially (`Promise.any` over the
+three candidates, each still capped at 30s, rather than a for-loop) — this alone should cut the
+worst-case adjudication tail from ~90s to ~30s without touching the probe phase. Consider also an
+overall wall-clock budget on the whole run (not just the probe phase) so a judge sees a hard upper
+bound stated in the UI rather than an open-ended spinner.
 
 ---
 
 ## Remaining findings
 
-- **CRITICAL 4 — Your own example button demonstrates the naive build.** "The Great Wall of China is
-  visible from the Moon…" (home screen, button 2 of 4) returns `nominalAgree 3`, `effectiveWitnesses
-  3.0`, `meanAnchorOverlap 0`, no thrown-out vote. The blue and amber bars render at identical length
-  (`evidence/judge/degraded.png`) and the differentiator vanishes. One in four demo paths shows a
-  judge three models voting and an averaged score. **Fix:** replace it with a claim that separates
-  nominal from effective, or annotate the equal-bars case explicitly — *"this time the agreement was
-  real: 3 sources, 0% overlap"* is a great result and currently reads as a null one.
-- **CRITICAL 5 — The UI invites an input it cannot handle.** The placeholder offers "a tweet"; there
-  is no tweet path. `POST /api/verify` with an `x.com/…/status/…` URL returns `{"type":"error",
-  "message":"That page returned HTTP 404."}`, and a real tweet URL hits x.com's login wall or the
-  JS-shell branch at `lib/extract.ts` ("may need JavaScript to render"). C4 names tweets explicitly,
-  so a judge will try one. **Fix:** either add an oEmbed/syndication fallback for x.com, or delete
-  the word "tweet" from the placeholder — the second takes ten seconds and removes the finding.
-- **MINOR 1 — README promises an interaction that does not exist.** *"click any row and re-run that
-  exact step against the same gateway yourself"* (README line 82). Expanding a ledger row shows the
-  request body, the raw response and a **copy request id** button — everything needed to re-run it by
-  hand, but there is no re-run affordance. **Fix:** reword to "copy the exact request body and re-run
-  it yourself", or add a `curl` copy button (the body is already in the DOM).
-- **MINOR 2 — Citation title does not match the paper.** `lib/score.ts:129` and `PRIOR_ART.md:31`
-  cite arXiv 2604.07650 as *"How Independent are Large Language Models? A Statistical Framework for
-  Auditing Behavioral Entanglement and Reweighting Verifier Ensembles"*. The paper is real and its
-  substance matches, but its actual title is *"A Statistical Framework for Auditing Behavioral
-  **Dependence and Induced Bias in LLM Judges**"*. The `r = 0.77` figure that sets `ASSUMED_OVERLAP`
-  is not stated in the abstract. A judge who checks your one load-bearing constant and finds the
-  title wrong will discount everything else you cite. **Fix:** correct the title, and cite the
-  specific table or section the 0.77 comes from.
-- **MINOR 3 — `JUDGING_CRITERIA.md` points at an endpoint that does not exist.** Row C4 says
-  "Served by `/api/extract`"; `app/api/` contains only `health` and `verify`. Extraction happens
-  inside `lib/extract.ts`, called from the verify stream. Trivial, but it is a documentation claim a
-  judge can falsify with one `ls`, in the file whose entire purpose is claiming coverage. **Fix:**
-  change the cell to `lib/extract.ts`.
-- **MINOR 4 — Home page dead space.** At 1440×1600 the page ends at roughly 840px, leaving ~750px of
-  empty black below the footer line (`evidence/judge/home.png`). On a judge's laptop the first
-  impression is a half-empty screen. **Fix:** anything below the fold — the one-paragraph explanation
-  of the mirror probe, or a static thumbnail of the Streisand verdict card that links to it, which
-  would also let a judge see the differentiator without waiting 154 seconds for a run.
+- **MINOR — Tweet extraction still doesn't exist**, though it is now honestly declined. The
+  organizers name "tweet" as one of three explicit input types; Quorum handles two of the three and
+  gives a clear, actionable message on the third rather than failing silently. This is a real
+  improvement from a fabrication-adjacent finding to a documented gap, but it remains a gap.
+  **Fix:** an oEmbed/syndication fallback for x.com would close it entirely; if that's out of scope,
+  the current honest decline is a reasonable stopping point.
+- **MINOR — `PRIOR_ART.md` still mistitles arXiv 2604.07650.** Confirmed live against
+  `arxiv.org/abs/2604.07650`: the real title is "A Statistical Framework for Auditing Behavioral
+  Dependence and Induced Bias in LLM Judges," not the "...Entanglement and Reweighting Verifier
+  Ensembles" text still in `PRIOR_ART.md:35-36`. Lower severity than last pass because this paper no
+  longer backs any number in `lib/score.ts` — but a judge who spot-checks *any* citation in a document
+  whose entire purpose is citation hygiene, and finds one still wrong, will discount the rest.
+  **Fix:** one-line correction, same as the 0.77 fix already applied two lines above it.
+- **MINOR — Home page dead space, much reduced.** Gone at the realistic 1440×900 judge viewport;
+  roughly 550px remains at 1440×1600, down from ~750px. Not worth further effort ahead of the three
+  items above.
+- **Housekeeping, not scored** — `gonka-ai.md` (untracked, gitignored per `.gitignore:9`) contains the
+  live `GONKA_API_KEY` in plaintext, pasted from the router dashboard. It has never been committed
+  (`git log --oneline -- gonka-ai.md` returns nothing) and the repo's only tracked `sk-` strings are
+  placeholders and a redaction test fixture, so this does not meet the "committed secret" bar. Still,
+  a stray `git add -A` before the repo goes public would leak a live key — worth deleting or moving
+  outside the working tree before flipping visibility to Public.
 
 ## What I would not change
 
-The Gonka integration (C1), the receipt ledger (C6) and the blind mirror prompt (C7) are the
-strongest execution of those three requirements I have scored today. `lib/score.ts` is a genuine
-statistical argument with 38 tests behind it, not a weighted average with a nice name. The idea is
-first-rate. Ship the URL and the video before you touch anything else.
+The consensus math (C3), the Gonka integration (C1) and the receipt ledger (C6) remain the strongest
+execution of those three requirements I have scored across either pass. The atomic-claim fix is the
+right fix, applied at the right layer (the prep prompt, not a UI patch), and the adjudication failover
+is a real architectural improvement even though it didn't buy back the wall-clock time. The team
+verified its own work harder this pass than most submissions verify anything — `PROGRESS.md`, the
+qa-tester's 18/18 FEATURES.json pass with screenshot evidence, and the dated correction note in
+`PRIOR_ART.md` all read as genuine self-audit rather than changelog theater. The two remaining
+criticals are both distribution problems (repo visibility, URL durability) and a latency problem, not
+credibility problems — which is a meaningfully different, better place to be than last pass.
 
-UNADDRESSED CRITICAL FINDINGS: 5
+UNADDRESSED CRITICAL FINDINGS: 3

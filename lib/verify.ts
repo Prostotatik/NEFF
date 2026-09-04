@@ -66,10 +66,11 @@ function toView(receipt: GonkaReceipt): ReceiptView {
  *
  * Measured: firing all nine at once earns 429s and Cloudflare 524s, and a probe
  * lost to queueing costs the panel a witness for reasons that have nothing to do
- * with the claim. Four keeps the burst under the gateway's limit while still
- * overlapping the slow models with the fast ones.
+ * with the claim. Six is two waves rather than three — worth about a third of the
+ * probe phase on a congested router — and stayed under the gateway's limit in
+ * testing, with retry and backoff still behind it if that stops being true.
  */
-const MAX_IN_FLIGHT = 4;
+const MAX_IN_FLIGHT = 6;
 
 /**
  * Hard ceiling on the whole probe phase.
@@ -79,7 +80,23 @@ const MAX_IN_FLIGHT = 4;
  * is cut and reported as unreachable — which costs the panel a witness, visibly,
  * rather than costing the user the verdict.
  */
-const PROBE_PHASE_BUDGET_MS = 75_000;
+const PROBE_PHASE_BUDGET_MS = 60_000;
+
+/**
+ * Ceiling on claim preparation, which is a single point of failure at the front
+ * of every run: three attempts at the model's full timeout could spend more than
+ * two minutes before a single probe was fired.
+ */
+const PREP_TIMEOUT_MS = 30_000;
+const PREP_ATTEMPTS = 2;
+
+/**
+ * Ceiling on the whole closing-note phase, failover included. Any one node gets
+ * a short leash; the phase as a whole gets a shorter one than three leashes
+ * would add up to, because by this point the verdict is already decided and the
+ * reader is waiting on prose.
+ */
+const ADJUDICATION_BUDGET_MS = 55_000;
 
 /** Admission control for outbound Gonka calls. */
 function createGate(limit: number) {
@@ -343,7 +360,8 @@ export async function* verify(
       messages: prepPrompt(input, isUrl, pageText),
       purpose: "prep",
       maxTokens: 900,
-      timeoutMs: ADJUDICATOR.timeoutMs,
+      timeoutMs: PREP_TIMEOUT_MS,
+      maxAttempts: PREP_ATTEMPTS,
       signal,
     });
     const receiptIndex = pushReceipt(receipt);
@@ -439,9 +457,12 @@ export async function* verify(
   // Gonka Network, so failing over changes nothing about where the reasoning
   // happens.
   const adjudicators = [ADJUDICATOR, ...PANEL.filter((m) => m.id !== ADJUDICATOR.id)];
+  const adjudicationDeadline = Date.now() + ADJUDICATION_BUDGET_MS;
 
   for (const model of adjudicators) {
     if (signal?.aborted) break;
+    const remaining = adjudicationDeadline - Date.now();
+    if (remaining < 5_000) break;
     try {
       const { text, receipt } = await gonkaChat({
         model: model.id,
@@ -450,7 +471,7 @@ export async function* verify(
         maxTokens: Math.max(900, model.maxTokens),
         // Short leash and no retry: the closing note has two more nodes behind
         // it, so waiting out one slow model costs more than moving on does.
-        timeoutMs: Math.min(model.timeoutMs, 30_000),
+        timeoutMs: Math.min(model.timeoutMs, 30_000, remaining),
         chatTemplateKwargs: model.chatTemplateKwargs,
         maxAttempts: 1,
         signal,
