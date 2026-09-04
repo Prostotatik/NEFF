@@ -259,8 +259,8 @@ const started = Date.now();
 for (const segment of plan) {
   const at = Date.now();
   await act(segment);
-  // `awaitVerdict` has no narration: it takes exactly as long as the router
-  // takes, and the audio track is stretched to match afterwards.
+  // A wait segment takes as long as the router takes; its line is written to
+  // cover that, and any remaining silence is padded in at the mux.
   const elapsed = (Date.now() - at) / 1000;
   const remaining = segment.seconds - elapsed;
   if (remaining > 0) await sleep(remaining * 1000);
@@ -314,10 +314,15 @@ writeFileSync(
 );
 run("ffmpeg", ["-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", audioListPath, "-ar", "44100", "-ac", "1", narrationPath]);
 
+// The narration is padded with silence rather than trimmed against the picture:
+// a shot that ran long — because the router was slow — should hold quietly, not
+// cut the end off the video.
 run("ffmpeg", [
   "-y", "-v", "error",
   "-i", silentPath,
   "-i", narrationPath,
+  "-filter_complex", "[1:a]apad[a]",
+  "-map", "0:v", "-map", "[a]",
   "-c:v", "copy", "-c:a", "aac", "-b:a", "128k",
   "-shortest",
   finalPath,

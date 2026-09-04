@@ -27,3 +27,10 @@ npm-debug.log*
 
 # stored verification runs (regenerated at runtime)
 .runs/
+
+# --- pitch recording intermediates (the finished mp4 is tracked) ---
+evidence/pitch/frames/
+evidence/pitch/audio/
+evidence/pitch/audio.txt
+evidence/pitch/narration.wav
+evidence/pitch/silent.mp4

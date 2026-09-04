@@ -1,111 +1,95 @@
-# 2-minute video pitch — script and shot list
+# 2-minute video pitch
 
-The submission requires a two-minute video showing a live fact-check. Everything below is ready to
-record; recording it takes about ten minutes and needs a human with a microphone and a screen
-recorder. Nothing here is a mockup — every number quoted has been observed in a real run against the
-live Gonka Router, and the two example claims reproduce it.
+There are two ways to get the video. Both show the real app running real verifications against the
+live Gonka Router; neither involves a mockup.
 
-## Before recording
+## The fast way — one command
 
 ```bash
-./init.sh                 # confirms the router is reachable, starts on :3000
+./init.sh              # terminal 1: the app on :3000
+npm run record:pitch   # terminal 2
 ```
 
-Open `http://localhost:3000` (or the deployed URL) at 1440px wide, dark room, no browser chrome
-clutter. Have the second example ready to paste. Do one throwaway run first so the router is warm —
-a cold first call adds several seconds.
+`tools/record-pitch.mjs` drives Chrome through the flow below, runs two live checks, captures the
+frames the browser paints, and narrates it with the system speech synthesiser — holding each shot for
+exactly as long as its line takes to speak. It writes `evidence/pitch/pitch.mp4`, about two minutes
+long depending on how fast the router is answering.
 
-**Do not** show a browser tab with `.env` open, and do not open devtools: the request bodies in the
-ledger contain no key, but a network panel would show the Authorization header.
+## The better way — ten minutes and a microphone
+
+The same run also writes `evidence/pitch/silent.mp4`, the picture with no voice. Read the script
+below over it. A human voice is worth the ten minutes; the synthesised one is there so the submission
+is complete without it, not because it is good.
+
+`tools/pitch-script.mjs` is the canonical narration and is what the recorder speaks. **If you change
+a line here, change it there.**
+
+## Before recording, either way
+
+Do one throwaway verification first so the router is warm — a cold first call adds several seconds.
+**Do not** have a terminal with `.env` visible on screen, and do not open devtools: the request
+bodies in the ledger carry no key, but a network panel would show the Authorization header.
 
 ## Script
 
-**0:00–0:15 — the problem, stated as a fact about the tools, not a slogan**
+**The problem** — *landing page, static*
 
 > Every AI fact checker works the same way. Ask several models, count the votes, print a confidence
 > score. The whole promise is that independent models agreed.
 >
 > They are not independent. Frontier models share training data and make the same mistakes. Measure a
 > panel of nine of them, as a 2026 paper did, and you get about two independent votes' worth of
-> information. Which means these systems are most confident exactly when the models are wrong
-> together.
+> information.
 
-*Shot: the Quorum landing page, static. The headline on screen is doing this work for you.*
+**The mechanism** — *scroll to the three probe columns*
 
-**0:15–0:30 — what Quorum measures instead**
+> So Quorum does not count votes. It asks every model three questions. The claim. The claim negated,
+> put back blind. And what evidence it is leaning on.
 
-> Quorum doesn't count votes. It asks every model three questions: the claim, the claim negated and
-> presented blind, and what evidence it's leaning on. Then it reports how many independent witnesses
-> are actually behind the verdict.
+**A live check** — *click the first example chip; let the probe grid fill, do not cut away*
 
-*Shot: click the first example — "Taking vitamin C supplements prevents the common cold."*
-
-**0:30–0:55 — the live check, running**
-
-> Eleven inferences, all of them on the Gonka Network, streaming back from independent nodes as they
-> land.
-
-*Shot: the probe grid filling in out of order. Let it run; do not cut. Point at the receipt counter
-climbing. This is where the decentralisation is visible rather than asserted.*
-
-**0:55–1:20 — the first payoff: unanimous, and worthless**
-
-> Three out of three models agreed. And that agreement is worth 1.1 witnesses — because all three
-> are leaning on the same Cochrane reviews. Eighty-nine percent measured evidence overlap. One
-> witness, quoted three times.
+> Here is a live check.
 >
-> The truth score is discounted to match, and it shows you its own arithmetic.
+> Eleven inferences, every one of them on the Gonka Network, streaming back from independent nodes as
+> they land.
 
-*Shot: the verdict card. Hold on the steel 3/3 next to the sodium 1.1 for a full two seconds — this
-is the frame a judge should still remember at the end of the day. Then the derivation in the left
-column.*
+**The first payoff** — *the verdict card; hold on the steel 3/3 beside the sodium 1.1*
 
-**1:20–1:45 — the second payoff: a model that wasn't reading**
+> Three out of three models agreed. And that agreement is worth about one witness, because all three
+> lean on the same Cochrane reviews. One witness, quoted three times. The score is discounted to
+> match, and it shows you its own arithmetic.
 
-*Shot: paste the Wikipedia link (`https://en.wikipedia.org/wiki/Streisand_effect`), run it.*
+**A link instead of a claim** — *paste `https://en.wikipedia.org/wiki/Streisand_effect`, run it*
 
-> Now a link instead of a claim. Quorum pulls out the checkable assertion, then probes the panel —
-> and catches something a vote never could.
+> Now a link instead of a claim.
 >
-> MiniMax answered "refuted" to the claim, and "refuted" to its negation. It's responding to the
-> shape of the sentence, not to the fact. That vote carries no information, so it's thrown out — and
-> here is the transcript of both answers, side by side.
+> Quorum pulls out the checkable assertion and probes the panel again.
 
-*Shot: the "Vote thrown out" callout, then scroll to the panel row showing "on the claim: REFUTED"
-above "on its negation: REFUTED".*
+**The second payoff** — *the "Vote thrown out" callout, then the panel row showing REFUTED above REFUTED*
 
-**1:45–2:00 — the proof, and the close**
+> And here it catches what a vote never could. One model answered the same way to the claim and to
+> its negation. It is reading the shape of the sentence, not the fact, so its vote is thrown out, and
+> both answers are shown.
 
-*Shot: scroll to the receipt ledger and expand one row.*
+**The proof** — *the receipt ledger, one row expanded*
 
-> Every inference has a Gonka request id and the id of the node that served it. Expand any row and you
-> get the exact request and the raw response — copy it and re-run that step against the same gateway
-> yourself.
->
-> Consensus isn't evidence. Quorum is the fact checker that tells you how many witnesses it actually
-> had — and shows you the one it had to throw out.
+> Every inference carries a Gonka request ID and the node that served it. Expand a row and you get
+> the exact request and the raw response. Re-run that step against the same gateway yourself.
 
-## Shot list, in order
+**The close** — *back to the landing headline*
 
-1. Landing page, static, 1440px — the headline
-2. Click example 1 → probe grid filling out of order (do not cut away)
-3. Verdict card: 3/3 steel beside 1.1 sodium — hold two seconds
-4. Left column: the derivation
-5. Paste the Wikipedia URL → extracted claim appears
-6. "Vote thrown out" callout
-7. Panel row: REFUTED on the claim, REFUTED on the negation
-8. Receipt ledger, one row expanded: request id, node id, raw transcript
-9. End on the landing headline
+> Consensus is not evidence. Quorum tells you how many witnesses it actually had, and shows you the
+> one it had to throw out.
 
 ## Numbers quoted, and where they come from
 
 | Claim in the script | Source |
 |---|---|
 | nine judges give about two independent votes | arXiv:2605.29800, quoted in `PRIOR_ART.md` and `README.md` |
-| 3/3 agreed, 89% overlap, 1.1 effective witnesses | live run of example 1; reproducible from the home screen |
-| MiniMax answers REFUTED to both claim and negation | live run of the Streisand-effect URL; reproduced across separate runs |
-| 11 inferences per verification | `lib/verify.ts`, and the ledger totals on every report |
+| 3/3 agreed, ~1.1 effective witnesses on the Cochrane reviews | live runs of example 1; reproducible from the home screen |
+| one model answers the same way to a claim and its negation | live runs of the Streisand-effect URL; reproduced across separate runs |
+| eleven inferences per verification | `lib/models.ts`, and the ledger totals on every report |
 
 If a live run on the day produces different numbers, **say the numbers on screen** — do not read this
-script over a different result. The models are not deterministic across router nodes, and the point
-of the product is that it reports what actually happened.
+script over a different result. The models are not deterministic across router nodes, and the whole
+point of the product is that it reports what actually happened.
