@@ -91,6 +91,14 @@ function parseUrl(raw: string): URL {
   const host = url.hostname.toLowerCase().replace(/^www\./, "");
   const advice = LOGIN_WALLED.get(host);
   if (advice) throw new UnsafeUrlError(advice);
+
+  // A literal IP never reaches the socket's DNS lookup — Node connects to it
+  // directly — so the guard below would never see it. There is no lookup to
+  // split here, so checking up front is sound as well as necessary.
+  const literal = url.hostname.replace(/^\[|\]$/g, "");
+  if (isIP(literal) && isPrivateAddress(literal)) {
+    throw new UnsafeUrlError("That URL points inside a private network.");
+  }
   return url;
 }
 
@@ -221,33 +229,49 @@ function open(url: URL): Promise<IncomingMessage> {
 }
 
 /**
- * A DNS resolver that refuses to hand back a private address, used as the
+ * A DNS resolver that refuses to hand back a private address, installed as the
  * socket's own lookup so every connection the request makes is checked.
+ *
+ * It must honour `options.all`. Node enables happy-eyeballs (`autoSelectFamily`)
+ * by default and calls a custom lookup with `{ all: true }`, expecting an array
+ * of `{ address, family }` back; returning the single-address form there fails
+ * with `ERR_INVALID_IP_ADDRESS` and every fetch dies. That regression shipped
+ * once — `test/live/extract.test.ts` exists to stop it shipping twice.
  */
-const guardedLookup = ((hostname: string, options: unknown, callback: unknown) => {
-  const done = (typeof options === "function" ? options : callback) as (
-    error: Error | null,
-    address: string,
-    family: number,
-  ) => void;
+type LookupEntry = { address: string; family: number };
+type LookupDone = (
+  error: Error | null,
+  address: string | LookupEntry[],
+  family?: number,
+) => void;
 
-  if (isIP(hostname)) {
-    if (isPrivateAddress(hostname)) {
-      return done(new UnsafeUrlError("That URL points inside a private network."), "", 0);
-    }
-    return done(null, hostname, isIP(hostname));
-  }
+const guardedLookup = ((
+  hostname: string,
+  options: unknown,
+  callback?: LookupDone,
+) => {
+  const done = (typeof options === "function" ? options : callback) as LookupDone;
+  const wantsAll =
+    typeof options === "object" && options !== null && (options as { all?: boolean }).all === true;
 
-  dnsLookup(hostname, { all: true }, (error, addresses) => {
-    if (error) return done(error, "", 0);
-    const list = Array.isArray(addresses) ? addresses : [addresses];
-    for (const entry of list) {
+  const deliver = (entries: LookupEntry[]) => {
+    for (const entry of entries) {
       if (isPrivateAddress(entry.address)) {
         return done(new UnsafeUrlError("That URL points inside a private network."), "", 0);
       }
     }
-    const first = list[0];
-    if (!first) return done(new UnsafeUrlError(`Could not resolve ${hostname}.`), "", 0);
-    return done(null, first.address, first.family);
+    if (entries.length === 0) {
+      return done(new UnsafeUrlError(`Could not resolve ${hostname}.`), "", 0);
+    }
+    return wantsAll ? done(null, entries) : done(null, entries[0].address, entries[0].family);
+  };
+
+  if (isIP(hostname)) {
+    return deliver([{ address: hostname, family: isIP(hostname) }]);
+  }
+
+  dnsLookup(hostname, { all: true }, (error, addresses) => {
+    if (error) return done(error, "", 0);
+    deliver(Array.isArray(addresses) ? addresses : [addresses]);
   });
 }) as unknown as typeof dnsLookup;
