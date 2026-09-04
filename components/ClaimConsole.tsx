@@ -13,10 +13,10 @@ import s from "./quorum.module.css";
  * do not always, and a metric that only ever says "echo" would be worthless.
  */
 const EXAMPLES: Array<{ label: string; input: string }> = [
-  { label: "Taking vitamin C supplements prevents the common cold.", input: "Taking vitamin C supplements prevents the common cold." },
+  { label: "vitamin C prevents colds", input: "Taking vitamin C supplements prevents the common cold." },
   { label: "a linked article", input: "https://en.wikipedia.org/wiki/Streisand_effect" },
-  { label: "The Great Wall of China is visible from the Moon…", input: "The Great Wall of China is visible from the Moon with the naked eye." },
-  { label: "Norway's sovereign wealth fund owns ~1.5% of listed shares", input: "Norway's sovereign wealth fund owns roughly 1.5% of all listed companies worldwide." },
+  { label: "the Great Wall from the Moon", input: "The Great Wall of China is visible from the Moon with the naked eye." },
+  { label: "Norway's fund owns 1.5% of listed shares", input: "Norway's sovereign wealth fund owns roughly 1.5% of all listed companies worldwide." },
 ];
 
 const PROBE_TITLE: Record<ProbeResult["kind"], string> = {
@@ -213,6 +213,8 @@ export function ClaimConsole() {
 
       <PanelStatus />
 
+      {!engaged ? <Mechanism /> : null}
+
       {(running || (probes.length > 0 && !run)) && !error ? (
         <LiveRun stage={stage} prep={prep} probes={probes} receipts={receipts} />
       ) : null}
@@ -227,6 +229,59 @@ export function ClaimConsole() {
           </p>
         </>
       ) : null}
+    </>
+  );
+}
+
+/**
+ * The mechanism, on the landing page only. A visitor who never runs a check
+ * should still leave knowing what is different about this one, and a visitor who
+ * does run one wants the screen back.
+ */
+function Mechanism() {
+  return (
+    <>
+      <div className={s.mechanism}>
+        <div className={s.step}>
+          <span className={s.stepIndex}>probe 01 · the claim</span>
+          <h2 className={s.stepTitle}>What do you think?</h2>
+          <p className={s.stepBody}>
+            Every model on the panel assesses the claim and names the evidence it is leaning on.
+            This is the part every other fact checker stops at.
+          </p>
+        </div>
+        <div className={s.step}>
+          <span className={s.stepIndex}>probe 02 · the mirror</span>
+          <h2 className={s.stepTitle}>And the opposite?</h2>
+          <p className={s.stepBody}>
+            The claim is negated and put to each model again, blind, in a fresh request. A model that
+            answers both the same way is reading the sentence, not the fact — and its vote is thrown
+            out, with both answers shown.
+          </p>
+        </div>
+        <div className={s.step}>
+          <span className={s.stepIndex}>probe 03 · the evidence</span>
+          <h2 className={s.stepTitle}>Says who?</h2>
+          <p className={s.stepBody}>
+            Models converging on one source are one witness, not three. The overlap is measured and
+            the truth score is discounted by it — so a unanimous panel can be worth 1.1 witnesses,
+            and the report says so.
+          </p>
+        </div>
+      </div>
+      <p className={s.provenance}>
+        The correction is standard — Kish&apos;s effective sample size, applied to an LLM panel in{" "}
+        <a
+          href="https://arxiv.org/abs/2605.29800"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          Nine Judges, Two Effective Votes
+        </a>
+        , which measures nine judges as worth about two independent votes. What is new here is
+        measuring that overlap per claim, from the models&apos; own stated evidence, and putting the
+        result in front of you as part of the verdict.
+      </p>
     </>
   );
 }
