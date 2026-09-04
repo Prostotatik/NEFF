@@ -78,3 +78,11 @@ publishes the running app on a public https URL with no signup. It is documented
 only while the terminal is, and as genuinely public — anyone with the link spends the key's credits,
 which is why `/api/verify` is rate limited per client. Vercel remains the recommendation for anything
 that has to outlive the demo.
+
+## D13 — The GitHub repository is private, and stays that way until a human says otherwise (2026-09-04)
+The work is pushed to the remote the team configured, but an anonymous fetch of
+`https://github.com/Prostotatik/GONKA_TRACK.md` returns 404: the repository is private, so a judge
+cannot read it. Changing a repository's visibility publishes the team's account activity as well as
+this code, and it is one click in a UI this agent has no business clicking. Nothing in the tree is
+sensitive — that was verified before pushing — so the step is safe, but it belongs to a person.
+Flagged at the top of `SUBMISSION.md` rather than buried here.

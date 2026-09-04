@@ -33,13 +33,21 @@ this build could not do for itself.
 
 > *"Clean code with clear documentation on the Gonka Router integration."*
 
-Done. `origin` points at the team's repository, the history contains no key (`.env` has been
-git-ignored since the first commit), and the Gonka integration is documented in
-[`docs/GONKA.md`](docs/GONKA.md) — including the two grep commands a reviewer can run to confirm that
-no other inference provider exists anywhere in the tree.
+Pushed to `https://github.com/Prostotatik/GONKA_TRACK.md`. The history contains no key (`.env` has
+been git-ignored since the first commit; the only `sk-` strings in the tree are the placeholder in
+`.env.example` and a redaction test fixture), and the Gonka integration is documented in
+[`docs/GONKA.md`](docs/GONKA.md) — including the two grep commands a reviewer can run to confirm no
+other inference provider exists anywhere in the tree.
+
+> **One thing left, and it takes ten seconds: the repository is private.** An anonymous request for
+> it returns 404, so a judge cannot open it. Settings → General → Danger Zone → **Change visibility →
+> Public**. Nothing in the repo is sensitive — that was checked before it was pushed — but this is
+> the team's account to make public, not this build's call.
+
+To push further work:
 
 ```bash
-git push -u origin main
+git push origin main
 ```
 
 ## 3. Video Pitch
