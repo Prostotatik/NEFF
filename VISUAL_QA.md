@@ -324,6 +324,37 @@ probe firing, and they should not look the same. Radii went 104→124 (card 1) a
 card 2's right sphere started overrunning the card edge. Card 3's store and source chips grew to
 match. Re-checked at 390px: the stacked layout still puts the copy above the illustration.
 
+### Closing the two blockers, measured rather than eyeballed
+
+The re-review agent hit a session rate limit and died before it could confirm the fixes, so both
+blockers were verified here instead — by measurement, which is stronger evidence than either its
+estimate or mine.
+
+**Colour.** Sampled from the rendered PNG (`final-cell4.png`, the metrics strip's fourth cell at 3×):
+`2/2` = rgb(114,220,255) = `--steel #72dcff`; `1.4` = rgb(0,255,163) = `--sodium #00ffa3`. The two
+figures now carry their two colours side by side, which is what the cell exists for.
+
+**Probe sphere scale.** The critic's "43% vs 68%" came from comparing two differently-scaled crops.
+Measured on the same basis instead — green-dominant lit pixels (`g > 100`, `g − r > 40`) inside each
+card's own rect, scanned across six horizontal strips through the sphere:
+
+| | widest lit run |
+|---|---|
+| reference card 1 | 187 / 225 / 234 / 185 / 267 / 215 px → **234–267 band** |
+| build at r = 124 | 241 / 267 / 283 / 289 / 287 / 280 px → **too wide** |
+| build at r = 112 | 207 / 238 / 255 / 261 / 260 px → **inside the band** |
+
+So the first fix overshot: at r = 124 the sphere was wider than the reference's, not smaller. Set to
+r = 112 (card 2: 62 and 70, the document glyph and pedestal scaled with them), the build's widest lit
+run is 261px against the reference's 234–267. Green-dominant coverage of the whole card is 5.8% for
+the build against 3.8% for the reference, so the illustration is at least as present as the
+reference's — the "dim line-art globe" reading is gone, and the lit-core gradient is what fixed it.
+
+**Honest status of the design sign-off:** the first review's four findings are fixed and the fifth
+was a real bug this file had asserted away. The re-review confirmed the balance, the spirals, the
+model marks and the orb interior, and named the two blockers above; it did not survive to re-check
+them. Their resolution rests on the measurements in this section, not on an agent's approval.
+
 ## Definition of Done — status
 
 - [x] Every section in the locked section map has been implemented, screenshot-compared at 1536px,

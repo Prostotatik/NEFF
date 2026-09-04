@@ -71,9 +71,9 @@ function surfaceLights(seed: number, count: number, radius: number) {
   });
 }
 
-const CLAIM_LIGHTS = surfaceLights(9101, 62, 124);
-const MIRROR_LIGHTS_A = surfaceLights(3311, 28, 68);
-const MIRROR_LIGHTS_B = surfaceLights(7717, 32, 78);
+const CLAIM_LIGHTS = surfaceLights(9101, 60, 112);
+const MIRROR_LIGHTS_A = surfaceLights(3311, 28, 62);
+const MIRROR_LIGHTS_B = surfaceLights(7717, 32, 70);
 
 /**
  * The volumetric sphere the reference's probe cards are built around.
@@ -225,13 +225,13 @@ export function ClaimScene() {
       <Defs id={id} />
       <Rings id={id} />
       <g transform="translate(0 -14)">
-        <Sphere id={id} r={124} hue={GREEN} lights={CLAIM_LIGHTS} meridians={12} />
+        <Sphere id={id} r={112} hue={GREEN} lights={CLAIM_LIGHTS} meridians={12} />
       </g>
 
       {/* the document being read, held inside the sphere */}
       <g transform="translate(0 -8)">
-        <rect x="-34" y="-46" width="68" height="92" rx="8" fill="#04150e" stroke={GREEN} strokeWidth="1.6" />
-        <rect x="-34" y="-46" width="68" height="92" rx="8" fill="none" stroke={GREEN} strokeWidth="6" opacity="0.24" filter={`url(#${id}-glow)`} />
+        <rect x="-31" y="-42" width="62" height="84" rx="8" fill="#04150e" stroke={GREEN} strokeWidth="1.6" />
+        <rect x="-31" y="-42" width="62" height="84" rx="8" fill="none" stroke={GREEN} strokeWidth="6" opacity="0.24" filter={`url(#${id}-glow)`} />
         <g fill={GREEN} className={s.readLines}>
           <rect x="-21" y="-19" width="42" height="8.5" rx="4.25" />
           <rect x="-21" y="-2" width="42" height="8.5" rx="4.25" opacity="0.8" />
@@ -240,7 +240,7 @@ export function ClaimScene() {
         <path d="M-23 -44 L23 -44" stroke="#eafff6" strokeWidth="2.6" opacity="0.95" filter={`url(#${id}-soft)`} />
       </g>
 
-      <Pedestal id={id} y={132} />
+      <Pedestal id={id} y={122} />
     </svg>
   );
 }
@@ -257,12 +257,12 @@ export function MirrorScene() {
 
       {/* the negated side */}
       <g transform="translate(-80 20)">
-        <Sphere id={id} r={66} hue={VIOLET} lights={MIRROR_LIGHTS_A} meridians={9} />
+        <Sphere id={id} r={62} hue={VIOLET} lights={MIRROR_LIGHTS_A} meridians={9} />
       </g>
 
       {/* the claim side */}
       <g transform="translate(80 20)">
-        <Sphere id={id} r={74} hue={GREEN} lights={MIRROR_LIGHTS_B} meridians={10} />
+        <Sphere id={id} r={70} hue={GREEN} lights={MIRROR_LIGHTS_B} meridians={10} />
       </g>
 
       {/* the pane the probe is fired through */}
