@@ -144,6 +144,25 @@ The adjudicating node's real closing note runs 3–4× the length of the other f
   ruled out simple truncation.
 **Compared at 1536px** (`v15-rests.png` @2.4, `final-composite-1536.png`): matches.
 
+### Deliberate colour deviation in S5, and why it is not a fidelity failure
+
+In the reference, the metrics strip sets every number in white. In the build, **1.4 (effective
+witnesses) is brand green and 2/2 (nominal consensus) is Gonka blue**, in both the strip and
+everywhere else those two figures appear.
+
+This is not a miss. CLAUDE.md makes it non-negotiable that exactly two signal colours carry the
+argument — steel for the number every other fact checker prints, sodium for the number that is
+actually true — and that neither is ever used decoratively. The redesign brief says
+`gonka-colors.md` is the source of truth for base hues and the image for what it does not cover;
+colour *meaning* is covered by the project's own rule, which outranks the reference here. Setting
+both figures in the same white would erase the one distinction the product exists to make, on the
+exact screen the project calls its hero moment. The hues themselves come from `gonka-colors.md`:
+`--tertiary #72dcff` and `--primary-container #00ffa3`.
+
+Everything else in the strip — the light weight of the numerals, the two-tone TRUTH/SCORE label, the
+bordered verdict capsule, the 2px meters under the arithmetic rows, the label-above-value stacking in
+the fourth cell — follows the reference.
+
 ### Addition the reference has no slot for
 
 **Claim under test.** The reference has no band showing the sentence being checked. A report that

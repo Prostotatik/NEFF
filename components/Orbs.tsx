@@ -380,10 +380,12 @@ export function Shard({
 /**
  * The wireframe icosahedron the metrics strip stands the witness count next to.
  *
- * A real icosahedron, not a hexagon with spokes: the twelve vertices are the
- * standard (0, ±1, ±φ) set, rotated 36°/12° into the view with the widest vertex
- * separation and projected once. Edges whose midpoint faces the viewer are drawn
- * bright and the rest dim, which is what gives it depth without any 3D runtime.
+ * A real icosahedron: the standard (0, ±1, ±φ) vertices rotated 36°/12° into the
+ * view with the widest vertex separation, projected once, with the ten faces
+ * whose centroid faces the viewer filled and their edges drawn pale. That last
+ * part is what the reference actually does — the near edges are close to white
+ * with a green wash inside them, and drawing every edge the same green flattens
+ * the solid into a tangle of lines.
  */
 export function Icosahedron({ size = 132, hue = "#00ffa3" }: { size?: number; hue?: string }) {
   const V: Array<[number, number]> = [
@@ -401,12 +403,24 @@ export function Icosahedron({ size = 132, hue = "#00ffa3" }: { size?: number; hu
     [-47.6, -16],
   ];
   const Z = [1.86, 0.72, 0.45, -0.71, -1.14, -1.13, 0.71, 1.14, 1.13, -1.86, -0.72, -0.45];
+  const FRONT_FACES: Array<[number, number, number]> = [
+    [0, 1, 2], [0, 1, 7], [0, 2, 6], [0, 6, 8], [0, 7, 8],
+    [1, 2, 5], [1, 3, 7], [2, 4, 6], [6, 8, 10], [7, 8, 11],
+  ];
   const E: Array<[number, number]> = [
     [0, 1], [0, 2], [0, 6], [0, 7], [0, 8], [1, 2], [1, 3], [1, 5], [1, 7], [2, 4],
     [2, 5], [2, 6], [3, 5], [3, 7], [3, 9], [3, 11], [4, 5], [4, 6], [4, 9], [4, 10],
     [5, 9], [6, 8], [6, 10], [7, 8], [7, 11], [8, 10], [8, 11], [9, 10], [9, 11], [10, 11],
   ];
-  const front = ([a, b]: [number, number]) => (Z[a] + Z[b]) / 2 > 0;
+  const FRONT_EDGES = new Set(
+    FRONT_FACES.flatMap(([a, b, c]) => [
+      [a, b],
+      [a, c],
+      [b, c],
+    ]).map(([a, b]) => (a < b ? `${a}-${b}` : `${b}-${a}`)),
+  );
+  const isFront = (a: number, b: number) => FRONT_EDGES.has(a < b ? `${a}-${b}` : `${b}-${a}`);
+  const pts = (f: number[]) => f.map((i) => `${V[i][0]},${V[i][1]}`).join(" ");
 
   return (
     <svg
@@ -422,43 +436,79 @@ export function Icosahedron({ size = 132, hue = "#00ffa3" }: { size?: number; hu
         <filter id="icosa-glow" x="-60%" y="-60%" width="220%" height="220%">
           <feGaussianBlur stdDeviation="2.6" />
         </filter>
+        <filter id="icosa-base" x="-90%" y="-90%" width="280%" height="280%">
+          <feGaussianBlur stdDeviation="4.5" />
+        </filter>
       </defs>
 
-      {/* the plinth it stands on */}
-      <g transform="translate(0 58)" fill="none" stroke={hue}>
-        <path d="M0 -10 L28 0 L0 10 L-28 0Z" strokeWidth="0.8" opacity="0.6" />
-        <path d="M0 -15 L42 0 L0 15 L-42 0Z" strokeWidth="0.7" opacity="0.28" />
-        <ellipse rx="24" ry="7" fill={hue} stroke="none" opacity="0.2" filter="url(#icosa-glow)" />
+      {/* the lit plinth it stands on */}
+      <g transform="translate(0 52)">
+        <ellipse cy="4" rx="26" ry="9" fill={hue} opacity="0.28" filter="url(#icosa-base)" />
+        <g fill="none" stroke={hue}>
+          <path d="M0 -13 L32 0 L0 13 L-32 0Z" strokeWidth="1" opacity="0.9" />
+          <path d="M0 -13 L32 0 L0 13 L-32 0Z" fill={hue} stroke="none" opacity="0.08" />
+          <path d="M-32 0 L-32 6 L0 19 L32 6 L32 0" strokeWidth="0.9" opacity="0.55" />
+          <path d="M0 -19 L46 0 L0 19 L-46 0Z" strokeWidth="0.7" opacity="0.25" />
+        </g>
       </g>
 
       <g className={s.tumble}>
-        <g fill="none" stroke={hue} strokeWidth="3" opacity="0.2" filter="url(#icosa-glow)">
-          {E.filter(front).map(([a, b]) => (
+        {/* facets, so the solid reads as a body rather than a cage */}
+        <g fill={hue} stroke="none">
+          {FRONT_FACES.map((f, i) => (
+            <polygon key={f.join("-")} points={pts(f)} opacity={0.05 + (i % 3) * 0.035} />
+          ))}
+        </g>
+
+        {/* the bloom on the near edges */}
+        <g fill="none" stroke={hue} strokeWidth="3" opacity="0.28" filter="url(#icosa-glow)">
+          {E.filter(([a, b]) => isFront(a, b)).map(([a, b]) => (
             <path key={`g${a}-${b}`} d={`M${V[a][0]} ${V[a][1]} L${V[b][0]} ${V[b][1]}`} />
           ))}
         </g>
-        <g fill="none" stroke={hue} strokeWidth="0.9">
-          {E.map(([a, b]) => (
+
+        {/* far edges in green, near edges close to white */}
+        <g fill="none" strokeWidth="0.8" stroke={hue}>
+          {E.filter(([a, b]) => !isFront(a, b)).map(([a, b]) => (
             <path
-              key={`${a}-${b}`}
+              key={`b${a}-${b}`}
               d={`M${V[a][0]} ${V[a][1]} L${V[b][0]} ${V[b][1]}`}
-              opacity={front([a, b]) ? 0.92 : 0.32}
+              opacity="0.3"
             />
           ))}
         </g>
-        <g fill={hue}>
+        <g fill="none" strokeWidth="1" stroke="#dffff3">
+          {E.filter(([a, b]) => isFront(a, b)).map(([a, b]) => (
+            <path
+              key={`f${a}-${b}`}
+              d={`M${V[a][0]} ${V[a][1]} L${V[b][0]} ${V[b][1]}`}
+              opacity="0.82"
+            />
+          ))}
+        </g>
+
+        <g>
           {V.map(([x, y], i) => (
-            <circle key={`${x},${y}`} cx={x} cy={y} r="1.5" opacity={Z[i] > 0 ? 0.95 : 0.4} />
+            <circle
+              key={`${x},${y}`}
+              cx={x}
+              cy={y}
+              r={Z[i] > 0 ? 1.6 : 1.2}
+              fill={Z[i] > 0 ? "#eafff6" : hue}
+              opacity={Z[i] > 0 ? 0.95 : 0.35}
+            />
           ))}
         </g>
       </g>
 
       {/* the debris ring the reference puts around it */}
-      <g fill="none" stroke={hue} opacity="0.28" className={s.spinSlow}>
-        <ellipse rx="57" ry="17" cy="10" strokeWidth="0.7" />
+      <g fill="none" stroke={hue} opacity="0.3" className={s.spinSlow}>
+        <ellipse rx="58" ry="18" cy="6" strokeWidth="0.7" />
+        <ellipse rx="46" ry="14" cy="14" strokeWidth="0.7" opacity="0.7" />
         <g fill={hue} stroke="none">
-          <circle cx="55" cy="8" r="1.3" />
-          <circle cx="-51" cy="16" r="1.2" />
+          <circle cx="56" cy="4" r="1.3" />
+          <circle cx="-52" cy="12" r="1.2" />
+          <circle cx="40" cy="22" r="1.1" />
         </g>
       </g>
     </svg>
