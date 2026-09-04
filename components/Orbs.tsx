@@ -109,14 +109,14 @@ export function VerdictOrb({
       >
         <defs>
           <radialGradient id={`${id}-fill`}>
-            <stop offset="0%" stopColor="#000" stopOpacity="0.82" />
-            <stop offset="55%" stopColor="#00160e" stopOpacity="0.7" />
-            <stop offset="88%" stopColor={hue} stopOpacity="0.07" />
-            <stop offset="100%" stopColor={hue} stopOpacity="0.02" />
+            <stop offset="0%" stopColor="#000" stopOpacity="0.9" />
+            <stop offset="62%" stopColor="#00120b" stopOpacity="0.82" />
+            <stop offset="93%" stopColor={hue} stopOpacity="0.05" />
+            <stop offset="100%" stopColor={hue} stopOpacity="0.015" />
           </radialGradient>
           <radialGradient id={`${id}-rimlight`}>
-            <stop offset="80%" stopColor={hue} stopOpacity="0" />
-            <stop offset="96%" stopColor={hue} stopOpacity="0.28" />
+            <stop offset="88%" stopColor={hue} stopOpacity="0" />
+            <stop offset="97%" stopColor={hue} stopOpacity="0.16" />
             <stop offset="100%" stopColor={hue} stopOpacity="0" />
           </radialGradient>
           <filter id={`${id}-soft`} x="-70%" y="-70%" width="240%" height="240%">
@@ -133,14 +133,14 @@ export function VerdictOrb({
 
         {/* the cage of great circles — meridians, spun slowly */}
         <g className={s.spinSlow} stroke={hue} fill="none">
-          {[0, 22, 45, 68, 90, 112, 135, 158].map((deg, i) => (
+          {[0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165].map((deg, i) => (
             <ellipse
               key={deg}
               rx={R * (0.16 + (i % 4) * 0.27)}
               ry={R}
               transform={`rotate(${deg})`}
-              strokeWidth={0.55}
-              opacity={0.09 + (i % 3) * 0.045}
+              strokeWidth={0.5}
+              opacity={0.11 + (i % 3) * 0.05}
             />
           ))}
         </g>
@@ -153,8 +153,8 @@ export function VerdictOrb({
               rx={fixed(R * Math.sqrt(1 - (1 - k) ** 2))}
               ry={R * k * 0.34}
               cy={fixed(R * (1 - k) * (i % 2 === 0 ? -0.9 : 0.9))}
-              strokeWidth={0.55}
-              opacity={0.11}
+              strokeWidth={0.5}
+              opacity={0.16}
             />
           ))}
         </g>
@@ -175,8 +175,8 @@ export function VerdictOrb({
 
         {/* the rim: a hard edge plus two blurred copies for the bloom */}
         <circle r={R} fill="none" stroke={hue} strokeWidth="14" opacity="0.2" filter={`url(#${id}-wide)`} />
-        <circle r={R} fill="none" stroke={hue} strokeWidth="4" opacity="0.5" filter={`url(#${id}-soft)`} />
-        <circle r={R} fill="none" stroke={hue} strokeWidth="1.1" opacity="0.55" />
+        <circle r={R} fill="none" stroke={hue} strokeWidth="2.6" opacity="0.5" filter={`url(#${id}-soft)`} />
+        <circle r={R} fill="none" stroke={hue} strokeWidth="1" opacity="0.8" />
         {/* the hot side. In the reference the rim is not evenly lit: it burns
             through the upper left and falls away to the right, which is what
             makes the sphere read as lit rather than as a drawn circle. */}

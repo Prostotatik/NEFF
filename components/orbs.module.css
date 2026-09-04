@@ -28,15 +28,19 @@
 .orbBloom {
   position: absolute;
   inset: -55%;
+  /* The element is inset -55%, so its half-width is 105% of the orb's radius and
+     the rim lands at ~48% of it. The ring has to peak there: peaking any earlier
+     throws the bloom *inside* the sphere and washes out the dark interior that
+     makes it read as a body. */
   background: radial-gradient(
     circle at 50% 50%,
     transparent 0%,
-    transparent 26%,
-    color-mix(in srgb, var(--hue) 26%, transparent) 39%,
-    color-mix(in srgb, var(--hue) 10%, transparent) 48%,
-    transparent 64%
+    transparent 41%,
+    color-mix(in srgb, var(--hue) 30%, transparent) 48%,
+    color-mix(in srgb, var(--hue) 11%, transparent) 55%,
+    transparent 70%
   );
-  filter: blur(9px);
+  filter: blur(10px);
   animation: breathe 7s ease-in-out infinite;
   pointer-events: none;
 }
