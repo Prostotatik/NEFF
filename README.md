@@ -12,6 +12,9 @@ check, each traceable to the node that served it.
 said its negation was true. A vote would have called this unanimous. Quorum calls it **NO SIGNAL on
 0.0 witnesses**, and shows you the transcripts.*
 
+**[Watch the 1:45 pitch](evidence/pitch/pitch.mp4)** — two live fact-checks, recorded from the real
+app. · **[SUBMISSION.md](SUBMISSION.md)** — how to get a live URL in thirty seconds.
+
 ```
 ./init.sh          # clean checkout to a running demo, with a live Gonka connectivity check
 ```
