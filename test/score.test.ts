@@ -88,6 +88,32 @@ test("British and American spellings of the same source are one source", () => {
   );
 });
 
+test("the same source named in Chinese is recognised as the same source", () => {
+  // Observed verbatim from two Gonka models on the same Chinese claim. Matching
+  // on [a-z0-9] threw every character away and scored them as fully independent.
+  assert.equal(
+    anchorsMatch(
+      "NASA阿波罗宇航员关于从月球可见地球特征的目视报告记录",
+      "阿波罗计划宇航员的第一手视觉观测报告与陈述",
+    ),
+    false,
+    "different phrasings of different records should still be distinguishable",
+  );
+  assert.equal(
+    anchorsMatch(
+      "NASA阿波罗宇航员关于从月球可见地球特征的目视报告记录",
+      "NASA阿波罗宇航员从月球可见地球特征的目视报告",
+    ),
+    true,
+  );
+});
+
+test("a Chinese anchor produces comparable tokens rather than an empty set", () => {
+  // The failure mode was silent: an empty token set makes anchorsMatch false,
+  // which reads as perfect independence.
+  assert.equal(anchorOverlap(["NASA月球轨道器影像资料"], ["NASA月球轨道器影像资料"]), 1);
+});
+
 test("two genuinely different sources in the same field still do not match", () => {
   assert.equal(
     anchorsMatch(

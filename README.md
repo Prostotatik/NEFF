@@ -122,7 +122,9 @@ A tool whose whole argument is "your confidence is overstated" has no business o
   one outright. Quorum does not treat an anchor as evidence *for the claim* — it never scores a
   source's reliability — it uses anchors only as a **dependence signal**: two models describing the
   same evidence base are behaving alike, which is informative about correlation whether or not the
-  base is real.
+  base is real. They are requested in English even when the claim is not, because comparing them
+  across models needs one shared vocabulary and a token matcher cannot match paraphrases across
+  languages.
 - **A failed mirror probe costs a witness even when the network was at fault.** A model whose mirror
   call times out cannot be shown to discriminate, so it is not counted. That is deliberately the
   conservative direction — unmeasured is not the same as independent — and the report always says
@@ -135,6 +137,10 @@ A tool whose whole argument is "your confidence is overstated" has no business o
   though it were.
 - **Three models is a small panel.** The mechanism generalises to more, and would report more
   precisely with more; three is what the Gonka Router currently serves.
+- **Comparing anchors is a token match, not semantic understanding.** Two models can describe the
+  same source in words that share nothing, and the overlap will read lower than it truly is. That
+  errs toward reporting *more* independence than there is, which is the direction that flatters a
+  verdict — so it is a real limit, not a conservative one.
 - **A verdict is evidence, never proof.** Nothing here reaches 0 or 100, and a Truth Score is a
   reason to go and look at the load-bearing fact, not a reason to stop looking.
 

@@ -43,24 +43,51 @@ const ANCHOR_STOPWORDS = new Set([
 /**
  * Reduce an anchor to a comparable token set.
  *
+ * Two things this has to survive.
+ *
  * Models describe the same evidence base in different words — "Cochrane
- * systematic reviews of randomised controlled trials of vitamin C for
- * preventing the common cold" and "Cochrane systematic reviews of randomized
+ * systematic reviews of randomised controlled trials of vitamin C for preventing
+ * the common cold" and "Cochrane systematic reviews of randomized
  * placebo-controlled trials of vitamin C supplementation for common cold
- * prevention" are one source, and a comparison that misses that would report an
- * echo as independent corroboration. So spelling variants are folded together
- * and a light suffix stemmer collapses inflections before comparison.
+ * prevention" are one source, and a comparison that misses that reports an echo
+ * as corroboration. So spelling variants are folded together and a light suffix
+ * stemmer collapses inflections.
+ *
+ * And the panel answers in the language of the claim. Anchors are requested in
+ * English precisely so that this comparison has one shared vocabulary — matching
+ * paraphrases across languages is not something a token matcher can do — but a
+ * model will sometimes answer in the claim's language anyway. Matching on
+ * `[a-z0-9]` threw every CJK character away, leaving an empty token set, which
+ * scored three models citing the same NASA material as *fully independent*: the
+ * exact inflation this file exists to prevent, hidden behind a "measured" label.
+ * Scripts without spaces are tokenised into character bigrams instead. That is
+ * coarse, and it under-reports paraphrase, but it is a real measurement rather
+ * than a silent zero.
  */
 function anchorTokens(anchor: string): Set<string> {
-  return new Set(
-    anchor
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, " ")
-      .split(/[\s-]+/)
-      .map(stem)
-      .filter((t) => t.length > 2 && !ANCHOR_STOPWORDS.has(t)),
-  );
+  const out = new Set<string>();
+  const words = anchor
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
+    .split(/[\s-]+/)
+    .filter(Boolean);
+
+  for (const word of words) {
+    if (UNSPACED_SCRIPT.test(word)) {
+      // No word boundaries to rely on: overlapping character bigrams, which is
+      // the standard cheap tokenisation for Chinese, Japanese and Korean.
+      if (word.length === 1) out.add(word);
+      for (let i = 0; i + 1 < word.length; i++) out.add(word.slice(i, i + 2));
+      continue;
+    }
+    const stemmed = stem(word);
+    if (stemmed.length > 2 && !ANCHOR_STOPWORDS.has(stemmed)) out.add(stemmed);
+  }
+  return out;
 }
+
+/** Han, Hiragana, Katakana and Hangul: written without spaces between words. */
+const UNSPACED_SCRIPT = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
 
 /** Fold British/American spelling and common inflections onto one form. */
 function stem(word: string): string {

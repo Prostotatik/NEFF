@@ -90,7 +90,9 @@ Reply with a single JSON object and nothing else:
 
 "SUPPORTED" means the evidence you can name shows the claim is accurate.
 "REFUTED" means the evidence you can name shows it is inaccurate.
-"UNCERTAIN" means you cannot name evidence that settles it either way.`,
+"UNCERTAIN" means you cannot name evidence that settles it either way.
+
+Write "reasoning" and "key_evidence" in the same language as the claim above — the person reading them speaks that language. The three stance words stay in English exactly as given.`,
     },
   ];
 }
@@ -124,7 +126,9 @@ An anchor names *where the knowledge comes from*, as precisely as you can put it
 
 You are not being asked for a citation and you must not invent one. An exact title, author or year is welcome only if you are sure of it; if you are not, name the evidence base without them. That is a complete and correct answer.
 
-What is not acceptable is a non-answer: "general knowledge", "public reporting", "news coverage", "training data", "common knowledge", "widely known". Every claim that can be assessed at all rests on some identifiable body of evidence — name it. Return an empty array only if you genuinely cannot assess this claim from any identifiable source at all.`,
+What is not acceptable is a non-answer: "general knowledge", "public reporting", "news coverage", "training data", "common knowledge", "widely known". Every claim that can be assessed at all rests on some identifiable body of evidence — name it. Return an empty array only if you genuinely cannot assess this claim from any identifiable source at all.
+
+Name the anchors in English even when the claim is in another language. They are compared across several models to see whether those models are leaning on the same evidence, and that comparison needs one shared vocabulary; the names of institutions, datasets and literatures are conventionally English in any case. Write "note" in the language of the claim.`,
     },
   ];
 }
@@ -165,7 +169,9 @@ Reply with a single JSON object and nothing else:
   "falsifier": "the specific evidence that would flip this verdict, and where a reader would look for it. One or two sentences.",
   "agreement_diagnosis": "why the panel landed where it did, and whether their agreement or disagreement should be taken as meaningful. Two or three sentences, referring to what the independence measurement above actually shows.",
   "contention": "if the panel split, the precise point they disagree about. If they did not split, an empty string."
-}`,
+}
+
+Write all four fields in the same language as the claim under test.`,
     },
   ];
 }
