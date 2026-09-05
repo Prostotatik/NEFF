@@ -388,3 +388,44 @@ So it was not built. The only provable loss between reasoning and output is the 
 the answer never written at all — which is now recovered and labelled; the general case, that an
 answer is a summary of the working, is handled by surfacing the working itself rather than by
 guessing what the summary left out.
+
+---
+
+## Sign-off
+
+### qa-tester, against the running app
+
+All seven new `FEATURES.json` entries gated end to end. The two that matter most for "not marked done
+off a single lucky run":
+
+- **F20 — fills the box, does not submit.** Asserted against the network, not the DOM:
+  `verifyRequestsFired: 0` across the whole browser session, with `boxNowHas` matching the clicked
+  row's text and `boxIsFocused: true`.
+- **F24 — the working indicator.** Asserted against the browser's own animation list rather than a
+  screenshot: `seatWait ×9` (one per probe seat), the sweep's `spin`, and `corePulse`, with the
+  centre reading `0/9 NODES ANSWERED`.
+
+F22 and F23 were signed off on two kinds of evidence each, because the live failure they handle is
+intermittent: the replayed-capture tests that drive the whole path deterministically, and a live
+run. That live run caught both mechanisms in the wild — a Kimi mirror probe returning nothing but
+`<think>` (`attempts=3`, "the node returned reasoning but no answer"), which correctly errored rather
+than inventing anything because there was no draft to recover; and a DeepSeek anchor probe timing out
+and being re-sent twice inside its phase budget.
+
+That same run was heavily rate-limited — 12 of 13 calls failed — and the report said so on its face
+("12 failed, shown honestly above"). Worth recording as the degraded path actually being exercised
+rather than reasoned about.
+
+### The empty instance
+
+A clean checkout has no runs, which is the first thing a judge sees, and the rail was rendering
+"Already checked here" directly above "Nothing has been checked on this instance yet". Both edge
+states were rendered by stubbing `/api/history` in the page before any script runs:
+
+| history | header | body | rail height |
+|---|---|---|---|
+| `{popular: [], recent: []}` | "Nothing checked here yet", no tabs | one sentence inviting the first claim | 379 px |
+| rejects | "Already checked here", tabs kept | the list could not be read, and verification does not go through it | 500 px |
+
+They are deliberately different states: a failure to read the list is not a claim that nothing has
+been checked. No console errors in either.
