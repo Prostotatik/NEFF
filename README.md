@@ -108,6 +108,17 @@ The truth score is then shrunk toward "unresolved" by `EWC / (EWC + 1)`, so a ve
 confident as the independent evidence behind it — and **no verdict ever reaches 0 or 100**, because a
 panel of language models is evidence, never proof.
 
+Every constant in that arithmetic is written out in [`METHOD.md`](METHOD.md), and the report itself
+opens the same derivation under the formula. Each one carries one of three honest labels: a
+**definition** that follows from the 0–100 scale and has nothing to tune, a **standard** estimator
+used as published with the source named, or a **choice** we made — with the reasoning, and with the
+direction it errs. There are two of the last kind. The shrinkage prior is set at one pseudo-witness
+because that is the smallest value that stops a single independent witness from ever producing a
+SUPPORTED verdict. The anchor-match threshold is set at 0.6 because, swept across the 243 real
+anchor pairs this build has stored, a looser value finds more echoes and tells this project's story
+better — so 0.6 credits the panel with more independence than it probably has, which is the only
+direction an error here can be defended in.
+
 ### What that looks like in practice
 
 Every number below came off a real run against the live router. The models are not deterministic
@@ -235,5 +246,7 @@ real deployment it is four commands on Vercel. Both are in [`docs/DEPLOY.md`](do
 | `SUBMISSION.md` | the three deliverables, and the command that finishes each |
 | `PRIOR_ART.md` | the originality search |
 | `JUDGING_CRITERIA.md` | the organizers' criteria, quoted verbatim, and what serves each |
+| `METHOD.md` | every constant in the score, and where it came from |
 | `DECISIONS.md` | every judgement call made without a human, and why |
+| `ITERATION_LOG.md` | what was measured against the live router, and what each measurement changed |
 | `PROGRESS.md` | what broke, and what did not work — including the router behaviour that cost the most time |

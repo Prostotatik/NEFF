@@ -5,6 +5,73 @@ part that saves the next session, which has no memory of this one.
 
 ---
 
+## Session 3 — 2026-09-05 — the idle rail, the arithmetic, the working indicator, and the router
+
+Full working log with every measurement is in `ITERATION_LOG.md`. What belongs here is the part that
+would otherwise be rediscovered.
+
+### Gonka Router facts learned this session (do not re-derive these)
+
+- **The router caches completions, keyed on the request body.** A repeat of an identical body comes
+  back in about 500 ms against a 13–64 s cold generation. This is mostly a gift, and once it is a
+  trap: a response that was *truncated* gets replayed forever, so the same demo claim looks broken
+  every time while a cache-busted copy of it succeeds. Three separate rounds returned a
+  byte-identical 18 434-character truncated MiniMax response before this was spotted. If you are
+  measuring anything about latency or failure rates, put a nonce in the system prompt or you are
+  measuring the cache.
+- **A timed-out request is worth re-sending immediately.** The router keeps generating after the
+  client gives up and hands the finished completion to the next identical request. Four probes cut
+  off at 4 s came back on the re-send in 1.5 s, 7.1 s, 9.6 s and 15.1 s — all faster than a cold
+  generation. `lib/gonka.ts` used to mark a timeout non-retryable; it no longer does, and that single
+  change removed every client timeout from a four-claim suite.
+- **That trick does not transfer to the closing note.** Its prompt is unique to one run, so there is
+  nothing warm to come back to; it just needs time. Short leash plus retry was tried there and left
+  the note missing on three runs out of four. One send per node at 20 s is what works.
+- **DeepSeek is the slowest node for a long generation, not the fastest.** Three cold
+  adjudication-shaped calls each: DeepSeek 21.2 / 15.7 / 19.2 s for 163–202 tokens; MiniMax
+  11.7 / 7.8 / 7.1 s for 557–1247; Kimi 5.9 / 6.4 / 28.8 s. About ten tokens a second against
+  MiniMax's eighty. `ADJUDICATOR`'s comment had called it "fastest of the panel" and that had
+  silently stopped being true.
+- **MiniMax-M2.7 cannot be told to stop thinking.** `chat_template_kwargs: {thinking: false}`,
+  `{enable_thinking: false}`, `reasoning_effort: "none"` and `"low"` all still return exactly one
+  `<think>` block. Do not go looking for a switch again.
+- **MiniMax writes the JSON object it is about to return *inside* its think block first**, then
+  closes the block and repeats it — in 5 of 62 captured responses, verbatim. When the ceiling lands
+  mid-thought the repeat never happens, and everything it found used to be discarded. `parseAnswer()`
+  recovers that draft now, labelled as recovered.
+- **`moonshotai/Kimi-K2.6` returned HTTP 400 for hours and then started working again**, with no
+  change in this repo. `/v1/models` advertises it; `/v1/chat/completions` was refusing it with
+  "unsupported model … supported models: MiniMaxAI/MiniMax-M2.7, deepseek-ai/DeepSeek-V4-Flash-0731".
+  The identifier was compared code point by code point against what the router itself returns and is
+  identical. It is not ours. If it comes back, it is still not ours.
+
+### What did NOT work / traps
+
+- **Do not tune timeouts against a router this session has been hammering.** Several hundred
+  inferences in an afternoon earns sustained 429s, and a suite pass under them looks exactly like a
+  product regression. Wait, then measure.
+- **`/api/verify` meters six runs a minute per client.** A harness running suites back to back trips
+  it, and if your command pipes the output through a `grep` that happens to drop the `HTTP 429` line,
+  you get three claims that appear to produce nothing at all. That cost twenty minutes.
+  `tools/run-claim.mjs` paces itself now and its header says so.
+- **A test can pass with the fix removed.** The first version of the deadline-overrun test used a
+  budget that could not distinguish the two behaviours. Always delete the fix and watch the test go
+  red before believing it.
+- **Both reviewing subagents died mid-run on a subagent rate limit** (`code-reviewer`,
+  `design-critic`). Their reviews were done by hand instead. Re-run them when quota allows; the
+  hand review did find a real bug, but it is not the same as fresh eyes.
+
+### Tools added this session
+
+`tools/run-claim.mjs` (streams one verification or the standard four and prints every probe, retry
+and failure), `tools/idle-check.mjs` (drives the idle rail in a browser and watches the network so
+"fills the box, does not submit" is asserted against `/api/verify` traffic rather than against the
+DOM). `tools/shot.mjs` gained `SHOT_CLICK` / `SHOT_CLICK_TEXT` (with a `text#2` spec for pages with
+several identically-labelled disclosures) and `SHOT_REDUCED_MOTION`. `tools/browser-check.mjs` now
+reports the working indicator's live animation list.
+
+---
+
 ## Session 2 — 2026-09-04 — the app, then three rounds of adversarial review
 
 ### Built
