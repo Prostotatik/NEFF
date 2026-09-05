@@ -15,7 +15,7 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
 
-import { GonkaError, gonkaChat, type GonkaReceipt } from "./gonka.ts";
+import { GonkaError, gonkaChat, gonkaModels, type GonkaReceipt } from "./gonka.ts";
 import { ADJUDICATOR, CLOSING_ORDER, PANEL, labelFor } from "./models.ts";
 import { fetchPage, looksLikeUrl } from "./extract.ts";
 import {
@@ -131,7 +131,7 @@ const PREP_BUDGET_MS = 42_000;
  * would add up to, because by this point the verdict is already decided and the
  * reader is waiting on prose.
  */
-const ADJUDICATION_BUDGET_MS = 44_000;
+const ADJUDICATION_BUDGET_MS = 50_000;
 
 /**
  * Per-node leash inside that phase, one send each, then the next node.
@@ -148,6 +148,20 @@ const ADJUDICATION_BUDGET_MS = 44_000;
 const ADJUDICATION_ATTEMPT_MS = 20_000;
 
 /**
+ * The first node gets a longer leash than the ones behind it.
+ *
+ * Re-measured while the router was under hackathon load: MiniMax took 20.2s and
+ * 20.4s to write this note, against 7.1s, 7.8s and 11.7s on a quiet morning,
+ * and DeepSeek took 51s once and never answered the second time. A flat 20s
+ * therefore sat exactly on the boundary and lost the note on both nodes.
+ *
+ * Thirty seconds for the first attempt costs nothing when the router is calm —
+ * a note that arrives in eight seconds does not spend the rest — and it is the
+ * difference between having a closing note and not having one when it is busy.
+ */
+const ADJUDICATION_FIRST_MS = 30_000;
+
+/**
  * Token ceiling for the closing note specifically.
  *
  * It used to be the model's own probe budget, which for MiniMax is 3200 — far
@@ -158,12 +172,61 @@ const ADJUDICATION_ATTEMPT_MS = 20_000;
  */
 const ADJUDICATION_MAX_TOKENS = 1_600;
 
-/** Admission control for outbound Gonka calls. */
+/** How narrow the gate may get before narrowing further stops helping. */
+const MIN_IN_FLIGHT = 2;
+
+/**
+ * Which panel models the router will actually serve right now.
+ *
+ * The advertised model list has been wrong in this direction before — it listed
+ * Kimi-K2.6 for hours while the completions endpoint refused it. So this trusts
+ * the list only to *remove* models, never to add confidence: anything it does
+ * not mention is skipped, and anything it does mention still has to answer for
+ * itself.
+ */
+async function servableModels(signal?: AbortSignal): Promise<string[]> {
+  if (signal?.aborted) return [];
+  try {
+    return await gonkaModels(8_000);
+  } catch {
+    // Unreachable, slow, or malformed: say nothing rather than shrink the panel
+    // on a guess.
+    return [];
+  }
+}
+
+/**
+ * Admission control for outbound Gonka calls, and it adapts.
+ *
+ * A fixed width was the wrong shape for this problem. The router's ceiling on
+ * simultaneous requests per account is not ours to know: it moves with their
+ * load, and on a busy afternoon — the same one on which they took Kimi offline —
+ * a width that measured clean in the morning starts drawing
+ * "too many concurrent requests for this account". Tuning the constant against
+ * one afternoon just moves the problem to the next.
+ *
+ * So the gate narrows when the router says it is too wide and widens again when
+ * it stops saying so: additive increase, multiplicative decrease, the same
+ * shape TCP uses for exactly this question. `report()` is how a caller tells the
+ * gate what the router said.
+ */
 function createGate(limit: number) {
+  let width = limit;
   let active = 0;
+  let cleanRuns = 0;
   const queue: Array<() => void> = [];
-  return async function gate<T>(job: () => Promise<T>): Promise<T> {
-    if (active >= limit) await new Promise<void>((resolve) => queue.push(resolve));
+
+  const release = () => {
+    // Wake as many waiters as the current width allows, since a widening should
+    // take effect immediately rather than at the next completion.
+    while (active + queue.length > 0 && active < width && queue.length > 0) {
+      queue.shift()?.();
+      break;
+    }
+  };
+
+  const gate = async function gate<T>(job: () => Promise<T>): Promise<T> {
+    while (active >= width) await new Promise<void>((resolve) => queue.push(resolve));
     active++;
     try {
       return await job();
@@ -171,9 +234,29 @@ function createGate(limit: number) {
       active--;
       // Always release the next waiter, including when the job threw — otherwise
       // one failure strands every probe still queued behind it.
-      queue.shift()?.();
+      release();
     }
   };
+
+  /** Told after every call: did the router complain that we were too wide? */
+  gate.report = (refusedForConcurrency: boolean) => {
+    if (refusedForConcurrency) {
+      cleanRuns = 0;
+      width = Math.max(MIN_IN_FLIGHT, Math.floor(width / 2));
+      return;
+    }
+    // Widen only on a run of clean calls, and only one slot at a time, so a
+    // single lucky response cannot undo a refusal.
+    cleanRuns += 1;
+    if (cleanRuns >= 3 && width < limit) {
+      width += 1;
+      cleanRuns = 0;
+      release();
+    }
+  };
+
+  gate.width = () => width;
+  return gate;
 }
 
 /**
@@ -563,13 +646,32 @@ export async function* verify(
 
   const gate = createGate(MAX_IN_FLIGHT);
   const deadline = Date.now() + PROBE_PHASE_BUDGET_MS;
+
+  // Which of the panel the router will actually serve. Asked once, and used
+  // for one thing only — see the closing-note phase below.
+  //
+  // Every model still gets all three probes, including one the router is
+  // refusing. Its refusal is a receipt like any other, and a panel that is one
+  // member short should look like one rather than quietly shrinking: three dark
+  // seats on the sphere and a NO ANSWER row are the honest picture.
+  const servable = await servableModels(signal);
+
   // Slowest models first: their probes are what the wall clock is waiting on, so
   // they should be the first through the gate, not the last.
   const order = [...PANEL].sort((a, b) => b.timeoutMs - a.timeoutMs);
   const jobs: Promise<ProbeOutcome>[] = [];
   for (const kind of ["direct", "mirror", "anchor"] as const) {
     for (const model of order) {
-      jobs.push(gate(() => runProbe(kind, model, prep.claim, prep.negation, deadline, signal)));
+      jobs.push(
+        gate(async () => {
+          const outcome = await runProbe(kind, model, prep.claim, prep.negation, deadline, signal);
+          // The gate cannot see inside the call, so the probe tells it what the
+          // router said. Only a concurrency refusal narrows it: a timeout or a
+          // 400 says nothing about how many sockets we may hold.
+          gate.report(/too many requests in flight/i.test(outcome.probe.error ?? ""));
+          return outcome;
+        }),
+      );
     }
   }
 
@@ -613,10 +715,16 @@ export async function* verify(
   // next model on the panel writes it — every one of them is on the Gonka
   // Network, so failing over changes nothing about where the reasoning happens.
   // The order is measured, not the panel order: see CLOSING_ORDER.
-  const adjudicators = CLOSING_ORDER;
+  // A model the router is refusing cannot write the closing note, and the note
+  // only gets a couple of attempts before the budget is gone. Skipping it here
+  // costs nothing — unlike the probes, an adjudicator that cannot answer tells
+  // the reader nothing, because the next node writes the same note instead.
+  const adjudicators = servable.length
+    ? CLOSING_ORDER.filter((m) => servable.includes(m.id))
+    : CLOSING_ORDER;
   const adjudicationDeadline = Date.now() + ADJUDICATION_BUDGET_MS;
 
-  for (const model of adjudicators) {
+  for (const [index, model] of adjudicators.entries()) {
     if (signal?.aborted) break;
     const remaining = adjudicationDeadline - Date.now();
     if (remaining < 5_000) break;
@@ -629,7 +737,11 @@ export async function* verify(
         // One send per node, then the next node. See ADJUDICATION_ATTEMPT_MS for
         // why this phase does not get the probe phase's retry: there is nothing
         // warm to retry into when the prompt is unique to this run.
-        timeoutMs: Math.min(model.timeoutMs, ADJUDICATION_ATTEMPT_MS, remaining),
+        timeoutMs: Math.min(
+          model.timeoutMs,
+          index === 0 ? ADJUDICATION_FIRST_MS : ADJUDICATION_ATTEMPT_MS,
+          remaining,
+        ),
         deadline: adjudicationDeadline,
         chatTemplateKwargs: model.chatTemplateKwargs,
         maxAttempts: 1,
