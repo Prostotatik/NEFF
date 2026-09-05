@@ -446,7 +446,8 @@ async function attemptChat(
       // A network blip is worth another try, and so is a timeout: the router
       // finishes the generation regardless of whether the client is still
       // listening and serves it to the next identical request, so the re-send
-      // usually returns in seconds. Measured — see ITERATION_LOG.md, finding C.
+      // usually returns in seconds — measured across four cut-off probes that came
+      // back on the re-send in 1.5s, 7.1s, 9.6s and 15.1s.
       // Only a caller who has gone away is not worth asking again for.
       !cancelled,
       { timedOut },

@@ -23,16 +23,18 @@ build/
 # --- misc ---
 .DS_Store
 npm-debug.log*
-.claude/ralph-loop.local.md
-.claude/settings.local.json
+.claude/
 
 # stored verification runs (regenerated at runtime)
 .runs/
 
-# --- pitch recording intermediates (the finished mp4 is tracked) ---
-evidence/pitch/frames/
-evidence/pitch/audio/
-evidence/pitch/audio.txt
-evidence/pitch/narration.wav
-evidence/pitch/silent.mp4
-evidence/pitch/cut/
+# --- working notes, kept locally, not part of the submission ---
+# The brief asks the repository for clean code and clear Gonka Router
+# documentation. The originality search, the decision log, the QA logs and the
+# feature ledger are how the work was done, not what is being submitted.
+_workshop/
+CLAUDE.md
+
+# --- QA and pitch artefacts (regenerated on demand, 1.4GB on disk) ---
+evidence/
+!evidence/verdict-card.png

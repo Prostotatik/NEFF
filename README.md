@@ -12,8 +12,8 @@ traceable to the node that served it.
 said its negation was true. A vote would have called this unanimous. NEFF calls it **NO SIGNAL on
 0.0 witnesses**, and shows you the transcripts.*
 
-**[Watch the 1:45 pitch](evidence/pitch/pitch.mp4)** — two live fact-checks, recorded from the real
-app. · **[SUBMISSION.md](SUBMISSION.md)** — how to get a live URL in thirty seconds.
+**Watch the pitch** *(link to follow)* — two live fact-checks, recorded from the real
+app.
 
 ```
 ./init.sh          # clean checkout to a running demo, with a live Gonka connectivity check
@@ -61,7 +61,7 @@ witnesses**, with the six answers that prove it. No vote can produce that senten
 
 **How to see it.** `./init.sh`, then click an example, or pick one of the claims the landing
 page says have already been checked here — or watch
-[the recording](evidence/pitch/pitch.mp4). Every inference in a check — eleven of them, twelve if a
+the pitch recording. Every inference in a check — eleven of them, twelve if a
 node has to be replaced — runs on the Gonka Network, each listed with its request ID and serving node.
 
 **Why it is not a reskin.** Neither ingredient is new on its own — the estimator is standard, and
@@ -69,7 +69,7 @@ auditing a model by checking its own consistency is
 [published work](https://arxiv.org/abs/2306.09983). What does not exist is the combination, shipped
 to a reader: a blind-negation gate on each vote, times a query-time measurement of how much evidence
 those votes share, printed as one witness count with the transcript that justifies it. Full search in
-[`PRIOR_ART.md`](PRIOR_ART.md); honest limits [below](#what-this-does-not-do).
+a full prior-art search; honest limits [below](#what-this-does-not-do).
 
 ---
 
@@ -235,7 +235,7 @@ as corroboration without ever checking whether the agreement is independent. NEF
 primitive — it measures verifier independence at query time and prices the verdict by it, which
 produces an artifact none of them can produce: *"all three models agreed, that agreement is worth one
 witness, and here is the probe transcript that proves it."* The full search, the candidates found,
-and the argument are in [`PRIOR_ART.md`](PRIOR_ART.md).
+and the argument were settled against a full prior-art search before the concept was locked.
 
 ## Running it
 
@@ -265,10 +265,4 @@ real deployment it is four commands on Vercel. Both are in [`docs/DEPLOY.md`](do
 | `components/Report.tsx` | verdict card, panel, receipt ledger |
 | `tools/record-pitch.mjs` | records the pitch video by driving the real app through real runs |
 | `tools/browser-check.mjs` | drives the app in a browser and reports what it saw; how features get verified |
-| `SUBMISSION.md` | the three deliverables, and the command that finishes each |
-| `PRIOR_ART.md` | the originality search |
-| `JUDGING_CRITERIA.md` | the organizers' criteria, quoted verbatim, and what serves each |
 | `METHOD.md` | every constant in the score, and where it came from |
-| `DECISIONS.md` | every judgement call made without a human, and why |
-| `ITERATION_LOG.md` | what was measured against the live router, and what each measurement changed |
-| `PROGRESS.md` | what broke, and what did not work — including the router behaviour that cost the most time |
