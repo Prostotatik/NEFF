@@ -2,7 +2,7 @@ import { GonkaMark } from "./Icons";
 import s from "./neff.module.css";
 
 /**
- * S9 — the masthead. Mark, wordmark, and the "by Gonka" badge on the left; the
+ * S9 — the masthead. Mark, wordmark, and the team badge on the left; the
  * network status pill on the right. The pill is not a decoration: every
  * inference in this app is served by api.gonkarouter.io, and the dot is the
  * standing reminder of it.
@@ -14,7 +14,7 @@ export function Masthead() {
         <GonkaMark size={27} className={s.wordmarkMark} />
         <span className={s.wordmarkName}>NEFF</span>
         <span className={s.wordmarkBadge}>
-          by <strong>Gonka</strong>
+          by <strong>Future Layoffs</strong>
         </span>
       </a>
       <span className={s.networkPill}>
