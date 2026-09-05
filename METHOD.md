@@ -69,10 +69,15 @@ vanishes from the printed formula and only the `n/(n+1)` factor remains.
 
 ### Why `κ = 1` — **Chosen**
 
-`κ` is how many witnesses' worth of ignorance the score starts from. `κ = 1` is the weakest
-non-trivial choice: one pseudo-observation of "no evidence", which is the conventional
-weakly-informative default for exactly this reason — it is the least the prior can weigh while
-still weighing something.
+`κ` is how many witnesses' worth of ignorance the score starts from. `κ = 1` is the smallest whole
+pseudo-observation: one imagined witness who saw nothing.
+
+Be precise about what that is and is not. κ is continuous, so 0.3 and 0.1 are weaker priors and
+equally available — 1 is not "the weakest possible", it is the smallest count corresponding to a
+whole observation, which is the conventional place to put a weakly-informative prior. That
+convention is our reading of standard practice, not a result anyone has published about this
+particular application, and it is offered as such: the properly-sourced claims in this document are
+the estimators either side of it, not this.
 
 What it buys, and the question it has to survive — *why 1 and not 2?*:
 
@@ -89,12 +94,18 @@ verdict at any confidence.** SUPPORTED starts at 80, which needs `weight ≥ 0.6
 `n ≥ 1.5`. That is the behaviour we wanted from the discount and the reason to stop at 1 rather than
 go further.
 
-`κ = 2` is the next value up, and it collapses the top of the scale: it needs `n ≥ 3` to reach 80,
-which means three models with *zero* measured evidence overlap and full confidence on both sides of
-the mirror probe. Across the 74 runs stored by this build, the highest effective witness count ever
-observed is 2.08. So at `κ = 2` the SUPPORTED band would be unreachable in
-practice and the label would stop meaning anything. `κ = 1` is the smallest value that gets the
-guarantee; `κ = 2` is the smallest value that empties the scale.
+`κ = 2` is the next whole value up, and it collapses the top of the scale: it needs `n ≥ 3` to reach
+80, which means three models with *zero* measured evidence overlap and full confidence on both sides
+of the mirror probe. The highest effective witness count this build has ever recorded is 2.08. So at
+`κ = 2` the SUPPORTED band would be unreachable in practice and the label would stop meaning
+anything.
+
+That argument is weaker than it looks and should be read with its weakness showing: it reasons from
+this tool's own output distribution to justify this tool's own parameter, which is circular. It is a
+practical observation — *at κ = 2, nothing this build has ever measured would clear the top band* —
+not a proof that κ = 2 is wrong. The non-circular half of the case is the one above it: κ = 1 is the
+smallest whole value that guarantees a single independent witness cannot produce a SUPPORTED
+verdict.
 
 ### `band` — **Definition**
 
@@ -188,10 +199,10 @@ adjudicating model is told.
 
 This is the one number in the scoring path that is a judgement call, so it gets the longest answer.
 
-Measured over the 534 distinct cross-model anchor pairs in `.runs/`, containment does not separate
-into two clean clusters. 358 of them match at no threshold above 0.4 and are plainly different
-evidence; the region from 0.5 to 0.8 holds 118 pairs, many of which any reader would call the same
-source. For instance, at 0.57:
+Measured across every distinct cross-model anchor pair in `.runs/`, containment does not separate
+into two clean clusters. Most pairs match at no threshold above 0.4 and are plainly different
+evidence; the band from 0.5 to 0.8 holds pairs that any reader would call the same source. For
+instance, at 0.57:
 
 > "British Admiralty and Colonial Office records of the 1896 Zanzibar expedition"
 > "British Admiralty and Foreign Office records from 1896 (The National Archives, Kew)"
@@ -201,19 +212,23 @@ That is one archive, and at 0.6 it is missed.
 **So the threshold under-detects, and the direction matters.** A missed match lowers `ρ`, a lower
 ρ raises the Effective Witness Count, and a higher Effective Witness Count makes the verdict more
 confident — which makes this project's entire argument harder to demonstrate, not easier. Sweeping
-the threshold over the 53 stored runs that have a measurable agreeing pair:
+the threshold over the stored runs that have a measurable agreeing pair — this table was taken at
+**86 runs on disk, 552 anchor pairs, 61 of those runs measurable**, and every figure in it moves as
+the corpus grows:
 
 | threshold | mean ρ | mean effective witnesses |
 |---|---|---|
-| 0.4 | 0.674 | 1.062 |
-| 0.5 | 0.586 | 1.088 |
-| **0.6 (in use)** | **0.445** | **1.185** |
-| 0.7 | 0.338 | 1.272 |
-| 0.8 | 0.229 | 1.340 |
+| 0.4 | 0.677 | 1.044 |
+| 0.5 | 0.593 | 1.070 |
+| **0.6 (in use)** | **0.438** | **1.179** |
+| 0.7 | 0.326 | 1.281 |
+| 0.8 | 0.220 | 1.346 |
 
 Reproduce all of the above with `npm run sweep:threshold`, which reads `.runs/` and costs no Gonka
-inferences. The exact figures drift as runs accumulate — they were taken at 74 stored runs — but the
-ordering is the claim, and the ordering is a property of the estimator rather than of this corpus.
+inferences. **Expect the numbers it prints to differ from the ones above**, because `.runs/` grows
+every time anyone uses the app — the snapshot is stamped so the difference is legible rather than
+alarming. The ordering is the claim, and the ordering is a property of the estimator, not of this
+corpus: a looser threshold finds more shared evidence at any corpus size.
 
 A lower threshold produces a more dramatic headline every time — "three models, one witness" is
 easier to reach at 0.4 than at 0.6. We use 0.6. The honest statement is: *this is a heuristic we

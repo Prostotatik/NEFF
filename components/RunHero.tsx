@@ -13,6 +13,33 @@ export interface PanelStatus {
   panel?: Array<{ id: string; label: string; online: boolean }>;
 }
 
+/**
+ * The order in which the sphere's nine seats are laid out, and which probe owns
+ * each one.
+ *
+ * Three consecutive seats per model, in panel order, so one model answering all
+ * three of its probes lights a contiguous arc and a model that has answered
+ * nothing leaves a contiguous hole.
+ *
+ * The seat has to belong to a *specific* probe rather than to a running count.
+ * It used to be `i < probes.length`, which fills the ring clockwise in the same
+ * order every single time no matter which node actually answered — a plain
+ * counter wearing nine circles, and one that can never show a gap. The gaps are
+ * the point: probes come back from independent nodes in an order nobody
+ * controls, and that out-of-order arrival is the decentralisation made visible.
+ * A judge who watches two runs and sees the identical fill order has caught the
+ * product telling them something it does not know.
+ */
+const SEAT_KINDS: ProbeResult["kind"][] = ["direct", "mirror", "anchor"];
+
+function seatsFor(probes: ProbeResult[]): boolean[] {
+  return PANEL.flatMap((model) =>
+    SEAT_KINDS.map((kind) =>
+      probes.some((probe) => probe.modelId === model.id && probe.kind === kind),
+    ),
+  );
+}
+
 /** Where each satellite sits around the central orb, in reference order. */
 const SAT_SLOT = [s.satTopLeft, s.satTopRight, s.satBottomRight];
 const SAT_TILT = [18, -22, -8];
@@ -55,10 +82,10 @@ export function OrbitalStage({
           hue={orbHue}
           idle={!run && !running}
           // While probes are out, the sphere is the loading state: a seat for
-          // each of the nine, lighting as its node answers, with a sweep behind
-          // them. A static "Probing the panel" told a reader nothing that the
-          // ring does not now show them happening.
-          working={running && !run ? { landed: probes.length, total: PANEL.length * 3 } : undefined}
+          // each of the nine, lighting as its own node answers, with a sweep
+          // behind them. A static "Probing the panel" told a reader nothing that
+          // the ring does not now show them happening.
+          working={running && !run ? { seats: seatsFor(probes) } : undefined}
         >
           {run ? (
             <>

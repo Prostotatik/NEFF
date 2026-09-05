@@ -107,26 +107,22 @@ function stem(word: string): string {
 }
 
 /**
- * Two anchors name the same evidence when one's content is largely contained in
- * the other's.
+ * How much of the shorter anchor's content has to appear in the longer one
+ * before the two are called the same evidence base.
  *
  * Containment rather than Jaccard, because one model routinely describes an
  * evidence base in six words and another in fourteen; set-symmetric similarity
  * would penalise the longer description for being more specific about the very
  * same source.
- */
-/**
- * How much of the shorter anchor's content has to appear in the longer one
- * before the two are called the same evidence base.
  *
- * This is the one number in this file that is a judgement call rather than
- * something derived, and it is worth being exact about which way it errs.
+ * The threshold itself is the one number in this file that is a judgement call
+ * rather than something derived, and it is worth being exact about which way it
+ * errs.
  *
- * Measured over the 243 distinct cross-model anchor pairs in `.runs/`, the
- * containment score does not separate into two clean clusters: 169 pairs score
- * below 0.4 and are plainly different evidence, 74 score above, and the region
- * from 0.5 to 0.8 contains pairs that a reader would call the same source —
- * "British Admiralty and Colonial Office records of the 1896 Zanzibar
+ * Measured across the cross-model anchor pairs in `.runs/`, containment does not
+ * separate into two clean clusters. Most pairs sit low and are plainly different
+ * evidence, but the region from 0.5 to 0.8 holds pairs a reader would call one
+ * source — "British Admiralty and Colonial Office records of the 1896 Zanzibar
  * expedition" against "British Admiralty and Foreign Office records from 1896
  * (The National Archives, Kew)" scores 0.57 and is obviously one archive.
  *
@@ -138,6 +134,12 @@ function stem(word: string): string {
  * it to 0.5 would produce more echo findings and more striking demos; that is
  * exactly why it is not lowered. `test/threshold.test.ts` pins that direction so
  * a future edit cannot quietly tune it the other way.
+ *
+ * Deliberately no counts in this comment. `.runs/` grows every time anyone uses
+ * the app, so any figure written here is wrong by the next afternoon — and one
+ * hardcoded in three places, drifting apart, is exactly how a project ends up
+ * printing a number it cannot stand behind. `npm run sweep:threshold` computes
+ * them from whatever is on disk right now.
  */
 export const ANCHOR_MATCH_THRESHOLD = 0.6;
 

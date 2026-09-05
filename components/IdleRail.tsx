@@ -17,6 +17,11 @@ import s from "./quorum.module.css";
  * instance has been asked about most, and what it finished most recently. Both
  * are read from the same `.runs/` directory the permalinks are served from.
  *
+ * The counts include this build's own test traffic, and the lead says so. Every
+ * row on a fresh clone is a claim from the QA corpus, and a list headed "most
+ * checked" that quietly reads as other people's interest would be manufactured
+ * social proof on a landing page whose entire pitch is measured honesty.
+ *
  * The two lists behave differently on purpose, because they answer different
  * questions. A popular claim is a *suggestion*: clicking one fills the box and
  * leaves the cursor there, because running it is the user's decision and their
@@ -101,7 +106,7 @@ export function IdleRail({ onPick }: { onPick: (input: string) => void }) {
 
           <p className={s.idleLead}>
             {tab === "popular"
-              ? "Claims this instance has been asked about most. Picking one fills the box — you still press verify."
+              ? "What this instance has been asked about most, this build's own test runs included. Picking one fills the box; you still press verify."
               : "Finished verifications, newest first. Opening one shows that run's real report, receipts and all."}
           </p>
         </>

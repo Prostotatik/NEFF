@@ -142,14 +142,15 @@ export function ArithmeticPanel({
       kind: "chosen",
       body: (
         <>
-          The one judgement call in the scoring path. Across the 534 cross-model anchor pairs this
+          The one judgement call in the scoring path. Across every cross-model anchor pair this
           build has stored, containment does not split into clean clusters, and 0.6 misses real
           matches — two descriptions of the same Admiralty archive score 0.57. That error runs
           against us: a missed match lowers ρ, which <em>raises</em> the effective witness count and
-          makes the verdict more confident. Sweeping the threshold over the 53 stored runs where it
-          can matter, 0.4 gives a mean of 1.06 effective witnesses and 0.6 gives 1.19 — the looser
-          value tells this project&rsquo;s story better, and is not the one in use.
-          <code>npm run sweep:threshold</code> reproduces that from the runs on disk.
+          makes the verdict more confident. Sweeping the threshold across the stored runs, a looser
+          value raises the mean evidence overlap and lowers the mean effective witness count every
+          time — it tells this project&rsquo;s story better, and it is not the one in use.{" "}
+          <code>npm run sweep:threshold</code> prints the current figures from the runs on disk; they
+          move as the corpus grows, which is why they are not quoted here as though they were fixed.
         </>
       ),
     },

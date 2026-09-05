@@ -110,10 +110,12 @@ export function VerdictOrb({
   idle?: boolean;
   /**
    * While probes are in flight, the sphere itself becomes the progress
-   * indicator: `landed` of `total` seats light up as nodes answer. Omitted at
-   * every other moment, so the orb only moves when something is really running.
+   * indicator. One entry per probe, in a fixed order the caller decides, true
+   * once that specific probe has come back — not a count, so a seat belongs to
+   * one probe and the ring can fill out of order. Omitted at every other
+   * moment, so the orb only moves when something is really running.
    */
-  working?: { landed: number; total: number };
+  working?: { seats: boolean[] };
   children?: React.ReactNode;
 }) {
   const id = idle ? "orb-idle" : working ? "orb-working" : "orb-live";
@@ -226,7 +228,7 @@ export function VerdictOrb({
           />
         </g>
 
-        {working ? <ProbeSweep hue={hue} R={R} soft={`url(#${id}-soft)`} {...working} /> : null}
+        {working ? <ProbeSweep hue={hue} R={R} soft={`url(#${id}-soft)`} seats={working.seats} /> : null}
       </svg>
       <div className={s.orbFace}>{children}</div>
     </div>
@@ -245,6 +247,13 @@ export function VerdictOrb({
  * say the thing this whole product is about, which is that these answers are
  * arriving from places that are not talking to each other.
  *
+ * That last sentence is only true because `seats` is a per-probe array rather
+ * than a count. It was a count once — `i < landed` — which fills the ring
+ * clockwise in the same order on every run and can never produce a gap at all.
+ * The comment claiming the gaps meant something was, at that point, describing
+ * a thing the code could not do. `seatsFor()` in `RunHero` is what makes it
+ * true; do not replace it with a length.
+ *
  * Drawn from the same primitives as the rest of the orb — thin strokes, the
  * same hue, the same soft-blur filter — so it belongs to the sphere rather than
  * sitting on top of it.
@@ -253,14 +262,12 @@ function ProbeSweep({
   hue,
   R,
   soft,
-  landed,
-  total,
+  seats,
 }: {
   hue: string;
   R: number;
   soft: string;
-  landed: number;
-  total: number;
+  seats: boolean[];
 }) {
   const seatRadius = R * 0.74;
   const sweepRadius = fixed(seatRadius + 7);
@@ -268,7 +275,9 @@ function ProbeSweep({
   // count in the middle of the sphere every 2.6 seconds, which is unreadable.
   const sweepInner = fixed(R * 0.38);
   const sweepId = "orb-sweep";
-  const seats = Array.from({ length: total }, (_, i) => {
+  const total = seats.length;
+  const landed = seats.filter(Boolean).length;
+  const placed = Array.from({ length: total }, (_, i) => {
     // Start at twelve o'clock and run clockwise, so the ring fills the way a
     // reader expects a dial to fill.
     const angle = (i / total) * Math.PI * 2 - Math.PI / 2;
@@ -335,8 +344,8 @@ function ProbeSweep({
         <circle cx={seatRadius} cy="0" r="1.7" fill={SWEEP_HUE} opacity="0.85" />
       </g>
 
-      {seats.map((seat, i) => {
-        const lit = i < landed;
+      {placed.map((seat, i) => {
+        const lit = seats[i];
         return (
           <g key={i} transform={`translate(${seat.x} ${seat.y})`}>
             {lit ? (

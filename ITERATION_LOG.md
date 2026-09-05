@@ -585,3 +585,82 @@ Two watch items recorded, neither a defect and neither actioned:
 - The sweep's steel (`#72dcff`) and DeepSeek's satellite blue (`~rgb(105,162,221)`) are both blue,
   visibly different — the sweep reads more cyan. Nowhere near the violet collision, and the reviewer
   explicitly did not ask for a change.
+
+---
+
+## judge-simulator, scoped to these four changes — three findings, all acted on
+
+Asked for a hostile read of the four changes only, and specifically asked whether the arithmetic
+defence survives contact. It did not, on a detail that matters more than the argument.
+
+### 1. The flagship honesty feature was quoting a number about itself that was already wrong
+
+`components/Arithmetic.tsx` printed, in present tense, in every report: *"Across the **534**
+cross-model anchor pairs this build has stored…"* — a hardcoded string. The reviewer ran
+`npm run sweep:threshold`, the tool that same sentence invites the reader to run, and got **552**.
+`lib/score.ts` still said **243**, a third number. `ITERATION_LOG.md` and `METHOD.md` each carried a
+different snapshot again.
+
+This is the exact failure `CLAUDE.md` exists to prevent, turned inward: not a number taken from a bad
+source, but a number about our own corpus that rots on its own. And the panel that prints it is the
+one whose entire point is that you can check its arithmetic.
+
+Fixed by taking the count out of anything that can go stale. The shipped UI and the README now make
+the *ordering* claim — which is stable and is the actual argument — and point at
+`npm run sweep:threshold` for live figures. `lib/score.ts`'s comment carries no counts and says why.
+`METHOD.md` keeps a table, now stamped **86 runs, 552 pairs, 61 measurable** with an explicit warning
+that the tool will print something different.
+
+### 2. The seat ring was a counter in costume, and the comment above it said otherwise
+
+The sharpest finding. `lit = i < landed` fills the ring clockwise in the identical order on every
+run, regardless of which node answered — so it could never show a gap, while the comment directly
+above claimed *"the gaps between lit seats say the thing this whole product is about"*. A judge who
+watched two runs would have caught the product asserting something it did not know.
+
+Fixed properly rather than by deleting the claim: `seatsFor()` in `RunHero` assigns each of the nine
+probes a fixed seat (three per model, in panel order) and lights that seat when **that** probe comes
+back. Replaying a real run's recorded arrival order now produces gaps in seven of its nine
+intermediate states:
+
+```
+ 1 ...#.....
+ 2 ...#..#..  <- gap
+ 3 #..#..#..  <- gap
+ 5 #.##..#.#  <- gap
+ 8 #####.###  <- gap
+ 9 #########
+```
+
+`evidence/iteration/live-working-orb-zoom.png` is that run at four of nine: four lit seats scattered
+around the ring with dark sockets between them, not a clockwise arc. The comment is true now, and
+carries a note saying not to replace the array with a length again.
+
+### 3. "Most checked" was our own QA corpus dressed as demand
+
+Every row on a fresh clone is a claim named in this log as a test case. Nothing fabricated — they are
+real runs — but a list headed "most checked" reads as other people's interest, on a landing page
+whose whole pitch is measured honesty. The lead now says it: *"What this instance has been asked
+about most, this build's own test runs included."*
+
+### Two overclaims in METHOD.md, also named and also fixed
+
+- *"κ = 1 is the weakest non-trivial choice"* — false as written, since κ is continuous and 0.3 is
+  both weaker and non-trivial. It is the smallest *whole* pseudo-observation, which is a narrower and
+  defensible claim, and that is what it says now.
+- *"the conventional weakly-informative default"* sat between two properly-cited standards (Kish
+  1965, Gelman) and borrowed their register without a citation of its own. Now labelled as our
+  reading of standard practice.
+- And the argument against κ = 2 — *the highest effective witness count we have ever recorded is
+  2.08, so κ = 2 would empty the top band* — reasons from this tool's own output distribution to
+  justify this tool's own parameter. That is circular, the reviewer was right to say so, and
+  `METHOD.md` now says so itself and marks the non-circular half of the case as the one that carries
+  the weight.
+
+### What the reviewer confirmed rather than faulted
+
+The direction-of-bias argument for 0.6 reproduces on the larger corpus. The 429 backoff constants
+match the code. The deadline-clipping fix is real and matches its description. 2.08 is still the
+maximum across twelve more runs than when it was first written. The idle rail is a clear improvement
+on a panel of em-dashes — by the component's own admission that the old state was "a report of a run
+that has not happened".
