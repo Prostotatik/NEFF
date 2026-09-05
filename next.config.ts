@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
   // against `next dev`. Turning it off costs nothing: compile and runtime errors
   // are still surfaced.
   devIndicators: false,
+
+  // `runs-seed/` is read at runtime with `readdir`, which the file tracer cannot
+  // see — without this the seeded history ships in the repo and is missing from
+  // the deployment, so a fresh instance shows an empty landing page and 404s
+  // every seeded permalink. Named per route rather than globally so nothing else
+  // drags the directory into a bundle that has no use for it.
+  outputFileTracingIncludes: {
+    "/r/[id]": ["./runs-seed/**"],
+    "/api/history": ["./runs-seed/**"],
+  },
 };
 
 export default nextConfig;

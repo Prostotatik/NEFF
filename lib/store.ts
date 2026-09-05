@@ -13,7 +13,29 @@ import { mkdir, readFile, readdir, stat, writeFile, unlink } from "node:fs/promi
 import path from "node:path";
 import type { PopularClaim, RunSummary, VerificationRun } from "./types.ts";
 
-const RUN_DIR = path.join(process.cwd(), ".runs");
+/**
+ * Where new runs are written.
+ *
+ * On a serverless host the deployment directory is read-only and only `/tmp` can
+ * be written, so writing next to the source would make every finished
+ * verification unshareable — the report renders once in the browser and its
+ * permalink 404s. `/tmp` is per-instance and does not outlive it, which is the
+ * honest limit of a no-database design; the seed directory below is what keeps
+ * the landing page from being empty on a cold instance.
+ */
+const RUN_DIR = process.env.VERCEL
+  ? path.join("/tmp", "neff-runs")
+  : path.join(process.cwd(), ".runs");
+
+/**
+ * Runs committed to the repo, read-only, merged into the history.
+ *
+ * These are real verifications, written by this app against the real router, not
+ * fixtures — the same files `.runs/` holds, copied in so a fresh deployment has
+ * a history to show and its permalinks resolve. Nothing is ever written here.
+ */
+const SEED_DIR = path.join(process.cwd(), "runs-seed");
+
 const MAX_RUNS = 200;
 
 /**
@@ -41,14 +63,20 @@ export async function saveRun(run: VerificationRun): Promise<void> {
 
 export async function loadRun(id: string): Promise<VerificationRun | null> {
   if (!isValidRunId(id)) return null;
-  try {
-    const raw = await readFile(path.join(RUN_DIR, `${id}.json`), "utf8");
-    const stored = JSON.parse(raw) as { schema?: number; run?: VerificationRun };
-    if (stored.schema !== SCHEMA || !stored.run) return null;
-    return stored.run;
-  } catch {
-    return null;
+  // Runs written by this instance first, then the committed seed. A run that
+  // exists in both is the same run, so the order only decides which copy is
+  // read, never which answer is given.
+  for (const dir of [RUN_DIR, SEED_DIR]) {
+    try {
+      const raw = await readFile(path.join(dir, `${id}.json`), "utf8");
+      const stored = JSON.parse(raw) as { schema?: number; run?: VerificationRun };
+      if (stored.schema !== SCHEMA || !stored.run) continue;
+      return stored.run;
+    } catch {
+      continue;
+    }
   }
+  return null;
 }
 
 /**
@@ -65,14 +93,14 @@ let historyCache: { at: number; runs: RunSummary[] } | null = null;
 async function summaries(): Promise<RunSummary[]> {
   if (historyCache && Date.now() - historyCache.at < HISTORY_TTL_MS) return historyCache.runs;
 
-  let files: string[];
-  try {
-    files = await readdir(RUN_DIR);
-  } catch {
-    // No runs yet. An empty history is a state the UI has to handle anyway.
-    historyCache = { at: Date.now(), runs: [] };
-    return [];
-  }
+  const listed = await Promise.all(
+    [RUN_DIR, SEED_DIR].map((dir) =>
+      // A missing directory is not an error: on a cold instance nothing has been
+      // written yet, and a checkout without seeds is a valid state too.
+      readdir(dir).catch(() => [] as string[]),
+    ),
+  );
+  const files = [...new Set(listed.flat())];
 
   const runs: RunSummary[] = [];
   for (const file of files) {

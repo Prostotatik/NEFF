@@ -44,10 +44,16 @@ Two things to know before the demo:
   `maxDuration = 300`. On Vercel's Hobby plan the ceiling is 60 seconds, which is enough for a
   typical run (measured 4–40s) but not for a run where the router is congested. If you have Pro,
   nothing to do; on Hobby, prefer the example claims, which are the fastest paths.
-- **Report permalinks are stored on disk** under `.runs/`, which is ephemeral on serverless. A report
-  stays readable for the life of the instance — fine for a demo and for sharing a link during
-  judging, and the fix for anything longer is to point `lib/store.ts` at a KV store; it is twenty
-  lines behind two functions, `saveRun` and `loadRun`.
+- **Report permalinks are stored on disk.** On Vercel the deployment directory is read-only, so
+  `lib/store.ts` writes new runs to `/tmp` instead — a report stays readable for the life of the
+  instance, which covers a demo and a link handed over during judging, but not next week. The fix for
+  anything longer-lived is to point `saveRun` and `loadRun` at a KV store; it is twenty lines behind
+  those two functions.
+- **The landing page is seeded**, so a cold instance is not an empty one. `runs-seed/` holds thirteen
+  real verifications produced by this app against the real router — the same files `.runs/` writes —
+  and they are merged into the history read-only. Their permalinks resolve on a fresh deployment.
+  They are committed because `readdir` on them is invisible to the file tracer; `outputFileTracingIncludes`
+  in `next.config.ts` is what actually ships them.
 
 ## Any Node host (Fly, Render, Railway, a VPS)
 
