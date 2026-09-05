@@ -429,3 +429,33 @@ states were rendered by stubbing `/api/history` in the page before any script ru
 
 They are deliberately different states: a failure to read the list is not a claim that nothing has
 been checked. No console errors in either.
+
+### Final measurement, on a rested router
+
+`node tools/run-claim.mjs --suite`, 36 probes across four claims:
+
+| claim | wall | inferences | outcome |
+|---|---|---|---|
+| vitamin C | 3.5 s | 11 | 21/100 LEANS FALSE, 3/3 nominal, 1.42 effective |
+| Great Wall | 46.0 s | 12 | 18/100 REFUTED, 3/3 nominal, 1.8 effective |
+| Norway's fund | 7.1 s | 11 | 79/100 LEANS TRUE, 3/3 nominal, 1.35 effective |
+| Anglo-Zanzibar | 3.1 s | 11 | 50/100 NO SIGNAL, 3/3 nominal, 0 effective |
+
+**36 probes, one failure.** That failure is the designed path end to end: a MiniMax mirror probe hit
+its ceiling inside `<think>`, was re-sent twice with the budget doubled and then doubled again,
+still did not reach an answer, and came back carrying 4000 characters of the model's own working
+instead of only an error string. There was no complete draft in that working, so nothing was
+recovered and nothing was invented.
+
+### How often the recovery actually fires, said plainly
+
+`recovered=0` in every live suite pass this session. That is not a broken feature and it should not
+be sold as one that fires often. Both halves of what it needs are real and measured — MiniMax drafts
+its JSON inside `<think>` in 5 of 62 captured responses, and truncation inside `<think>` is the
+failure mode that loses a probe — but their conjunction needs the ceiling to land *after* the draft
+and *before* the repeat, and mostly it lands earlier than that. `test/recovery.test.ts` is what
+drives the branch deterministically, from a captured response that has that shape.
+
+What fires on essentially every run instead is the cheaper half: the working is kept for every
+probe, failed ones included, and the witness card will show it. `withWorking=24` of 36 probes on the
+run above — every probe from the two models that return a reasoning trace at all.
