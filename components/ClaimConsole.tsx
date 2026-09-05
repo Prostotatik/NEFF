@@ -302,7 +302,19 @@ export function ClaimConsole() {
       </div>
 
       {/* --- S2 : the probe cards --------------------------------------- */}
-      <Mechanism />
+      {/* The three probe cards explain the mechanism to someone who has not run
+          anything yet. Once a claim is in flight they are the wrong thing on the
+          page — the reader wants the run, not the explanation of it — so they
+          fold away rather than vanishing, and fold back if the run never starts
+          (a rejected input leaves the page idle again). */}
+      <div
+        className={`${s.mechanismFold} ${idle ? "" : s.mechanismFolded}`}
+        aria-hidden={!idle}
+      >
+        <div className={s.mechanismFoldInner}>
+          <Mechanism />
+        </div>
+      </div>
 
       {(running || (probes.length > 0 && !run)) && !error ? (
         <LiveRun stage={stage} prep={prep} probes={probes} receipts={receipts} />

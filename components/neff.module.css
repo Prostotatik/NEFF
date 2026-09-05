@@ -950,6 +950,42 @@
 
 /* --- S2 · probe cards ----------------------------------------------------- */
 
+/* The cards fold away the moment a claim is submitted.
+
+   Animating to a height of zero is the part browsers used to make awkward.
+   `grid-template-rows: 1fr -> 0fr` on a single-row grid is the modern way to do
+   it without measuring anything in JavaScript, and it degrades to an instant
+   hide where it is unsupported rather than to a broken layout.
+
+   Three properties on slightly different clocks, so it reads as one movement
+   rather than three: the copy fades first and fastest, the cards lift a little
+   as they go, and the space they occupied closes last. The global
+   prefers-reduced-motion rule collapses all of it to an instant change. */
+.mechanismFold {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 560ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 260ms ease-out,
+    transform 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  transform: translateY(0);
+}
+
+.mechanismFolded {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-0.6rem);
+  pointer-events: none;
+}
+
+/* The row itself has to be allowed to shrink, or the grid keeps the content's
+   min-content height and nothing moves. */
+.mechanismFoldInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .mechanism {
   position: relative;
   z-index: 2;
