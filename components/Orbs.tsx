@@ -349,7 +349,7 @@ function ProbeSweep({
       {/* a breathing core, so the middle of the sphere is not dead while the
           numbers above it are waiting on a node */}
       <circle
-        r={R * 0.28}
+        r={fixed(R * 0.28)}
         fill="none"
         stroke={hue}
         strokeWidth="0.8"

@@ -273,8 +273,7 @@ function ThePanel({ run }: { run: VerificationRun }) {
                     ) : null}
                     {probeFor(w.modelId, "anchor")?.recovered ? (
                       <span className={s.anchorRecovered}>
-                        recovered from its own reasoning — the node ran out of tokens before
-                        repeating this list as its answer
+                        from its reasoning, not its answer
                       </span>
                     ) : null}
                   </>
