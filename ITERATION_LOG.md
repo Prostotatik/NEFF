@@ -554,3 +554,34 @@ does not produce it — but it is the first time the mechanism has been observed
 rather than merely being argued for.
 
 The last measurement on a rested router remains the honest headline number: 36 probes, one failure.
+
+### design-critic, re-check: DESIGN SIGN-OFF: YES
+
+All three real findings confirmed fixed by pixel sample rather than by my say-so:
+
+- the dev badge gone from the landing page, and the Probe-01 copy it used to sit on fully legible;
+- the rail's verdict word at `rgb(147,154,153)`, a neutral grey, against MiniMax's satellite core at
+  `rgb(146,114,210)`;
+- and the ring at four of nine: four seats reading a pure white core `rgb(250,251,250)`, five unlit
+  at `rgb(3, 20–33, 13–21)`, and the sweep's brightest pixel `rgb(108,209,241)` — steel, not white.
+  Brightness now means exactly one thing.
+
+**The reviewer retracted findings 2 and 5** after measuring the card's real borders rather than an ad
+hoc crop, and said so plainly: icon centre, arrow centre and card centre land within a pixel. Both
+of us were measuring; only one of us was measuring the right thing first time.
+
+Its one open item — every report-route capture on hand predated the `devIndicators` fix, so the badge
+was only *proven* gone on two routes — is now closed. `/r/g9v4y253arnw` re-shot three ways
+(`report-full.png`, `arith.png`, `witness-reasoning-trace.png`), and in all three the closing
+tagline reads "**a** quorum is the number of independent witnesses…" with its leading "a" intact and
+nothing over it.
+
+Two watch items recorded, neither a defect and neither actioned:
+
+- On the report page the metrics strip's violet verdict pill and the panel's violet MiniMax avatar
+  can both fall in one scroll position, though not in the fixed single glance the landing rail
+  forced. Left as is; the collision that mattered was the one where a reader could not avoid seeing
+  both at once.
+- The sweep's steel (`#72dcff`) and DeepSeek's satellite blue (`~rgb(105,162,221)`) are both blue,
+  visibly different — the sweep reads more cyan. Nowhere near the violet collision, and the reviewer
+  explicitly did not ask for a change.
