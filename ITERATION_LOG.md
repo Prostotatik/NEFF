@@ -679,3 +679,45 @@ Nothing that used to parse now fails. The three unusable ones are the truncated 
 that were already unusable and are now the retry-and-salvage path's problem rather than the parser's.
 The only behavioural change is the intended one: an object missing the field the probe asked for no
 longer arrives as a successful witness that "named no source".
+
+---
+
+## Where item 2 actually ended up
+
+Every stored run since the first fix commit — 53 runs, 477 probes — classified by why each failed
+probe failed:
+
+| failures | cause |
+|---|---|
+| 63 | router rate limit (429) — this session's own testing volume |
+| 31 | client timeout — router congestion |
+| 12 | router HTTP error, i.e. the Kimi 400, before it started working again |
+| 9 | node spent its whole budget inside `<think>`; retried with a doubled budget, no draft to salvage, its working surfaced instead of an error |
+| **0** | **parse failure** |
+
+That last row is the point of item 2. Before this session a probe could be lost because the parser
+could not read what came back, because a timeout was never retried, or because a truncated response
+was cached and replayed forever. Since the fixes, **not one probe in 477 has been lost to parsing**.
+Every remaining failure is the router being slow, rate-limiting, or refusing a model it advertises —
+none of which is ours, and all of which the report shows on its face.
+
+The nine token-ceiling exhaustions are the honest floor of the mechanism: the model really did run
+out of room before writing an answer, the app really did ask again with more room, and what it could
+not recover it reported as unanswered while keeping the model's own reasoning on screen.
+
+### The same four claims, measured three times on three different router moods
+
+| router state | probes | failed | note |
+|---|---|---|---|
+| rested | 36 | 1 | the honest headline |
+| partly congested | 36 | 5 | all five timeouts on `mirror` probes |
+| hammered by this session | 36 | 20 | 429s on most of the first wave |
+
+The middle row has a pattern worth knowing: the mirror probe is the least cache-eligible of the
+three, because its text is a *generated* negation and claim preparation occasionally produces a
+different wording for the same input (14 runs of the Anglo-Zanzibar claim yielded 1 distinct claim
+but 2 distinct negations). So the mirror is the probe most exposed to cold router latency — and it is
+also the probe whose loss costs the witness entirely, since without it independence cannot be
+measured at all. The app degrades correctly when that happens (`NO SIGNAL`, "the mirror probe did not
+return"), and the gate already sends mirrors out in the first wave ahead of the anchors. Recorded
+rather than tuned: the fix for a congested router is to wait, not to move numbers around.
