@@ -15,7 +15,7 @@ that correlate. Here the correlated observations are the models, and **ρ is mea
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=for-the-badge&logo=typescript&labelColor=0b0f0e)](https://www.typescriptlang.org)
 [![tests](https://img.shields.io/badge/tests-78%20passing-00ffa3?style=for-the-badge&labelColor=0b0f0e)](#run-it)
 
-**[▶ Live demo](#)** · **[▶ 2-min video](#)** · **[Method](METHOD.md)** · **[Gonka integration](docs/GONKA.md)**
+**[▶ Live demo](https://neff-six.vercel.app)** · **[▶ 2-min video](#)** · **[Method](METHOD.md)** · **[Gonka integration](docs/GONKA.md)**
 
 <img src="docs/assets/idle.png" alt="NEFF — paste a link, a tweet or a claim and get a verification report" width="100%">
 

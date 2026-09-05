@@ -1,0 +1,29 @@
+# What never needs to reach a deployment.
+#
+# Without this the CLI was uploading 1.1 GB and timing out: `evidence/` alone is
+# 1.4 GB of QA captures, and none of it is code. Everything here is either
+# rebuilt on the host, local working material, or history.
+#
+# `runs-seed/` is deliberately absent — it is read at runtime and has to ship.
+
+# The key comes from the project's Environment Variables and nowhere else. The
+# CLI does not read .gitignore, so without these lines the local .env is uploaded
+# with the source and the build says so: "Detected .env file".
+.env
+.env.local
+.env.*.local
+
+node_modules
+.next
+.git
+.runs
+evidence
+_workshop
+.claude
+
+# Local working notes and the brief, not part of the app.
+goal.md
+gonka-ai.md
+PROMT.md
+Hackathon_Challenge_AI-for-Society.md
+CLAUDE.md
