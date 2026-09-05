@@ -182,9 +182,16 @@ export function parseAnswer<T>(raw: string, requiredKey: string): ParsedAnswer<T
     }
   }
 
-  // Nothing carried the required field. An object without it is still better
-  // than nothing for callers that only wanted prose, so hand back what parsed.
-  return direct ? { value: direct, origin: "answer" } : null;
+  // Nothing carried the field this probe asked for, so there is no answer here.
+  //
+  // This used to hand back whatever parsed, on the reasoning that an object is
+  // better than nothing. It is not. An anchor probe reads `anchors` straight off
+  // the result, and an object without that key yields an empty list — which the
+  // report then presents as a model that "named no source, independence
+  // assumed", when in truth the node never gave a readable answer at all. A
+  // failed probe reported as a successful one is precisely the thing the rest of
+  // this file exists to prevent.
+  return null;
 }
 
 /** Coerce a model's stance word onto our three-valued scale. */

@@ -94,3 +94,20 @@ test("the chain of thought is kept whether or not the block closed", () => {
 test("a response with no thinking at all yields no working", () => {
   assert.equal(extractThinking('{"stance":"SUPPORTED","confidence":0.9}'), "");
 });
+
+test("an answer without the field this probe asked for is not an answer", () => {
+  // A node that returns well-formed JSON with no `anchors` key used to come back
+  // as a successful probe with an empty anchor list, which the report renders as
+  // "named no source, independence assumed" — a sentence about a model that in
+  // fact never gave a readable answer. Found by code-reviewer.
+  const wrongShape = '{"note": "I would need randomised trial data to say."}';
+  assert.equal(parseAnswer(wrongShape, "anchors"), null);
+  assert.equal(parseAnswer(wrongShape, "stance"), null);
+
+  // An *explicitly* empty list is a different thing and stays a real answer: the
+  // anchor prompt asks for one when the model genuinely cannot identify a source.
+  const honestlyEmpty = parseAnswer<{ anchors: unknown }>('{"anchors": [], "note": "none"}', "anchors");
+  assert.ok(honestlyEmpty);
+  assert.equal(honestlyEmpty.origin, "answer");
+  assert.equal(stringList(honestlyEmpty.value.anchors, 3).length, 0);
+});

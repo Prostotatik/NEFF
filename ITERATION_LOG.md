@@ -459,3 +459,33 @@ drives the branch deterministically, from a captured response that has that shap
 What fires on essentially every run instead is the cheaper half: the working is kept for every
 probe, failed ones included, and the witness card will show it. `withWorking=24` of 36 probes on the
 run above — every probe from the two models that return a reasoning trace at all.
+
+### code-reviewer, on the whole diff
+
+One MAJOR finding, and it was right.
+
+`parseAnswer()` ended with a fallback that handed back any object that parsed, even one without the
+field the probe had asked for — on the reasoning that an object is better than nothing. For the
+stance probes it was harmless, because `runProbe` null-checks the stance and confidence separately.
+For the **anchor** probe it was not: `stringList(parsed.value.anchors, 3)` on an object with no
+`anchors` key returns `[]`, so the probe was recorded `status: "ok"` with an empty list, and the
+report then told the reader that model **"named no source, independence assumed"** — a sentence
+about a model that had in fact never given a readable answer. A failed probe reported as a
+successful one, which is exactly the class of thing the rest of that file exists to prevent.
+
+Triggering input: any Gonka node returning well-formed JSON for an anchor probe that omits the
+`anchors` key, with no `<think>` block to recover a draft from.
+
+Fixed by requiring the key. An *explicitly* empty `anchors: []` is still a real answer and stays one
+— the anchor prompt asks for exactly that when a model genuinely cannot identify a source — and
+`test/salvage.test.ts` now pins both halves. Teeth checked: restoring the fallback makes the new test
+fail.
+
+Everything else came back clean, and the specific things checked are worth recording so they are not
+re-checked from scratch: no key in git history (the `sk-AbCdEf…` hit is the `redact()` test fixture),
+the test files that repoint `GONKA_BASE_URL` at a local server run in their own processes and cannot
+affect a real run, no `server-only` import reached the client components, `/api/history` exposes only
+what the permalinks already show and the panel discloses, every attempt and every backoff is
+re-clipped against the shared deadline, a caller abort is classified non-retryable, the salvage
+accepts only JSON literally present in the raw response, and `ProbeSweep`'s coordinates are all
+rounded.
