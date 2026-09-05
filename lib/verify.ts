@@ -66,13 +66,43 @@ function toView(receipt: GonkaReceipt): ReceiptView {
 /**
  * How many probes may be in flight against the router at once.
  *
- * Measured: firing all nine at once earns 429s and Cloudflare 524s, and a probe
- * lost to queueing costs the panel a witness for reasons that have nothing to do
- * with the claim. Six is two waves rather than three — worth about a third of the
- * probe phase on a congested router — and stayed under the gateway's limit in
- * testing, with retry and backoff still behind it if that stops being true.
+ * The limit this guards is on requests in flight per *account*, not per run —
+ * which is the part that took three measurements to get right.
+ *
+ * Batches of real probe prompts, three per level. First pass, with the router
+ * already warm from other work:
+ *
+ *   4 in flight — 11 of 12 answered, no refusals
+ *   5 in flight — 15 of 15 answered, no refusals
+ *   6 in flight — 18 of 18 answered, no refusals
+ *   7 in flight — 13 of 21 answered, 7 refused
+ *
+ * Repeated after a five-minute idle, at 3, 4, 5 and 6: **no concurrency refusal
+ * at any level**. The only refusals were two Cloudflare 502s at 6, which are the
+ * upstream having a bad minute rather than the account being over a limit.
+ *
+ * So the refusal is not a property of one verification's width. Nine probes at
+ * six wide does not trip it on its own; what trips it is several things hitting
+ * one key at once — a second tab, a test harness, a health check. That is
+ * exactly how it was first seen, and a suite run immediately after a 7-wide
+ * measurement reproduced it beautifully and meant nothing.
+ *
+ * Five rather than six is therefore not a fix for a bug at six. It is a smaller
+ * share of a shared account budget, and its cost was measured rather than
+ * assumed — replaying the real probe latencies of 95 stored runs through this
+ * gate:
+ *
+ *   median probe phase — identical at 4, 5, 6 and 7 in flight
+ *   a window of 5 is slower than 6 in 28 of 95 runs, worst case +9.2s
+ *   a window of 4 is slower than 6 in 46 of 95 runs, worst case +10.9s
+ *
+ * The median does not move because the phase is bounded by the single slowest
+ * probe (median 8.8s), not by throughput (median 20.5s of work spread across the
+ * remaining slots). Narrowing the window only bites in the tail. Five pays that
+ * tail a third of the time to leave a slot for everything else on the key; four
+ * pays it half the time and buys headroom nothing measured here asks for.
  */
-const MAX_IN_FLIGHT = 6;
+const MAX_IN_FLIGHT = 5;
 
 /**
  * Hard ceiling on the whole probe phase.

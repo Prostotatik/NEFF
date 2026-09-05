@@ -769,3 +769,69 @@ tab, five link rows on the recent one, the box still fills and focuses, and `ver
 
 Every card lost a clause that restated its own title. The hooks kept: *"Every other fact checker
 stops here"*, *"reading the sentence, not the fact"*, *"unanimous can mean 1.1"*.
+
+---
+
+## The concurrency limit, and two measurements that lied
+
+The router's refusal reads *"too many concurrent requests for this account; lower your parallelism
+and retry"*. `MAX_IN_FLIGHT` was 6. Finding the right number took three passes, and the first two
+were wrong in instructive ways.
+
+**Pass one — one-word answers.** Batches of N simultaneous requests, unique nonce so nothing could
+be a cache hit, 20s between batches so a rate window could not be mistaken for a concurrency limit.
+Clean to 6; one refusal at 8. Conclusion drawn: ceiling between 6 and 8.
+
+That conclusion was worthless. A one-word answer holds its socket for about a second, and a limit on
+*simultaneous* sockets is not found by requests that barely overlap.
+
+**Pass two — real probe prompts**, so a socket is held the tens of seconds a real probe holds it:
+
+| in flight | answered | refused |
+|---|---|---|
+| 4 | 11 of 12 | 0 |
+| 5 | 15 of 15 | 0 |
+| 6 | 18 of 18 | 0 |
+| 7 | 13 of 21 | **7** |
+
+Looked decisive. It was not: a second batch at 7 came back 6 of 7 with no refusals at all, so the
+boundary moved between batches — which is the tell that it is not a boundary.
+
+**Pass three — after five idle minutes**, levels 3 to 6: **no concurrency refusal at any level.** The
+only refusals were two Cloudflare 502s at 6, which is the upstream having a bad minute rather than
+the account being over a limit.
+
+### What that actually means
+
+The refusal is not a property of one verification's width. Nine probes at six wide does not trip it
+alone. What trips it is several things hitting one key at once — a second tab, a test harness, a
+health check.
+
+The most convincing demonstration of that was self-inflicted: after setting the gate to 5 I ran the
+suite immediately, and got **22 refusals out of 36 probes**, every one of them naming concurrency.
+The gate was *narrower* than the setting that had worked. What had changed was that a 7-wide
+measurement had finished seconds earlier. That run measured my own tail, not the app — the same trap
+`PROGRESS.md` already warns about for timeouts, walked straight into.
+
+### Why 5 anyway
+
+Not as a fix for a bug at 6, because there is no bug at 6. As a smaller share of a budget the whole
+account shares. The cost was measured rather than assumed, by replaying the real probe latencies of
+95 stored runs through this gate:
+
+| window | median phase | slower than 6 |
+|---|---|---|
+| 4 | unchanged | 46 of 95 runs, worst +10.9s |
+| 5 | unchanged | 28 of 95 runs, worst +9.2s |
+| 6 | — | — |
+
+The median does not move at any width, because the phase is bounded by the single slowest probe
+(median 8.8s) rather than by throughput (median 20.5s of work spread across the remaining slots).
+Narrowing the window only bites in the tail. Five pays that tail a third of the time to leave a slot
+for everything else on the key; four pays it half the time for headroom nothing measured here asks
+for.
+
+The receipt now also distinguishes the two refusals. A rate limit is a window that clears on its own;
+a concurrency refusal says the account is asking for more sockets than it may hold, which is
+something this app controls. Calling both "rate limiting this burst of probes" hid exactly the
+distinction that made this measurable.
