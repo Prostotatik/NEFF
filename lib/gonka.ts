@@ -370,9 +370,17 @@ async function attemptChat(
         devshardId,
         latencyMs,
         rawResponse: detail,
+        // The router refuses a burst two different ways and the receipt should
+        // not conflate them: a rate limit is a window that clears on its own,
+        // while "too many concurrent requests for this account" says the panel
+        // is asking for more sockets than the account is allowed at once — which
+        // is a thing this app controls, via MAX_IN_FLIGHT, and should be told
+        // about plainly rather than filed under generic congestion.
         error:
           response.status === 429
-            ? "The Gonka Router was rate limiting this burst of probes"
+            ? /concurren/i.test(detail)
+              ? "The Gonka Router refused this probe: too many requests in flight for this account"
+              : "The Gonka Router was rate limiting this burst of probes"
             : `Gonka Router returned HTTP ${response.status}`,
       };
       throw new GonkaError(receipt.error!, receipt, RETRYABLE.has(response.status), {
