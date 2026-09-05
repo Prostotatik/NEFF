@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { PopularClaim, RunSummary, VerdictLabel } from "@/lib/types";
-import { ArrowRight, LinkIcon, SearchIcon, ShieldCheck, TextIcon } from "./Icons";
+import { ArrowRight, LinkIcon, ShieldCheck, TextIcon } from "./Icons";
 import s from "./quorum.module.css";
 
 /**
@@ -130,14 +130,26 @@ export function IdleRail({ onPick }: { onPick: (input: string) => void }) {
               <span className={s.idleRowMain}>
                 <span className={s.idleRowClaim}>{item.claim}</span>
                 <span className={s.idleRowMeta}>
-                  checked {item.count === 1 ? "once" : `${item.count} times`} · last verdict{" "}
+                  last verdict{" "}
                   <span className={`${s.idleVerdict} ${LABEL_CLASS[item.latestLabel]}`}>
                     {item.latestLabel}
                   </span>
                 </span>
               </span>
-              <span className={s.idleRowAction} aria-hidden="true">
-                <SearchIcon size={14} />
+              {/* The count is what makes this list "most checked", so it is the
+                  right-hand element rather than a clause buried in the meta
+                  line — and it distinguishes these rows from the recent ones,
+                  which carry an arrow because they go somewhere. */}
+              <span
+                className={s.idleCount}
+                // "17×" is read out as "seventeen times" by nobody, so the
+                // accessible name spells it out and the glyph is decoration.
+                aria-label={`checked ${item.count} ${item.count === 1 ? "time" : "times"}`}
+              >
+                {item.count}
+                <span className={s.idleCountMark} aria-hidden="true">
+                  ×
+                </span>
               </span>
             </button>
           ))

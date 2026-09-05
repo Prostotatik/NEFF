@@ -885,6 +885,28 @@
   transition: color 140ms ease, transform 140ms ease;
 }
 
+/* How many times this claim has been checked, which is the whole reason the row
+   is in this list. Tabular so the column of numbers lines up. */
+.idleCount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.05rem;
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--paper-dim);
+  transition: color 140ms ease;
+}
+
+.idleRow:hover .idleCount {
+  color: var(--primary-container);
+}
+
+.idleCountMark {
+  font-size: 0.6875rem;
+  color: var(--paper-faint);
+}
+
 .idleRow:hover .idleRowAction {
   color: var(--primary-container);
   transform: translateX(2px);
@@ -924,7 +946,7 @@
 .idleFoot {
   font-size: 0.6875rem;
   line-height: 1.45;
-  color: #4a5350;
+  color: var(--paper-faint);
   border-top: 1px solid var(--outline);
   padding-top: 0.7rem;
 }

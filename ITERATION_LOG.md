@@ -284,3 +284,78 @@ answering. Nothing in this repo changed to cause that, which is the strongest po
 of finding A: the identifier was never wrong, the router's chat endpoint had simply stopped serving
 a model its own `/v1/models` advertised. Suite passes since then show `3/3 nominal` where they
 previously showed `2/2`, and one pass recorded **36 probes, 0 failures**.
+
+---
+
+## Third pass — reviewing my own diff, and three rounds on the closing note
+
+The two subagents this project runs on every diff — `code-reviewer` and `design-critic` — both died
+on a subagent rate limit partway through. Rather than wait, both reviews were done by hand. That is
+worth saying plainly: the usual second pair of eyes did not run.
+
+### The review found a real bug in the fix
+
+`deadline` clips every attempt's timeout. It was not clipping the **backoff between** attempts. So a
+429 asking for nine seconds would sleep the full nine, wake, find the deadline gone, and give up
+anyway — having overrun the phase by more than three seconds to accomplish nothing. Which is
+precisely what `deadline` exists to prevent.
+
+`test/retry.test.ts` now drives the whole policy through the real client against a local server that
+can rate-limit, stall or answer:
+
+| behaviour | asserted |
+|---|---|
+| 429, generous deadline | retried once, and the gap is over 1.5 s rather than the old 700 ms |
+| `Retry-After: 2` | waited ≥ 1.9 s and < 3.4 s — the gateway's number, not the default |
+| `Retry-After: 8`, 5 s of budget | gave up in under 2 s without sleeping, one send only |
+| stalling server | retried, and the gap before the re-send is under 1.8 s |
+| caller aborts | exactly one send, never retried |
+
+The deadline test was checked to have teeth by removing the guard: it fails at **8201 ms** against a
+5 s budget. An earlier version of the same test passed with the guard removed — the 6 s budget it
+used could not tell the two behaviours apart — so it was rewritten until it could.
+
+### The closing note took three attempts to get right
+
+| configuration | result over a four-claim suite |
+|---|---|
+| 24 s, one send, DeepSeek first | timed out 4 times out of 4, then paid again to fail over |
+| 12–15 s, two sends per node, MiniMax first | still missing on 3 runs out of 4 |
+| **20 s, one send per node, MiniMax first** | **missing on 2 of 4 while the router was congested; 11 inferences and no failover at all on an uncongested one** |
+
+The middle attempt was wrong for a reason worth writing down: the probe phase's
+short-leash-and-retry works because a cut-off probe leaves the router holding a finished completion
+that the re-send is answered from in seconds. The closing note's prompt is unique to one run, so
+there is nothing warm to come back to. It simply needs the time. Different phase, different failure,
+different remedy — the mistake was assuming one measurement generalised.
+
+Adjudication also asked for `max(900, model.maxTokens)`, which is 3200 on MiniMax — far more room
+than four short prose fields need, and a reasoning model uses what it is given. Measured completion
+tokens on cold adjudication calls were 557, 727 and 1247, so the phase now asks for a flat 1600.
+
+### Wall clock, and the thing not to read into it
+
+Best clean pass after all three changes: **3.1 s / 51.9 s / 46.5 s / 70.6 s**, 36 probes, 2 failures.
+A congested pass in the same hour: 92–93 s with rate limits on half the probes.
+
+The congestion is self-inflicted. This session has spent several hundred inferences on the router in
+an afternoon; a judge clicking verify once does not do that. `/api/verify` also meters a client at
+six runs a minute, which is what made an early test pass look like a product failure. Do not tune
+timeouts against a router this session has just been hammering — wait, then measure.
+
+### When the closing note does go missing
+
+Checked what a reader actually sees (`/r/pny4euejwktt`): two cells say "The adjudicating node did not
+return this field", and the fourth carries the honest sentence that the note could not be produced
+and that the verdict, transcript and independence measurement are unaffected because they come from
+the probes. Not a good look, but a true one, and it is the failure mode the budget guards against
+rather than a bug.
+
+### The idle rail, second look
+
+The first version put the count in the meta line — "checked 17 times · last verdict LEANS FALSE" —
+and a magnifier icon on the right, which is the wrong metaphor for a control that fills a text box.
+The count is the entire reason a row is in a "most checked" list, so it is now the right-hand
+element, tabular, with the arrow reserved for the recent rows that actually go somewhere. Rows got
+shorter, and the panel with them. Re-verified with `tools/idle-check.mjs` after the markup change:
+still `verifyRequestsFired: 0`, still lands on the row's own report.
