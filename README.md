@@ -4,12 +4,18 @@
 
 ### Nine models agreeing is not nine opinions.
 
-**NEFF measures how many *independent* voices are really behind an AI consensus — and prices the Truth Score by it.**
+**NEFF measures how many *independent* voices are really behind an AI consensus — and prices the
+Truth Score by it.** The estimator is [Kish's effective sample size](https://en.wikipedia.org/wiki/Design_effect)
+(*Survey Sampling*, 1965): `n_eff = n / Deff`, where `Deff = 1 + (n−1)ρ` discounts observations
+that correlate. Here the correlated observations are the models, and **ρ is measured per claim**.
 
 [![Gonka Network](https://img.shields.io/badge/inference-Gonka%20Router-00ffa3?style=for-the-badge&labelColor=0b0f0e)](https://gonkarouter.io)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&labelColor=0b0f0e)](https://nextjs.org)
 [![React 19](https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react&labelColor=0b0f0e)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=for-the-badge&logo=typescript&labelColor=0b0f0e)](https://www.typescriptlang.org)
+[![tests](https://img.shields.io/badge/tests-78%20passing-00ffa3?style=for-the-badge&labelColor=0b0f0e)](#run-it)
+
+**[▶ Live demo](#)** · **[▶ 2-min video](#)** · **[Method](METHOD.md)** · **[Gonka integration](docs/GONKA.md)**
 
 <img src="docs/assets/idle.png" alt="NEFF — paste a link, a tweet or a claim and get a verification report" width="100%">
 
@@ -28,19 +34,11 @@ Measured, not asserted: a panel of 9 frontier LLMs carries about
 
 > **NEFF does not claim to know the truth. It measures what the consensus is worth.**
 
-```
-   3 MODELS AGREE            →   a vote would say 3/3, 95% confident
-          ↓
-   MIRROR + EVIDENCE PROBES  →   do they track the fact, or the sentence?
-          ↓                      do they lean on the same page?
-   N_eff = 0.0
-          ↓
-   NO SIGNAL                 →   the agreement carries no information
-```
-
-That screen is real output, not a mock. ⤵
-
 <img src="docs/assets/verdict.png" alt="Three models agreed at 95% confidence; NEFF scores it NO SIGNAL on 0.0 effective witnesses" width="100%">
+
+<div align="center"><sub>Real output. Three models said <b>SUPPORTED</b> at 95%, 95% and 85% — and every one of them
+also said the <i>opposite</i> claim was supported. A vote calls that unanimous. NEFF calls it
+<b>NO SIGNAL on 0.0 witnesses</b> and shows the six answers that prove it.</sub></div>
 
 ---
 
@@ -70,7 +68,7 @@ flowchart LR
     style SCORE fill:#00ffa3,stroke:#00ffa3,color:#04150e
 ```
 
-### Why three questions instead of one
+### Consensus logic — what happens to each vote
 
 ```mermaid
 flowchart TD
@@ -94,16 +92,22 @@ flowchart TD
     style N fill:#00ffa3,stroke:#00ffa3,color:#04150e
 ```
 
+**When models disagree**, the panel is not silently averaged. The majority side is tallied
+**weighted by each model's mirror-probe result**, so a model that failed the mirror cannot decide
+which side wins. The split is reported on its face — *"The panel is split. On the minority side:
+…"* — the dissent is priced into `N_eff`, and the closing note is asked for the **precise point of
+contention** rather than a summary.
+
 ---
 
 ## Core functionality → where it lives
 
-| The brief asks for | NEFF does | Code |
+| The brief asks for | NEFF | Code |
 |---|---|---|
-| **Claim Extraction** — a URL, tweet or text snippet | Fetches the page, reduces it to **one atomic, checkable claim** plus a faithful negation. Compound claims are rejected — they break the mirror probe | [`lib/extract.ts`](lib/extract.ts) · [`lib/prompts.ts`](lib/prompts.ts) |
-| **Decentralized Verification** — Gonka-hosted models | 3 models × 3 probes, fired in parallel across independent Gonka nodes, with an adaptive concurrency gate and deadline-aware retries | [`lib/verify.ts`](lib/verify.ts) · [`lib/gonka.ts`](lib/gonka.ts) |
-| **Truth Score & Reasoning Trace** | `0–100` score **with its own arithmetic on screen**, a credible band, and every model's full reasoning + the evidence it named | [`lib/score.ts`](lib/score.ts) · [`METHOD.md`](METHOD.md) |
-| **Transparency UI** — Gonka Request IDs per step | A receipt ledger: **every inference, its `x-request-id`, its serving node, its engine build, latency, tokens**, and the exact request body — expandable, re-runnable by hand | [`components/ReceiptLedger.tsx`](components/ReceiptLedger.tsx) |
+| **Claim Extraction** — URL, tweet or text | One **atomic** claim + a faithful negation. Compound claims are rejected — they break the mirror probe | [`lib/extract.ts`](lib/extract.ts) · [`lib/prompts.ts`](lib/prompts.ts) |
+| **Decentralized Verification** — Gonka models | 9 probes in parallel across independent nodes, adaptive concurrency, deadline-aware retries | [`lib/verify.ts`](lib/verify.ts) · [`lib/gonka.ts`](lib/gonka.ts) |
+| **Truth Score & Reasoning Trace** | `0–100` + credible band, **its own arithmetic on screen**, every model's full reasoning and named evidence | [`lib/score.ts`](lib/score.ts) · [`METHOD.md`](METHOD.md) |
+| **Transparency UI** — Gonka Request IDs | Receipt ledger: `x-request-id`, serving node, engine build, latency, tokens, **and the exact request body** | [`components/ReceiptLedger.tsx`](components/ReceiptLedger.tsx) |
 
 <div align="center">
 <img src="docs/assets/report.png" alt="The full verification report: metrics strip, the panel witness by witness, and the receipt ledger" width="82%">
@@ -114,8 +118,8 @@ flowchart TD
 ## Gonka Router integration
 
 > **Mandatory requirement: all AI reasoning runs on the Gonka Network.**
-> There is exactly **one** file in this repo that talks to a model, and it has no provider
-> abstraction — deliberately, so no future edit can quietly route inference elsewhere.
+> Exactly **one** file in this repo talks to a model, and it has no provider abstraction —
+> deliberately, so no future edit can quietly route inference elsewhere.
 
 **[`lib/gonka.ts`](lib/gonka.ts)** — every call, every retry, every receipt:
 
@@ -132,18 +136,18 @@ const requestId  = response.headers.get("x-request-id");    // req-1788473643105
 const devshardId = response.headers.get("x-devshard-id");   // which node actually served it
 ```
 
-**Multi-model consensus** — the panel, all Gonka-hosted ([`lib/models.ts`](lib/models.ts)):
+**The panel**, all Gonka-hosted ([`lib/models.ts`](lib/models.ts)):
 
 | Model | Role | Per-model handling |
 |---|---|---|
-| `deepseek-ai/DeepSeek-V4-Flash-0731` | witness + claim extraction | shortest output of the three, quickest on extraction |
-| `MiniMaxAI/MiniMax-M2.7` | witness + closing note | emits chain-of-thought inline in `<think>`; billed against `max_tokens` |
-| `moonshotai/Kimi-K2.6` | witness | `chat_template_kwargs: { thinking: false }` — otherwise ~2000 reasoning tokens per probe |
+| `deepseek-ai/DeepSeek-V4-Flash-0731` | witness · claim extraction | shortest output of the three |
+| `MiniMaxAI/MiniMax-M2.7` | witness · closing note | chain-of-thought inline in `<think>`, billed against `max_tokens` |
+| `moonshotai/Kimi-K2.6` | witness | `chat_template_kwargs: { thinking: false }` — else ~2000 reasoning tokens per probe |
 
-Neutrality is enforced in the prompt and in the protocol: no probe is told what the others said,
-the mirror probe is a **separate request with no shared context**, and a model that will not name
-concrete evidence is asked to answer `UNCERTAIN` rather than guess.
-Full integration notes: **[`docs/GONKA.md`](docs/GONKA.md)**.
+Neutrality is enforced in the protocol, not just the prompt: no probe is told what the others said,
+the mirror probe is a **separate request with no shared context**, and a model that cannot name
+concrete evidence is told to answer `UNCERTAIN` rather than guess.
+Full notes: **[`docs/GONKA.md`](docs/GONKA.md)**.
 
 ---
 
@@ -154,17 +158,27 @@ Truth Score = 50 + 50 × balance × weight
 
    balance  −1…+1   confidence-weighted stance of the panel
    weight   n/(n+1) conjugate-prior shrinkage, n = N_eff
-   N_eff    k / (1 + (k−1)·ρ)     Kish, 1965
+   N_eff    k / (1 + (k−1)·ρ)     Kish 1965 — ρ measured per claim,
+                                  from the evidence the models themselves named
 ```
 
-Every constant is labelled on screen as one of three things — **definition** (it follows from the
-0–100 scale), **standard** (a published estimator, source named), or **chosen** (we picked it, and
-the reasoning is stated, including which way it errs).
-
-`npm run sweep:threshold` reproduces the argument for the one free parameter from the runs on disk,
-in two seconds, with no Gonka calls. Long form: **[`METHOD.md`](METHOD.md)**.
+Every constant is labelled on screen as **definition** (it follows from the 0–100 scale),
+**standard** (a published estimator, source named) or **chosen** (we picked it — with the reasoning,
+and which way it errs). `npm run sweep:threshold` reproduces the argument for the one free
+parameter from the runs on disk, in two seconds, with no Gonka calls. Long form: **[`METHOD.md`](METHOD.md)**.
 
 > No verdict ever reaches 0 or 100. A panel of language models is evidence, never proof.
+
+---
+
+## Why this is not the obvious build
+
+N verifiers, averaged scores, request IDs on screen — that build has **already won a comparable
+hackathon**, and it ships the correlation bug above. Neither ingredient here is new alone: the
+estimator is 60 years old, and probing a model against its own negation is
+[published work](https://arxiv.org/abs/2306.09983). What does not exist is the combination, shipped
+to a reader: **a blind-negation gate on every vote, times a query-time measurement of how much
+evidence those votes share, printed as one witness count with the transcript that justifies it.**
 
 ---
 
@@ -172,15 +186,23 @@ in two seconds, with no Gonka calls. Long form: **[`METHOD.md`](METHOD.md)**.
 
 ```bash
 cp .env.example .env      # add your Gonka Router key
-./init.sh                 # checks the toolchain, the key, and live Gonka connectivity, then starts
+./init.sh                 # checks toolchain, key and live Gonka connectivity, then starts
 ```
 
 | Command | What it does |
 |---|---|
-| `npm test` | 78 unit tests — scoring, parsing, retry policy, recovery |
+| `npm test` | 78 unit tests — scoring, parsing, retry policy, answer recovery |
 | `npm run test:live` | live suite against the real Gonka Router |
-| `npm run check:claim -- "<claim>"` | drives one real verification and prints every probe and retry |
+| `npm run check:claim -- "<claim>"` | drives one real verification, prints every probe and retry |
 | `npm run sweep:threshold` | reproduces the anchor-threshold argument from `.runs/` |
+
+```
+lib/gonka.ts     the only file that talks to a model — retries, receipts, redaction
+lib/verify.ts    the 11-inference run, streamed as SSE
+lib/score.ts     N_eff, the mirror gate, the anchor overlap — the whole argument
+lib/prompts.ts   every prompt, including the blind negation
+app/api/verify   the SSE endpoint      components/  the dashboard
+```
 
 ---
 
