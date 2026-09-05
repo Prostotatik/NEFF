@@ -359,3 +359,32 @@ The count is the entire reason a row is in a "most checked" list, so it is now t
 element, tabular, with the arrow reserved for the recent rows that actually go somewhere. Rows got
 shorter, and the panel with them. Re-verified with `tools/idle-check.mjs` after the markup change:
 still `verifyRequestsFired: 0`, still lands on the row's own report.
+
+### A feature that was measured and then not built
+
+The obvious next move on "evidence present in the reasoning does not reach the output" was to diff
+the model's drafted JSON against its final one and surface anything present in the draft but missing
+from the answer. That is exact rather than heuristic — both are the model's own JSON for the same
+request — so it looked like a rigorous win.
+
+Measured first. Of 62 captured responses, 5 contain both a draft inside `<think>` and a finished
+answer, and by exact string comparison **5 of 5** differ. But reading them, none of the differences
+is a dropped source:
+
+```
+draft : randomized placebo-controlled trials of vitamin c supplementation in general populations
+answer: Randomized placebo-controlled trials of vitamin C supplementation in general adult populations
+
+draft : nasa official documentation on earth visibility from the moon and space
+answer: NASA official documentation and technical assessments addressing Earth visibility from the Moon
+```
+
+Those are refinements. The model is polishing its wording between the draft and the answer, which is
+what a draft is for. A "dropped evidence" panel built on this would have reported a finding that is
+not there, on every run, in a project whose entire argument is about not letting a reader assume more
+than the evidence supports.
+
+So it was not built. The only provable loss between reasoning and output is the truncation case —
+the answer never written at all — which is now recovered and labelled; the general case, that an
+answer is a summary of the working, is handled by surfacing the working itself rather than by
+guessing what the summary left out.

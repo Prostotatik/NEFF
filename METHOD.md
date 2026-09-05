@@ -91,8 +91,8 @@ go further.
 
 `κ = 2` is the next value up, and it collapses the top of the scale: it needs `n ≥ 3` to reach 80,
 which means three models with *zero* measured evidence overlap and full confidence on both sides of
-the mirror probe. Across the 28 stored runs with a measurable agreeing pair, the highest effective
-witness count ever observed is 2.08. So at `κ = 2` the SUPPORTED band would be unreachable in
+the mirror probe. Across the 74 runs stored by this build, the highest effective witness count ever
+observed is 2.08. So at `κ = 2` the SUPPORTED band would be unreachable in
 practice and the label would stop meaning anything. `κ = 1` is the smallest value that gets the
 guarantee; `κ = 2` is the smallest value that empties the scale.
 
@@ -188,9 +188,10 @@ adjudicating model is told.
 
 This is the one number in the scoring path that is a judgement call, so it gets the longest answer.
 
-Measured over the 243 distinct cross-model anchor pairs in `.runs/`, containment does not separate
-into two clean clusters. 169 pairs score below 0.4 and are plainly different evidence; the region
-from 0.5 to 0.8 contains pairs that any reader would call the same source. For instance, at 0.57:
+Measured over the 534 distinct cross-model anchor pairs in `.runs/`, containment does not separate
+into two clean clusters. 358 of them match at no threshold above 0.4 and are plainly different
+evidence; the region from 0.5 to 0.8 holds 118 pairs, many of which any reader would call the same
+source. For instance, at 0.57:
 
 > "British Admiralty and Colonial Office records of the 1896 Zanzibar expedition"
 > "British Admiralty and Foreign Office records from 1896 (The National Archives, Kew)"
@@ -198,17 +199,21 @@ from 0.5 to 0.8 contains pairs that any reader would call the same source. For i
 That is one archive, and at 0.6 it is missed.
 
 **So the threshold under-detects, and the direction matters.** A missed match lowers `ρ`, a lower
-`ρ` raises the Effective Witness Count, and a higher Effective Witness Count makes the verdict more
+ρ raises the Effective Witness Count, and a higher Effective Witness Count makes the verdict more
 confident — which makes this project's entire argument harder to demonstrate, not easier. Sweeping
-the threshold over the 28 stored runs that have a measurable agreeing pair:
+the threshold over the 53 stored runs that have a measurable agreeing pair:
 
 | threshold | mean ρ | mean effective witnesses |
 |---|---|---|
-| 0.4 | 0.619 | 1.040 |
-| 0.5 | 0.528 | 1.069 |
-| **0.6 (in use)** | **0.389** | **1.155** |
-| 0.7 | 0.329 | 1.221 |
-| 0.8 | 0.222 | 1.292 |
+| 0.4 | 0.674 | 1.062 |
+| 0.5 | 0.586 | 1.088 |
+| **0.6 (in use)** | **0.445** | **1.185** |
+| 0.7 | 0.338 | 1.272 |
+| 0.8 | 0.229 | 1.340 |
+
+Reproduce all of the above with `npm run sweep:threshold`, which reads `.runs/` and costs no Gonka
+inferences. The exact figures drift as runs accumulate — they were taken at 74 stored runs — but the
+ordering is the claim, and the ordering is a property of the estimator rather than of this corpus.
 
 A lower threshold produces a more dramatic headline every time — "three models, one witness" is
 easier to reach at 0.4 than at 0.6. We use 0.6. The honest statement is: *this is a heuristic we

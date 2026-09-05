@@ -14,7 +14,8 @@
     "share": "npx --yes localtunnel --port 3000",
     "record:pitch": "node tools/record-pitch.mjs evidence/pitch",
     "browser:check": "node tools/browser-check.mjs evidence/browser 1440 1000",
-    "verify:quotes": "python tools/verify-quotes.py"
+    "verify:quotes": "python tools/verify-quotes.py",
+    "sweep:threshold": "node --conditions=react-server --experimental-strip-types tools/threshold-sweep.mjs"
   },
   "dependencies": {
     "next": "^16.3.4",

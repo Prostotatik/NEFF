@@ -114,10 +114,11 @@ opens the same derivation under the formula. Each one carries one of three hones
 used as published with the source named, or a **choice** we made — with the reasoning, and with the
 direction it errs. There are two of the last kind. The shrinkage prior is set at one pseudo-witness
 because that is the smallest value that stops a single independent witness from ever producing a
-SUPPORTED verdict. The anchor-match threshold is set at 0.6 because, swept across the 243 real
+SUPPORTED verdict. The anchor-match threshold is set at 0.6 because, swept across the 534 real
 anchor pairs this build has stored, a looser value finds more echoes and tells this project's story
 better — so 0.6 credits the panel with more independence than it probably has, which is the only
-direction an error here can be defended in.
+direction an error here can be defended in. `npm run sweep:threshold` reproduces that sweep from the
+stored runs, in a couple of seconds and with no Gonka calls.
 
 ### What that looks like in practice
 
