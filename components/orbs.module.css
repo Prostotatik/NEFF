@@ -153,16 +153,6 @@
 
 /* --- the working indicator ----------------------------------------------- */
 
-/* The sweep is fast enough to read as activity at a glance and slow enough not
-   to nag: one lap every 2.6s, which is roughly the beat of the probes landing
-   on a warm router. Same transform-origin trick as the cage above — an SVG
-   group needs fill-box or it rotates about the viewport origin. */
-.sweepRotor {
-  animation: spin 2.6s linear infinite;
-  transform-origin: center;
-  transform-box: fill-box;
-}
-
 /* A seat with nothing in it yet. The stagger is per-seat, so the ring reads as
    a set of independent things waiting rather than one thing blinking. */
 .seatWaiting {
@@ -182,10 +172,49 @@
   transform-box: fill-box;
 }
 
+/* Three layers on one beat, slightly out of phase, so the middle of the sphere
+   reads as alive rather than as a blinking dot. This is the only motion left in
+   the centre now that the sweep and the count are gone, so it has to carry it. */
 .corePulse {
   animation: corePulse 3.1s ease-in-out infinite;
   transform-origin: center;
   transform-box: fill-box;
+}
+
+.coreBody {
+  animation: coreBody 3.1s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.coreHalo {
+  animation: coreHalo 3.1s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes coreBody {
+  0%,
+  100% {
+    transform: scale(0.76);
+    opacity: 0.62;
+  }
+  45% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+@keyframes coreHalo {
+  0%,
+  100% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+  55% {
+    transform: scale(1.16);
+    opacity: 0.8;
+  }
 }
 
 @keyframes seatWait {

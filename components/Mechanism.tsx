@@ -15,8 +15,8 @@ export function Mechanism() {
         <span className={s.stepIndex}>Probe 01 · the claim</span>
         <h2 className={s.stepTitle}>What do you think?</h2>
         <p className={s.stepBody}>
-          Every model on the panel assesses the claim and names the evidence it is leaning on. This
-          is the part every other fact checker stops at.
+          Every model answers, and names the evidence it leaned on. Every other fact checker stops
+          here.
         </p>
         <span className={s.stepNumeral} aria-hidden="true">
           01
@@ -30,9 +30,8 @@ export function Mechanism() {
         <span className={s.stepIndex}>Probe 02 · the mirror</span>
         <h2 className={s.stepTitle}>And the opposite?</h2>
         <p className={s.stepBody}>
-          The claim is negated and put to each model again, blind, in a fresh request. A model that
-          answers both the same way is reading the sentence, not the fact — and its vote is thrown
-          out, with both answers shown.
+          Now the negated claim, blind. Answer both the same way and you are reading the sentence,
+          not the fact — vote thrown out.
         </p>
         <span className={s.stepNumeral} aria-hidden="true">
           02
@@ -46,9 +45,8 @@ export function Mechanism() {
         <span className={s.stepIndex}>Probe 03 · the evidence</span>
         <h2 className={s.stepTitle}>Says who?</h2>
         <p className={s.stepBody}>
-          Models converging on one source are one witness, not three. The overlap is measured and the
-          truth score is discounted by it — so a unanimous panel can be worth 1.1 witnesses, and the
-          report says so.
+          Three models reading one page are one witness. The overlap is measured, and the score
+          discounted by it — unanimous can mean 1.1.
         </p>
         <span className={s.stepNumeral} aria-hidden="true">
           03

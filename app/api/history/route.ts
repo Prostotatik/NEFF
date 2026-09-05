@@ -11,12 +11,19 @@
 
 import { popularClaims, recentRuns } from "@/lib/store";
 
+/**
+ * The same number of rows for both lists, because they share one slot in the
+ * rail and a taller list on one tab makes the whole page jump when the reader
+ * switches. Five fits the panel without the rail dictating the page height.
+ */
+const ROWS = 5;
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(): Promise<Response> {
   try {
-    const [popular, recent] = await Promise.all([popularClaims(5), recentRuns(6)]);
+    const [popular, recent] = await Promise.all([popularClaims(ROWS), recentRuns(ROWS)]);
     return Response.json(
       { popular, recent },
       // Short-lived and public: this is the same information every visitor sees

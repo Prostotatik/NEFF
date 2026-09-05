@@ -82,9 +82,9 @@ export function OrbitalStage({
           hue={orbHue}
           idle={!run && !running}
           // While probes are out, the sphere is the loading state: a seat for
-          // each of the nine, lighting as its own node answers, with a sweep
-          // behind them. A static "Probing the panel" told a reader nothing that
-          // the ring does not now show them happening.
+          // each of the nine, lighting as its own node answers, over a core that
+          // breathes. A static "Probing the panel" told a reader nothing the ring
+          // does not now show them happening.
           working={running && !run ? { seats: seatsFor(probes) } : undefined}
         >
           {run ? (
@@ -94,13 +94,11 @@ export function OrbitalStage({
               <span className={s.orbLabel}>{run.verdict.label}</span>
             </>
           ) : running ? (
-            <span className={s.orbWorking}>
-              <span className={s.orbWorkingCount}>
-                {probes.length}
-                <span className={s.orbWorkingOf}>/{PANEL.length * 3}</span>
-              </span>
-              <span className={s.orbWorkingLabel}>nodes answered</span>
-            </span>
+            // Nothing. While probes are out the sphere speaks for itself — the
+            // seats say how many have come back and the core says it is alive —
+            // and a count printed over the top of them says the same thing twice
+            // while filling the middle with text the reader has to parse.
+            null
           ) : (
             <>
               <span className={s.orbCaption}>Overall truth score</span>

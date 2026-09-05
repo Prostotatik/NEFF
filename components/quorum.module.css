@@ -436,42 +436,6 @@
   line-height: 1.45;
 }
 
-/* The centre of the sphere while probes are out. Deliberately quiet: the ring
-   around it is doing the work of saying "running", so the middle only has to
-   carry the one fact the ring cannot, which is how many of the nine are back. */
-.orbWorking {
-  display: grid;
-  gap: 0.1rem;
-  justify-items: center;
-}
-
-.orbWorkingCount {
-  display: flex;
-  align-items: baseline;
-  gap: 0.1rem;
-  font-family: var(--ui);
-  font-size: 3.25rem;
-  font-weight: 300;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: #ffffff;
-  text-shadow: 0 0 26px rgba(0, 255, 163, 0.32);
-  font-variant-numeric: tabular-nums;
-}
-
-.orbWorkingOf {
-  font-size: 1.5rem;
-  color: var(--paper-faint);
-  text-shadow: none;
-}
-
-.orbWorkingLabel {
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  color: #3ee89f;
-}
 
 /* Satellites are absolutely placed around the centre, each with its label on the
    side that keeps it inside the stage. */
@@ -792,11 +756,38 @@
   color: var(--paper-faint);
 }
 
+/* One fixed height for both tabs, and the list scrolls inside it.
+   The rail sits in the hero row, so a list that grows with its content makes the
+   whole landing page taller — and switching tabs made the page jump. A fixed box
+   that scrolls keeps the page height a property of the layout rather than of how
+   many claims happen to be on disk. */
 .idleList {
   display: grid;
   gap: 0.4rem;
-  min-height: 15.5rem;
+  height: 19.5rem;
   align-content: start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Room for the scrollbar so a row never sits under it. */
+  padding-right: 0.2rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--outline-strong) transparent;
+  /* A row cut in half by the bottom edge reads as a layout bug. Fading the last
+     few pixels makes the same cut read as what it is — the list continues. */
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.6rem), transparent 100%);
+}
+
+.idleList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.idleList::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: var(--outline-strong);
+}
+
+.idleList::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* One row shape for both lists, because they are the same gesture from the

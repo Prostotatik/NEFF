@@ -103,12 +103,6 @@ export function IdleRail({ onPick }: { onPick: (input: string) => void }) {
               Recent checks
             </button>
           </div>
-
-          <p className={s.idleLead}>
-            {tab === "popular"
-              ? "What this instance has been asked about most, this build's own test runs included. Picking one fills the box; you still press verify."
-              : "Finished verifications, newest first. Opening one shows that run's real report, receipts and all."}
-          </p>
         </>
       )}
 

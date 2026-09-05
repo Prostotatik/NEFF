@@ -74,23 +74,6 @@ function alongEllipse(seed: number, count: number, rx: number, ry: number) {
   });
 }
 
-/** How wide the working sweep's wedge is, in radians. 55° reads as a sweep
-    rather than as a half-lit disc, and leaves the seats behind it visible. */
-const SWEEP_ARC = fixed((55 * Math.PI) / 180, 5);
-
-/**
- * The sweep's own colour: steel, the hue this design already spends on a nominal
- * reading, deliberately not the brand green a returned answer is drawn in.
- *
- * The sweep used to carry a white head, which made it the single brightest thing
- * on the ring — brighter than an answered seat. A reader pausing on one frame
- * would take "a node has answered" off that glow while the count underneath said
- * 0/9. Brightness cannot mean two things on the same shape, so the two claims
- * are told apart by hue: steel says "still looking", green says "this one came
- * back".
- */
-const SWEEP_HUE = "#72dcff";
-
 const CORE_STARS = scatter(20260905, 46, 100);
 const FIELD_STARS = scatter(77123, 120, 300, 1);
 
@@ -242,10 +225,9 @@ export function VerdictOrb({
  * is happening: nine requests are out to independent nodes and they come back in
  * an order nobody controls. So the indicator is the run itself. A seat on the
  * inner ring for every probe, dark until its node answers and lit afterwards,
- * and a sweep going round behind them that never waits for anything — the
- * sweep says "working", the seats say "how far", and the gaps between lit seats
- * say the thing this whole product is about, which is that these answers are
- * arriving from places that are not talking to each other.
+ * and a core that breathes in the middle. The seats say how far along it is, and
+ * the gaps between them say the thing this whole product is about, which is that
+ * these answers are arriving from places that are not talking to each other.
  *
  * That last sentence is only true because `seats` is a per-probe array rather
  * than a count. It was a count once — `i < landed` — which fills the ring
@@ -253,6 +235,11 @@ export function VerdictOrb({
  * The comment claiming the gaps meant something was, at that point, describing
  * a thing the code could not do. `seatsFor()` in `RunHero` is what makes it
  * true; do not replace it with a length.
+ *
+ * There was a rotating radar wedge here too. It was removed on the same
+ * reasoning that keeps the spinner out: it swept at a fixed rate that had
+ * nothing to do with the run, so it was decoration pretending to be telemetry,
+ * and it drew the eye away from the seats, which are the part that is true.
  *
  * Drawn from the same primitives as the rest of the orb — thin strokes, the
  * same hue, the same soft-blur filter — so it belongs to the sphere rather than
@@ -270,11 +257,6 @@ function ProbeSweep({
   seats: boolean[];
 }) {
   const seatRadius = R * 0.74;
-  const sweepRadius = fixed(seatRadius + 7);
-  // The wedge is an annulus, not a pie: a pie slice cuts straight across the
-  // count in the middle of the sphere every 2.6 seconds, which is unreadable.
-  const sweepInner = fixed(R * 0.38);
-  const sweepId = "orb-sweep";
   const total = seats.length;
   const landed = seats.filter(Boolean).length;
   const placed = Array.from({ length: total }, (_, i) => {
@@ -298,51 +280,7 @@ function ProbeSweep({
       {/* the track the seats sit on */}
       <circle r={seatRadius} fill="none" stroke={hue} strokeWidth="0.8" opacity="0.3" />
 
-      {/* The sweep. A radar wedge rather than a travelling dot, because a still
-          frame of a dot is just a dot — the wedge reads as a direction of travel
-          even in a screenshot, and its leading edge is what passes over each
-          seat. Fading along the wedge is approximated with a linear gradient
-          laid along the chord from its trailing corner to its leading one;
-          exact angular falloff would need a conic gradient, which SVG has no
-          native form of and which is not worth a filter chain here. */}
-      <defs>
-        <linearGradient
-          id={sweepId}
-          gradientUnits="userSpaceOnUse"
-          x1={fixed(Math.cos(-SWEEP_ARC) * sweepRadius)}
-          y1={fixed(Math.sin(-SWEEP_ARC) * sweepRadius)}
-          x2={sweepRadius}
-          y2="0"
-        >
-          <stop offset="0%" stopColor={SWEEP_HUE} stopOpacity="0" />
-          <stop offset="72%" stopColor={SWEEP_HUE} stopOpacity="0.13" />
-          <stop offset="100%" stopColor={SWEEP_HUE} stopOpacity="0.34" />
-        </linearGradient>
-      </defs>
 
-      <g className={s.sweepRotor}>
-        <path
-          d={
-            `M ${fixed(Math.cos(-SWEEP_ARC) * sweepRadius)} ${fixed(Math.sin(-SWEEP_ARC) * sweepRadius)}` +
-            ` A ${sweepRadius} ${sweepRadius} 0 0 1 ${sweepRadius} 0` +
-            ` L ${sweepInner} 0` +
-            ` A ${sweepInner} ${sweepInner} 0 0 0 ${fixed(Math.cos(-SWEEP_ARC) * sweepInner)} ${fixed(Math.sin(-SWEEP_ARC) * sweepInner)}` +
-            " Z"
-          }
-          fill={`url(#${sweepId})`}
-        />
-        <line
-          x1={sweepInner}
-          y1="0"
-          x2={sweepRadius}
-          y2="0"
-          stroke={SWEEP_HUE}
-          strokeWidth="1.4"
-          opacity="0.55"
-        />
-        <circle cx={seatRadius} cy="0" r="4.2" fill={SWEEP_HUE} opacity="0.34" filter={soft} />
-        <circle cx={seatRadius} cy="0" r="1.7" fill={SWEEP_HUE} opacity="0.85" />
-      </g>
 
       {placed.map((seat, i) => {
         const lit = seats[i];
@@ -368,14 +306,26 @@ function ProbeSweep({
         );
       })}
 
-      {/* a breathing core, so the middle of the sphere is not dead while the
-          numbers above it are waiting on a node */}
+      {/* The core. With the sweep gone and the count gone, this is the only
+          thing moving in the middle of the sphere, so it carries the beat on its
+          own: a filled centre that breathes, a ring that breathes against it,
+          and a wider halo behind both. Nothing here encodes progress — the seats
+          do that — so it can be pure liveness without saying anything untrue. */}
+      <defs>
+        <radialGradient id="orb-core">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.92" />
+          <stop offset="34%" stopColor={hue} stopOpacity="0.7" />
+          <stop offset="100%" stopColor={hue} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle r={fixed(R * 0.34)} fill={hue} opacity="0.14" filter={soft} className={s.coreHalo} />
+      <circle r={fixed(R * 0.24)} fill="url(#orb-core)" className={s.coreBody} />
       <circle
         r={fixed(R * 0.28)}
         fill="none"
         stroke={hue}
-        strokeWidth="0.8"
-        opacity="0.3"
+        strokeWidth="0.9"
+        opacity="0.36"
         className={s.corePulse}
       />
     </g>

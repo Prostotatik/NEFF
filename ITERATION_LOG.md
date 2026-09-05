@@ -721,3 +721,51 @@ also the probe whose loss costs the witness entirely, since without it independe
 measured at all. The app degrades correctly when that happens (`NO SIGNAL`, "the mirror probe did not
 return"), and the gate already sends mirrors out in the first wave ahead of the anchors. Recorded
 rather than tuned: the fix for a congested router is to wait, not to move numbers around.
+
+---
+
+## Round two — five changes asked for after the first pass
+
+### The rotating sweep is gone, and so is the text inside the sphere
+
+Both removed for the same reason the spinner was never there: the wedge swept at a fixed 2.6s lap
+that had nothing to do with the run, so it was decoration wearing the clothes of telemetry, and it
+pulled the eye off the seats, which are the part that is true. The count printed over the middle said
+the same thing the ring already said, in text the reader has to parse.
+
+What is left in the centre is a core on one beat in three layers, slightly out of phase: a
+gradient-filled body, a ring breathing against it, and a wider halo behind both. It encodes nothing —
+the seats carry all the progress — so it can be pure liveness without asserting anything.
+
+Verified in the browser rather than by eye: `centreReads: null` (no text), the animation list now
+`seatWait ×5, coreBody, coreHalo, corePulse` and `spin` down from 14 to 13 with `sweepRotor` gone.
+Four passes on the core before it read as a glow rather than a flat disc — the first was so dim the
+screenshot barely caught it, the third overshot and its halo reached the seat ring.
+
+`orbWorking*` in the CSS and `SWEEP_ARC` / `SWEEP_HUE` / `sweepRotor` are deleted rather than left
+behind; the project rule is no dead code.
+
+### The rail no longer stretches the page
+
+Both lists are capped at five rows by one `ROWS` constant in the history route, and `.idleList` has a
+fixed height with the list scrolling inside it. Measured: the landing page is **1264px on both tabs**,
+where it was 1408 and changed when the reader switched — the rail was dictating the page height.
+
+A row cut in half by the bottom edge reads as a layout bug, so the last 1.6rem fades. The same cut
+then reads as what it is: the list continues.
+
+### Both lead paragraphs removed
+
+The tabs and the rows say what the lists are. Re-verified after the markup change: five rows on each
+tab, five link rows on the recent one, the box still fills and focuses, and `verifyRequestsFired: 0`.
+
+### The probe cards, halved
+
+| card | before | after |
+|---|---|---|
+| 01 the claim | 26 words | 16 |
+| 02 the mirror | 41 words | 23 |
+| 03 the evidence | 40 words | 23 |
+
+Every card lost a clause that restated its own title. The hooks kept: *"Every other fact checker
+stops here"*, *"reading the sentence, not the fact"*, *"unanimous can mean 1.1"*.

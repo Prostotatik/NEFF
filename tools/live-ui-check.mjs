@@ -167,7 +167,7 @@ console.log(
     running: document.getAnimations()
       .filter(a => a.playState === 'running')
       .map(a => a.animationName || '')
-      .filter(n => /spin|seatWait|seatLand|seatFlash|corePulse/.test(n))
+      .filter(n => /spin|seatWait|seatLand|seatFlash|core/.test(n))
       .reduce((acc, n) => { acc[n] = (acc[n] || 0) + 1; return acc; }, {}),
   })`),
 );
