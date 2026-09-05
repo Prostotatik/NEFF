@@ -7,8 +7,12 @@
  * can follow one model down the page by colour alone, without re-reading names.
  *
  * These are the extra accents from gonka-colors.md, not the brand green, with
- * one exception: the panel's fastest model — the one that also writes the
- * closing adjudication — carries the brand green itself.
+ * one exception: the third seat on the panel carries the brand green itself.
+ *
+ * Note for anyone changing these: violet here is MiniMax's identity, reused down
+ * the whole page to let a reader follow one model without re-reading names. Do
+ * not spend it on anything else. The idle rail's verdict words used to, and it
+ * made the landing page ambiguous — see `.idleVerdictNeutral`.
  */
 
 import { PANEL } from "@/lib/models";

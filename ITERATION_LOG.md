@@ -489,3 +489,48 @@ what the permalinks already show and the panel discloses, every attempt and ever
 re-clipped against the shared deadline, a caller abort is classified non-retryable, the salvage
 accepts only JSON literally present in the raw response, and `ProbeSweep`'s coordinates are all
 rounded.
+
+### design-critic: NO, four defects — three real, one not
+
+**1. The Next.js dev-mode route badge was occluding real copy on four of six screens.** True, and worse
+than it sounds: it sits *on* the page bottom-left rather than beside it, landing mid-word in the first
+probe card at 1536px. Invisible in production and visible in every screenshot, every QA capture and
+every take of the pitch video, all of which are recorded against `next dev`. `devIndicators: false`
+in `next.config.ts` — compile and runtime errors are still surfaced. Confirmed gone by crop of the
+same screen position.
+
+**2. "The row icon and arrow are centred on the title, not the card." Does not reproduce.** Measured
+rather than eyeballed, by reading the bounding boxes out of the live DOM:
+
+```
+rowH 87   rowMid 43   titleMid 27
+idleRowIcon    mid 43
+idleRowMain    mid 43
+idleRowAction  mid 43
+```
+
+They are centred on the row to the pixel, on both tabs. `titleMid: 27` is exactly the position the
+review described them as occupying, and they are not at it. Left alone, and recorded here rather
+than quietly changed — a review finding that is factually wrong should be answered with the
+measurement, not with a change that makes the reviewer feel heard.
+
+**3. "NO SIGNAL" was wearing MiniMax's identity violet.** True and worth fixing. `--neutral`
+(`#a78bfa`) and MiniMax's hue (`#b57af8`) are one violet family, and the landing page shows the rail
+and the MiniMax satellite at once — so the hue that exists to let a reader follow one model down the
+page was doing unrelated duty as a verdict label. The rail's verdict words for UNRESOLVED and NO
+SIGNAL are grey now, which also says what those two labels are: an absence, not a finding. A note in
+`components/palette.ts` says violet is spoken for.
+
+**4. The sweep's head was the brightest thing on the ring, brighter than an answered seat.** True,
+and the sharpest finding of the four: on a frame reading `0/9 NODES ANSWERED`, the single bright spot
+was where the wedge crossed the ring, so a reader could take "a node has answered" off a glow that
+meant nothing of the kind. Brightness cannot carry two meanings on one shape. The sweep is now steel
+(`#72dcff`, the hue this design already spends on a reading in progress) and an answered seat has a
+white core. Verified on a frame with four of nine landed: four bright green-ringed white seats, five
+dark sockets, and a steel wedge that is plainly a different object.
+
+Getting that frame was itself a problem worth solving. Three live runs in a row were captured at
+`0/9` — the router's prep phase alone outlasted the screenshot window — so `tools/live-ui-check.mjs`
+now replays a stored run's own SSE events into the page with `/api/verify` stubbed. Everything above
+the network is real: the real component, the real stream parsing, the real state machine, the real
+sphere. It costs no inferences, and it makes the half-filled frame reproducible instead of lucky.

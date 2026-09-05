@@ -78,6 +78,19 @@ function alongEllipse(seed: number, count: number, rx: number, ry: number) {
     rather than as a half-lit disc, and leaves the seats behind it visible. */
 const SWEEP_ARC = fixed((55 * Math.PI) / 180, 5);
 
+/**
+ * The sweep's own colour: steel, the hue this design already spends on a nominal
+ * reading, deliberately not the brand green a returned answer is drawn in.
+ *
+ * The sweep used to carry a white head, which made it the single brightest thing
+ * on the ring — brighter than an answered seat. A reader pausing on one frame
+ * would take "a node has answered" off that glow while the count underneath said
+ * 0/9. Brightness cannot mean two things on the same shape, so the two claims
+ * are told apart by hue: steel says "still looking", green says "this one came
+ * back".
+ */
+const SWEEP_HUE = "#72dcff";
+
 const CORE_STARS = scatter(20260905, 46, 100);
 const FIELD_STARS = scatter(77123, 120, 300, 1);
 
@@ -292,9 +305,9 @@ function ProbeSweep({
           x2={sweepRadius}
           y2="0"
         >
-          <stop offset="0%" stopColor={hue} stopOpacity="0" />
-          <stop offset="72%" stopColor={hue} stopOpacity="0.16" />
-          <stop offset="100%" stopColor={hue} stopOpacity="0.42" />
+          <stop offset="0%" stopColor={SWEEP_HUE} stopOpacity="0" />
+          <stop offset="72%" stopColor={SWEEP_HUE} stopOpacity="0.13" />
+          <stop offset="100%" stopColor={SWEEP_HUE} stopOpacity="0.34" />
         </linearGradient>
       </defs>
 
@@ -314,12 +327,12 @@ function ProbeSweep({
           y1="0"
           x2={sweepRadius}
           y2="0"
-          stroke={hue}
+          stroke={SWEEP_HUE}
           strokeWidth="1.4"
-          opacity="0.6"
+          opacity="0.55"
         />
-        <circle cx={seatRadius} cy="0" r="5" fill={hue} opacity="0.5" filter={soft} />
-        <circle cx={seatRadius} cy="0" r="1.9" fill="#ffffff" opacity="0.95" />
+        <circle cx={seatRadius} cy="0" r="4.2" fill={SWEEP_HUE} opacity="0.34" filter={soft} />
+        <circle cx={seatRadius} cy="0" r="1.7" fill={SWEEP_HUE} opacity="0.85" />
       </g>
 
       {seats.map((seat, i) => {
@@ -341,7 +354,7 @@ function ProbeSweep({
               className={lit ? s.seatFilled : s.seatWaiting}
               style={lit ? undefined : { animationDelay: `${fixed((i % total) * 0.16, 2)}s` }}
             />
-            {lit ? <circle r="2.2" fill={hue} opacity="0.98" /> : null}
+            {lit ? <circle r="2.6" fill="#ffffff" opacity="0.98" /> : null}
           </g>
         );
       })}

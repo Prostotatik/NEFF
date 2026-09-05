@@ -871,8 +871,14 @@
   color: var(--verify);
 }
 
+/* Grey rather than the report's violet.
+   `--neutral` (#a78bfa) and MiniMax's identity hue (#b57af8) are the same violet
+   family, and on the landing page the rail and the MiniMax satellite are on
+   screen together — so a violet "NO SIGNAL" was making the one hue that means
+   "this is MiniMax" do unrelated double duty as a verdict label. Grey also says
+   what UNRESOLVED and NO SIGNAL actually are: an absence, not a finding. */
 .idleVerdictNeutral {
-  color: var(--neutral);
+  color: var(--paper-dim);
 }
 
 .idleVerdictFalse {

@@ -158,6 +158,24 @@ console.log(
   })`),
 );
 
+// A second look, later in the same run. The first shot usually lands before any
+// node has answered, and the ring while it is still empty is not the frame that
+// shows whether a seat that has come back reads differently from the sweep
+// passing over it — which is the thing that was got wrong once already.
+await sleep(Number(process.argv[7] || 14000));
+console.log("later shot:", await shot("live-later-run"));
+console.log(
+  "working indicator, later:",
+  await evaluate(`JSON.stringify({
+    running: document.getAnimations()
+      .filter(a => a.playState === 'running')
+      .map(a => a.animationName || '')
+      .filter(n => /spin|seatWait|seatLand|seatFlash|corePulse/.test(n))
+      .reduce((acc, n) => { acc[n] = (acc[n] || 0) + 1; return acc; }, {}),
+    centreReads: (document.querySelector('[class*="orbWorking"]')||{}).innerText || null,
+  })`),
+);
+
 // Wait for the verdict to appear.
 let waited = 0;
 while (waited < 180) {
