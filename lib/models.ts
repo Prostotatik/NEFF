@@ -85,8 +85,30 @@ export const PANEL: PanelModel[] = [
   },
 ];
 
-/** The model that writes the closing adjudication. Fastest of the panel. */
+/**
+ * The model that reduces raw input to one checkable claim. DeepSeek writes the
+ * shortest output of the three and is quick on it.
+ */
 export const ADJUDICATOR = PANEL[0];
+
+/**
+ * Who writes the closing note, in the order they are asked.
+ *
+ * Not the same choice as claim preparation, and measured rather than assumed.
+ * Three cold adjudication-shaped calls per model, unique nonce so none could be
+ * a cache hit:
+ *
+ *   DeepSeek V4 Flash   21.2s, 15.7s, 19.2s   (163–202 completion tokens)
+ *   MiniMax M2.7        11.7s,  7.8s,  7.1s   (557–1247 tokens)
+ *   Kimi K2.6            5.9s,  6.4s, 28.8s   (475–538 tokens)
+ *
+ * DeepSeek is the slowest of the three on this prompt by a wide margin — about
+ * ten tokens a second against MiniMax's eighty — and it was first in this list,
+ * which is why every run of a four-claim suite spent its adjudication budget
+ * timing out before failing over. MiniMax leads now because it is both quick and
+ * the most consistent; Kimi is second on its median, and DeepSeek last.
+ */
+export const CLOSING_ORDER: PanelModel[] = [PANEL[1], PANEL[2], PANEL[0]];
 
 /**
  * Inferences in a nominal run: one claim preparation, three probes per model,

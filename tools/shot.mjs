@@ -98,19 +98,28 @@ await sleep(settle);
 // nothing, and several of the things worth reviewing — the arithmetic
 // derivation, a witness's reasoning trace — only exist once something is
 // clicked. SHOT_CLICK takes a CSS selector; SHOT_CLICK_TEXT matches the visible
-// text of a button, which survives CSS-module class name hashing.
-const clickSelector = process.env.SHOT_CLICK || "";
-const clickText = process.env.SHOT_CLICK_TEXT || "";
-if (clickSelector || clickText) {
+// text of a button, which survives CSS-module class name hashing. Both accept
+// several targets separated by "|", clicked in order, because some things are
+// two disclosures deep.
+const clickSelectors = (process.env.SHOT_CLICK || "").split("|").filter(Boolean);
+const clickTexts = (process.env.SHOT_CLICK_TEXT || "").split("|").filter(Boolean);
+for (const [clickSelector, clickText] of zip(clickSelectors, clickTexts)) {
   const clicked = (
     await send("Runtime.evaluate", {
       expression: `(() => {
         const bySelector = ${JSON.stringify(clickSelector)}
           ? document.querySelector(${JSON.stringify(clickSelector)})
           : null;
-        const byText = ${JSON.stringify(clickText)}
-          ? [...document.querySelectorAll('button, a, summary')].find((el) =>
-              (el.innerText || '').toLowerCase().includes(${JSON.stringify(clickText.toLowerCase())}))
+        // "some text#2" picks the second match. Several disclosures on this page
+        // share their label — one per witness — and a plain first-match search
+        // can only ever open the first one.
+        const spec = ${JSON.stringify(clickText.toLowerCase())};
+        const hash = spec.lastIndexOf('#');
+        const needle = hash === -1 ? spec : spec.slice(0, hash);
+        const nth = hash === -1 ? 1 : Number(spec.slice(hash + 1)) || 1;
+        const byText = needle
+          ? [...document.querySelectorAll('button, a, summary')].filter((el) =>
+              (el.innerText || '').toLowerCase().includes(needle))[nth - 1]
           : null;
         const target = bySelector || byText;
         if (!target) return 'not found';
@@ -122,6 +131,12 @@ if (clickSelector || clickText) {
   )?.result?.value;
   console.error("click:", clicked);
   await sleep(900);
+}
+
+/** Pair up the two lists, padding the shorter with empty strings. */
+function zip(a, b) {
+  const n = Math.max(a.length, b.length);
+  return Array.from({ length: n }, (_, i) => [a[i] ?? "", b[i] ?? ""]);
 }
 
 const shotHeight = Math.min(

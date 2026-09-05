@@ -145,6 +145,62 @@
       "expected": "The report is addressable by a permanent URL that renders the same verdict, ledger and probe evidence.",
       "passes": true,
       "evidence": "E:/Projects/GONKA_TRACK/evidence/qa/F18-permalink-full.png — /r/yz3p8tzuwjrs loaded in a fresh browser profile renders the same 24/100 LEANS FALSE verdict, 3/3 vs 1.1 witnesses, all three panel cards and the full 11-row receipt ledger."
+    },
+    {
+      "id": "F19",
+      "criterion": "C4",
+      "action": "A visitor loads the home page before submitting anything.",
+      "expected": "The rail shows what has already been checked here — most-checked claims and recent checks, off one toggle — rather than an empty Verification Details panel.",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F20",
+      "criterion": "C4",
+      "action": "A visitor clicks one of the most-checked claims.",
+      "expected": "The claim text fills the input and the input takes focus. No verification starts: the user still presses verify.",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F21",
+      "criterion": "C10",
+      "action": "A visitor switches the idle rail to Recent checks and clicks an entry.",
+      "expected": "That run's real stored report opens at its permalink, with the same claim, verdict and receipts the person who ran it saw.",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F22",
+      "criterion": "C6",
+      "action": "A Gonka node spends its whole token budget inside its chain of thought and never writes the answer.",
+      "expected": "The probe is retried with a larger budget, and if it still fails the model's own draft of the answer is recovered from its reasoning and labelled as recovered — never invented, never silently dropped.",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F23",
+      "criterion": "C6",
+      "action": "A probe times out against the router.",
+      "expected": "It is sent again inside the same phase budget rather than written off, because the router serves the finished completion to the next identical request.",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F24",
+      "criterion": "C4",
+      "action": "A verification is running and the reader watches the central sphere.",
+      "expected": "The sphere itself shows the work: a seat per probe lighting as its node answers, and a sweep behind them. No static loading text.",
+      "passes": false,
+      "evidence": ""
+    },
+    {
+      "id": "F25",
+      "criterion": "C7",
+      "action": "A judge asks where the numbers in the truth score come from.",
+      "expected": "The arithmetic cell opens a derivation labelling every constant as a definition, a published standard with its source, or a choice with its reasoning and the direction it errs.",
+      "passes": false,
+      "evidence": ""
     }
   ]
 }

@@ -16,7 +16,7 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 
 import { GonkaError, gonkaChat, type GonkaReceipt } from "./gonka.ts";
-import { ADJUDICATOR, PANEL, labelFor } from "./models.ts";
+import { ADJUDICATOR, CLOSING_ORDER, PANEL, labelFor } from "./models.ts";
 import { fetchPage, looksLikeUrl } from "./extract.ts";
 import {
   extractThinking,
@@ -101,7 +101,10 @@ const PREP_BUDGET_MS = 42_000;
  * would add up to, because by this point the verdict is already decided and the
  * reader is waiting on prose.
  */
-const ADJUDICATION_BUDGET_MS = 40_000;
+const ADJUDICATION_BUDGET_MS = 38_000;
+
+/** Per-send leash inside that phase: two of these per node, then the next node. */
+const ADJUDICATION_ATTEMPT_MS = 15_000;
 
 /** Admission control for outbound Gonka calls. */
 function createGate(limit: number) {
@@ -153,7 +156,13 @@ interface ProbeOutcome {
   receipt: GonkaReceipt;
 }
 
-async function runProbe(
+/**
+ * One probe against one model. Exported so a live test can drive the real path
+ * with a deliberately small token budget, which is the only honest way to
+ * exercise the draft-recovery branch — the failure it handles is rare, and a
+ * branch nobody has ever run is not a fix.
+ */
+export async function runProbe(
   kind: ProbeKind,
   model: (typeof PANEL)[number],
   claim: string,
@@ -255,8 +264,68 @@ async function runProbe(
   } catch (error) {
     const gonkaError = error instanceof GonkaError ? error : null;
     const message = gonkaError?.message ?? "This Gonka node could not be reached.";
+
+    // Last chance to save a probe the router charged for.
+    //
+    // `gonkaChat` treats a response that is nothing but an unterminated <think>
+    // block as no answer, which is right — it retries it with a bigger budget,
+    // and usually that is enough. But when the last retry runs out too, the text
+    // it gives up on is exactly the text most likely to contain the model's own
+    // draft of the answer, written before the ceiling landed. Throwing that away
+    // would discard evidence the model actually produced, which is the bug this
+    // whole path exists to fix, so the salvage runs here rather than not at all.
+    const salvage = gonkaError?.receipt.rawResponse
+      ? parseAnswer<Record<string, unknown>>(
+          gonkaError.receipt.rawResponse,
+          kind === "anchor" ? "anchors" : "stance",
+        )
+      : null;
+    if (salvage?.origin === "draft") {
+      const thinking = extractThinking(gonkaError!.receipt.rawResponse).slice(0, 4000);
+      if (kind === "anchor") {
+        return {
+          probe: {
+            kind,
+            modelId: model.id,
+            status: "ok",
+            anchors: stringList(salvage.value.anchors, 3),
+            recovered: true,
+            thinking,
+          },
+          receipt: gonkaError!.receipt,
+        };
+      }
+      const stance = normaliseStance(salvage.value.stance);
+      const confidence = normaliseConfidence(salvage.value.confidence);
+      if (stance && confidence !== null) {
+        const reasoning = textField(salvage.value.reasoning);
+        const evidence = textField(salvage.value.key_evidence, 300);
+        return {
+          probe: {
+            kind,
+            modelId: model.id,
+            status: "ok",
+            stance,
+            confidence,
+            reasoning: evidence ? `${reasoning}\n\nDecisive evidence: ${evidence}` : reasoning,
+            recovered: true,
+            thinking,
+          },
+          receipt: gonkaError!.receipt,
+        };
+      }
+    }
+
     return {
-      probe: { kind, modelId: model.id, status: "failed", error: message },
+      probe: {
+        kind,
+        modelId: model.id,
+        status: "failed",
+        error: message,
+        thinking: gonkaError?.receipt.rawResponse
+          ? extractThinking(gonkaError.receipt.rawResponse).slice(0, 4000)
+          : undefined,
+      },
       receipt:
         gonkaError?.receipt ??
         ({
@@ -488,11 +557,11 @@ export async function* verify(
   );
 
   // The closing note is the most-read part of the report, and losing one node
-  // should not blank three cells of it. If the usual adjudicator does not
-  // answer, the next model on the panel writes it — every one of them is on the
-  // Gonka Network, so failing over changes nothing about where the reasoning
-  // happens.
-  const adjudicators = [ADJUDICATOR, ...PANEL.filter((m) => m.id !== ADJUDICATOR.id)];
+  // should not blank three cells of it. If the first node does not answer, the
+  // next model on the panel writes it — every one of them is on the Gonka
+  // Network, so failing over changes nothing about where the reasoning happens.
+  // The order is measured, not the panel order: see CLOSING_ORDER.
+  const adjudicators = CLOSING_ORDER;
   const adjudicationDeadline = Date.now() + ADJUDICATION_BUDGET_MS;
 
   for (const model of adjudicators) {
@@ -505,12 +574,20 @@ export async function* verify(
         messages,
         purpose: "adjudicate",
         maxTokens: Math.max(900, model.maxTokens),
-        // Short leash and no retry: the closing note has two more nodes behind
-        // it, so waiting out one slow model costs more than moving on does.
-        timeoutMs: Math.min(model.timeoutMs, 24_000, remaining),
+        // Short leash, and one retry on the *same* node before failing over.
+        //
+        // Measured: the adjudicator timed out at 24s on every run of a four-claim
+        // suite, four times out of four, and each run then spent another 16s
+        // failing over. Waiting longer is not the fix and neither is moving on
+        // sooner — asking the same node again is, because the router finishes
+        // the generation whether or not the client waited and hands it to the
+        // next identical request. So: twelve seconds, then twelve more, then the
+        // next model.
+        timeoutMs: Math.min(model.timeoutMs, ADJUDICATION_ATTEMPT_MS, remaining),
+        firstAttemptMs: Math.min(model.timeoutMs, ADJUDICATION_ATTEMPT_MS, remaining),
         deadline: adjudicationDeadline,
         chatTemplateKwargs: model.chatTemplateKwargs,
-        maxAttempts: 1,
+        maxAttempts: 2,
         signal,
       });
       const receiptIndex = pushReceipt(receipt);
