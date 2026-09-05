@@ -38,3 +38,6 @@ CLAUDE.md
 # --- QA and pitch artefacts (regenerated on demand, 1.4GB on disk) ---
 evidence/
 !evidence/verdict-card.png
+
+# README artwork is part of the repository, unlike the QA captures above.
+# docs/assets/ is tracked.

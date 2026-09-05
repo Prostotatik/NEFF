@@ -1,268 +1,205 @@
+<div align="center">
+
 # NEFF
 
-**Three models agreeing is one witness if they all read the same page.**
+### Nine models agreeing is not nine opinions.
 
-NEFF is a fact checker that treats model agreement as a claim to be verified rather than as
-evidence. Every inference runs on the [Gonka Network](https://gonkarouter.io) — eleven per check, each
-traceable to the node that served it.
+**NEFF measures how many *independent* voices are really behind an AI consensus — and prices the Truth Score by it.**
 
-![The verdict card: three models agreed, and the agreement is worth zero witnesses](evidence/verdict-card.png)
+[![Gonka Network](https://img.shields.io/badge/inference-Gonka%20Router-00ffa3?style=for-the-badge&labelColor=0b0f0e)](https://gonkarouter.io)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&labelColor=0b0f0e)](https://nextjs.org)
+[![React 19](https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react&labelColor=0b0f0e)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=for-the-badge&logo=typescript&labelColor=0b0f0e)](https://www.typescriptlang.org)
 
-*A real report, unedited. Three of three models said the claim was true — and every one of them also
-said its negation was true. A vote would have called this unanimous. NEFF calls it **NO SIGNAL on
-0.0 witnesses**, and shows you the transcripts.*
+<img src="docs/assets/idle.png" alt="NEFF — paste a link, a tweet or a claim and get a verification report" width="100%">
 
-**Watch the pitch** *(link to follow)* — two live fact-checks, recorded from the real
-app.
+</div>
+
+---
+
+## The bug in every multi-model fact checker
+
+Poll several models, average the votes, call the agreement evidence. But models share training
+data, reasoning habits and failure modes — so they are **wrong together**, and averaging is most
+confident exactly when the panel is most likely to be wrong.
+
+Measured, not asserted: a panel of 9 frontier LLMs carries about
+**[two independent votes](https://arxiv.org/abs/2605.29800)**, not nine.
+
+> **NEFF does not claim to know the truth. It measures what the consensus is worth.**
 
 ```
-./init.sh          # clean checkout to a running demo, with a live Gonka connectivity check
+   3 MODELS AGREE            →   a vote would say 3/3, 95% confident
+          ↓
+   MIRROR + EVIDENCE PROBES  →   do they track the fact, or the sentence?
+          ↓                      do they lean on the same page?
+   N_eff = 0.0
+          ↓
+   NO SIGNAL                 →   the agreement carries no information
+```
+
+That screen is real output, not a mock. ⤵
+
+<img src="docs/assets/verdict.png" alt="Three models agreed at 95% confidence; NEFF scores it NO SIGNAL on 0.0 effective witnesses" width="100%">
+
+---
+
+## How one verification works
+
+**11 inferences, every one on the Gonka Network**, streamed to the browser as each node answers.
+
+```mermaid
+flowchart LR
+    IN["🔗 URL / tweet / text"] --> PREP["Claim extraction<br/>1 inference"]
+    PREP --> CLAIM["one atomic claim<br/>+ its negation"]
+
+    CLAIM --> P1["Probe 1 · direct<br/>the claim, as stated"]
+    CLAIM --> P2["Probe 2 · mirror<br/>the negation, asked blind"]
+    CLAIM --> P3["Probe 3 · anchor<br/>what evidence is this resting on?"]
+
+    P1 --> FAN["3 models × 3 questions<br/>9 inferences, in parallel"]
+    P2 --> FAN
+    P3 --> FAN
+
+    FAN --> SCORE["N_eff<br/>Kish effective sample size"]
+    SCORE --> ADJ["Closing note<br/>1 inference"]
+    ADJ --> OUT["Truth Score 0–100<br/>Reasoning trace<br/>Gonka Request IDs"]
+
+    style IN fill:#0b0f0e,stroke:#00ffa3,color:#e8f5f0
+    style OUT fill:#0b0f0e,stroke:#00ffa3,color:#e8f5f0
+    style SCORE fill:#00ffa3,stroke:#00ffa3,color:#04150e
+```
+
+### Why three questions instead of one
+
+```mermaid
+flowchart TD
+    A["3 models say SUPPORTED<br/>nominal consensus 3/3"] --> M{"Mirror probe:<br/>does it also affirm<br/>the opposite claim?"}
+
+    M -->|"yes — same answer to both"| ECHO["🔇 Echo<br/>reading the sentence, not the fact<br/>vote → 0"]
+    M -->|"no — opposite answers"| OK["✅ Coherent<br/>tracking the fact<br/>vote counts"]
+
+    OK --> S{"Anchor probe:<br/>same evidence<br/>as the others?"}
+    S -->|"same sources"| RED["♊ Redundant<br/>three readers of one page<br/>= one witness"]
+    S -->|"distinct sources"| IND["🎯 Independent<br/>a real second witness"]
+
+    ECHO --> N["N_eff — effective witnesses"]
+    RED --> N
+    IND --> N
+    N --> T["Truth Score, shrunk toward<br/>'unresolved' by how few<br/>independent witnesses there are"]
+
+    style ECHO fill:#2a1214,stroke:#f87171,color:#fca5a5
+    style RED fill:#1a1a2e,stroke:#a78bfa,color:#c4b5fd
+    style IND fill:#04241a,stroke:#00ffa3,color:#5eead4
+    style N fill:#00ffa3,stroke:#00ffa3,color:#04150e
 ```
 
 ---
 
-## Why NEFF
+## Core functionality → where it lives
 
-**N_eff** is the effective sample size: how much independent information a set of correlated
-observations actually carries. Ask nine models to check a claim and you do not have nine opinions —
-they share training data, reasoning habits, biases, and failure modes. The estimator that prices
-that is Kish's, and it has already been applied to an LLM panel in
-[*Nine Judges, Two Effective Votes*](https://arxiv.org/abs/2605.29800), which measures nine frontier
-models as carrying about **two** independent votes.
-
-So instead of counting how many models agree, NEFF asks the question that decides what the agreement
-is worth:
-
-
-
-That is the whole identity of the product. **NEFF does not claim to know the truth. It measures how
-much the consensus is worth.** And because every inference runs on Gonka, the parts compose:
-decentralized inference, several independent judges, an effective-independence measurement, the
-evidence each judge named, and a Gonka Request ID for every call so the provenance is checkable.
-
-## In ninety seconds
-
-**The problem.** Fact checkers poll several models and average the votes, assuming the models are
-independent. They are not: they share training data and make the same mistakes, and a measured panel
-of nine LLM judges is worth about [two independent votes](https://arxiv.org/abs/2605.29800). So they
-are most confident exactly when the models are wrong together.
-
-**Why not the obvious approach.** N verifiers, averaged scores, request IDs on screen — that build has
-already won a hackathon, and it ships the bug above.
-
-**How it works.** Each model is asked three things, in three separate requests: the claim; the claim
-*negated*, presented blind as though it were the original; and what evidence it is leaning on. Answer
-the claim and its negation the same way and you are reading the sentence, not the fact — vote
-discounted to zero. Lean on the same evidence as another model and you are one witness, not two. Out
-comes an **Effective Witness Count**, and the truth score is shrunk to match.
-
-**What that buys.** The screenshot above: three models unanimously agreeing, scored at **0.0 effective
-witnesses**, with the six answers that prove it. No vote can produce that sentence.
-
-**How to see it.** `./init.sh`, then click an example, or pick one of the claims the landing
-page says have already been checked here — or watch
-the pitch recording. Every inference in a check — eleven of them, twelve if a
-node has to be replaced — runs on the Gonka Network, each listed with its request ID and serving node.
-
-**Why it is not a reskin.** Neither ingredient is new on its own — the estimator is standard, and
-auditing a model by checking its own consistency is
-[published work](https://arxiv.org/abs/2306.09983). What does not exist is the combination, shipped
-to a reader: a blind-negation gate on each vote, times a query-time measurement of how much evidence
-those votes share, printed as one witness count with the transcript that justifies it. Full search in
-a full prior-art search; honest limits [below](#what-this-does-not-do).
-
----
-
-## The problem with the obvious build
-
-The obvious decentralised fact checker asks N models "is this true?", averages their answers, and
-prints a confident number. Its whole claim to neutrality is that several independent models agreed.
-
-They are not independent. Frontier language models share pretraining corpora, distillation ancestry
-and alignment pipelines, and they make the same mistakes as a result.
-[*Nine Judges, Two Effective Votes*](https://arxiv.org/abs/2605.29800) measures a panel of nine LLM
-judges and finds it "effectively provide[s] only about 2 independent votes' worth of information" —
-three quarters of the panel's nominal independence lost to correlated error, and an accuracy gap of
-8–22 points against what genuinely independent voting would achieve.
-[arXiv:2604.07650](https://arxiv.org/abs/2604.07650v1) finds the same thing from the other direction:
-the more entangled the judges, the worse the bias, and reweighting by measured independence beats
-majority voting by up to 4.5%. Majority voting only improves on a single model when errors are
-*uncorrelated* — that is the premise of the Condorcet Jury Theorem, and it is exactly the premise a
-panel of LLMs violates.
-
-So the naive design fails in the worst possible direction: it is *most* confident precisely when the
-models are wrong together. A unanimous panel prints 95% and moves on.
-
-## What NEFF does instead
-
-For every claim, each model on the panel is asked three separate, isolated questions:
-
-| Probe | What it asks | What it catches |
+| The brief asks for | NEFF does | Code |
 |---|---|---|
-| **claim** | Assess this claim. Name your evidence. | the stance and confidence |
-| **mirror** | *(the claim's negation, presented blind as if it were the original)* | a model that answers the claim and its negation the same way is reading the shape of the sentence, not the fact — its vote carries no information |
-| **evidence** | What body of evidence does this rest on? | models leaning on the *same* source are one witness, not three |
+| **Claim Extraction** — a URL, tweet or text snippet | Fetches the page, reduces it to **one atomic, checkable claim** plus a faithful negation. Compound claims are rejected — they break the mirror probe | [`lib/extract.ts`](lib/extract.ts) · [`lib/prompts.ts`](lib/prompts.ts) |
+| **Decentralized Verification** — Gonka-hosted models | 3 models × 3 probes, fired in parallel across independent Gonka nodes, with an adaptive concurrency gate and deadline-aware retries | [`lib/verify.ts`](lib/verify.ts) · [`lib/gonka.ts`](lib/gonka.ts) |
+| **Truth Score & Reasoning Trace** | `0–100` score **with its own arithmetic on screen**, a credible band, and every model's full reasoning + the evidence it named | [`lib/score.ts`](lib/score.ts) · [`METHOD.md`](METHOD.md) |
+| **Transparency UI** — Gonka Request IDs per step | A receipt ledger: **every inference, its `x-request-id`, its serving node, its engine build, latency, tokens**, and the exact request body — expandable, re-runnable by hand | [`components/ReceiptLedger.tsx`](components/ReceiptLedger.tsx) |
 
-Those two measurements produce the number the whole product exists to report:
+<div align="center">
+<img src="docs/assets/report.png" alt="The full verification report: metrics strip, the panel witness by witness, and the receipt ledger" width="82%">
+</div>
 
-> **Effective Witness Count** — how many genuinely independent verifiers are behind a verdict.
+---
 
-It is Kish's effective sample size for correlated observations — the standard design-effect
-correction, already applied to LLM panels in *Nine Judges, Two Effective Votes*:
+## Gonka Router integration
+
+> **Mandatory requirement: all AI reasoning runs on the Gonka Network.**
+> There is exactly **one** file in this repo that talks to a model, and it has no provider
+> abstraction — deliberately, so no future edit can quietly route inference elsewhere.
+
+**[`lib/gonka.ts`](lib/gonka.ts)** — every call, every retry, every receipt:
+
+```ts
+const response = await fetch(`${GONKA_BASE_URL}/chat/completions`, {
+  method: "POST",
+  headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+  body: JSON.stringify({ model, messages, temperature: 0, max_tokens }),
+  cache: "no-store",          // inference is never cacheable — and Next stalls without this
+});
+
+// The Gonka Request ID is in the *headers*, not the body.
+const requestId  = response.headers.get("x-request-id");    // req-1788473643105856296-578027
+const devshardId = response.headers.get("x-devshard-id");   // which node actually served it
+```
+
+**Multi-model consensus** — the panel, all Gonka-hosted ([`lib/models.ts`](lib/models.ts)):
+
+| Model | Role | Per-model handling |
+|---|---|---|
+| `deepseek-ai/DeepSeek-V4-Flash-0731` | witness + claim extraction | shortest output of the three, quickest on extraction |
+| `MiniMaxAI/MiniMax-M2.7` | witness + closing note | emits chain-of-thought inline in `<think>`; billed against `max_tokens` |
+| `moonshotai/Kimi-K2.6` | witness | `chat_template_kwargs: { thinking: false }` — otherwise ~2000 reasoning tokens per probe |
+
+Neutrality is enforced in the prompt and in the protocol: no probe is told what the others said,
+the mirror probe is a **separate request with no shared context**, and a model that will not name
+concrete evidence is asked to answer `UNCERTAIN` rather than guess.
+Full integration notes: **[`docs/GONKA.md`](docs/GONKA.md)**.
+
+---
+
+## The score, and why you can check it
 
 ```
-EWC = k / (1 + (k − 1) · ρ)
+Truth Score = 50 + 50 × balance × weight
+
+   balance  −1…+1   confidence-weighted stance of the panel
+   weight   n/(n+1) conjugate-prior shrinkage, n = N_eff
+   N_eff    k / (1 + (k−1)·ρ)     Kish, 1965
 ```
 
-where `k` is the count of agreeing models weighted by whether each passed its mirror probe, and `ρ`
-is their measured evidence overlap. The estimator is not the contribution here; measuring `ρ` per
-claim, at query time, from the models' own stated evidence — and putting the result in front of the
-reader as part of the verdict — is. When a model will not name a source, `ρ` for that pair cannot be
-measured, and a documented prior is used instead and **labelled as assumed on screen**; the prior is
-derived by inverting the same estimator on that paper's nine-judges-two-votes result, giving 0.44.
+Every constant is labelled on screen as one of three things — **definition** (it follows from the
+0–100 scale), **standard** (a published estimator, source named), or **chosen** (we picked it, and
+the reasoning is stated, including which way it errs).
 
-Three models on three distinct sources gives 3. Three models on one source gives exactly 1. A panel
-where every model failed the mirror probe gives 0.
+`npm run sweep:threshold` reproduces the argument for the one free parameter from the runs on disk,
+in two seconds, with no Gonka calls. Long form: **[`METHOD.md`](METHOD.md)**.
 
-The truth score is then shrunk toward "unresolved" by `EWC / (EWC + 1)`, so a verdict can only be as
-confident as the independent evidence behind it — and **no verdict ever reaches 0 or 100**, because a
-panel of language models is evidence, never proof.
+> No verdict ever reaches 0 or 100. A panel of language models is evidence, never proof.
 
-Every constant in that arithmetic is written out in [`METHOD.md`](METHOD.md), and the report itself
-opens the same derivation under the formula. Each one carries one of three honest labels: a
-**definition** that follows from the 0–100 scale and has nothing to tune, a **standard** estimator
-used as published with the source named, or a **choice** we made — with the reasoning, and with the
-direction it errs. There are two of the last kind. The shrinkage prior is set at one pseudo-witness
-because that is the smallest value that stops a single independent witness from ever producing a
-SUPPORTED verdict. The anchor-match threshold is set at 0.6 because, swept across every real
-anchor pair this build has stored, a looser value finds more echoes and tells this project's story
-better — so 0.6 credits the panel with more independence than it probably has, which is the only
-direction an error here can be defended in. `npm run sweep:threshold` reproduces that sweep from the
-stored runs, in a couple of seconds and with no Gonka calls; it prints live figures rather than the
-ones quoted in [`METHOD.md`](METHOD.md), which are a stamped snapshot.
+---
 
-### What that looks like in practice
+## Run it
 
-Every number below came off a real run against the live router. The models are not deterministic
-across nodes, so a re-run can land differently — which is the point: the number tracks what the panel
-actually did that time, not a fixed opinion about the claim.
+```bash
+cp .env.example .env      # add your Gonka Router key
+./init.sh                 # checks the toolchain, the key, and live Gonka connectivity, then starts
+```
 
-- *"Taking vitamin C supplements prevents the common cold."* — **3 of 3 models agreed it is false.**
-  All three named the same Cochrane systematic reviews: 89% measured evidence overlap, **1.1
-  effective witnesses**. The naive build reports unanimity. NEFF reports one witness, quoted three
-  times. (Reproducible from the first example button; observed at 1.08 across separate runs.)
+| Command | What it does |
+|---|---|
+| `npm test` | 78 unit tests — scoring, parsing, retry policy, recovery |
+| `npm run test:live` | live suite against the real Gonka Router |
+| `npm run check:claim -- "<claim>"` | drives one real verification and prints every probe and retry |
+| `npm run sweep:threshold` | reproduces the anchor-threshold argument from `.runs/` |
 
-- *"The Anglo-Zanzibar War of 1896 lasted under forty-five minutes."* — **all three models answered
-  SUPPORTED to the claim and SUPPORTED to its negation.** The war is famous for being about forty
-  minutes long, and the models are pattern-matching the famous fact rather than reading the boundary
-  the claim actually sets. Every vote is thrown out: 3/3 nominal, **0.0 effective witnesses, NO
-  SIGNAL**. That is the screenshot at the top of this page, and it is the clearest statement of the
-  whole argument: a unanimous panel that knows nothing.
-
-- *"The Great Wall of China is visible from the Moon with the naked eye."* — the honest counter-case.
-  One run had the three models naming three different evidence bases and the agreement **held at 3.0
-  effective witnesses**; another had them overlapping and it fell to 1.7. A metric that only ever said
-  "echo" would be worthless, and this one does not.
-
-- *A Wikipedia article on the Streisand effect* — pasted as a link. NEFF fetches the page, reduces
-  it to one atomic checkable claim, and verifies that: 3 of 3 coherent, **1.8 effective witnesses**
-  after their partial evidence overlap is priced in.
-
-Products exist that flag a single model's answer as low-trust — Cleanlab's Trustworthy Language Model
-scores self-consistency across resamples, for instance. What none of them report is *how many
-independent witnesses stand behind a verdict*, with the probe transcript that shows which one was
-discarded and why.
-
-## What you get back
-
-- a **Truth Score** from 0 to 100 with a credible band derived from the Effective Witness Count, and
-  the arithmetic that produced it, on screen
-- the **load-bearing fact** the verdict rests on, and **what evidence would flip it**
-- a **panel view**: every model's stance, confidence, reasoning, evidence base, and its answer to the
-  mirror probe next to its answer to the claim
-- a **receipt ledger**: every inference in the run with its Gonka request id, the devshard node
-  that served it, the engine build, latency, tokens, and the full request and response — expand any
-  row, copy the request body, and re-run that exact step against the same gateway yourself
-- a permanent link to the report
+---
 
 ## What this does not do
 
-A tool whose whole argument is "your confidence is overstated" has no business overstating its own.
+Stated plainly, because a fact checker that hides its limits has no business asking for trust.
 
-- **The evidence anchors are self-reported.** A model can name a source it never read, or confabulate
-  one outright. NEFF does not treat an anchor as evidence *for the claim* — it never scores a
-  source's reliability — it uses anchors only as a **dependence signal**: two models describing the
-  same evidence base are behaving alike, which is informative about correlation whether or not the
-  base is real. They are requested in English even when the claim is not, because comparing them
-  across models needs one shared vocabulary and a token matcher cannot match paraphrases across
-  languages.
-- **A failed mirror probe costs a witness even when the network was at fault.** A model whose mirror
-  call times out cannot be shown to discriminate, so it is not counted. That is deliberately the
-  conservative direction — unmeasured is not the same as independent — and the report always says
-  which it was.
-- **The Effective Witness Count is a floor on the discount, not a per-decision measurement.** The
-  estimator assumes the agreeing models are exchangeable, and they are not exactly — they differ in
-  size and training. Read it as a reason to distrust a unanimous card and go and check the
-  load-bearing fact, which is why the transcript is on the same page, and not as a calibrated
-  probability.
-- **UNCERTAIN on both sides is scored as partial, not as an echo.** A model that is honestly unsure
-  about a claim and its negation is being consistent, not pattern-matching, and is not punished as
-  though it were.
-- **Three models is a small panel.** The mechanism generalises to more, and would report more
-  precisely with more; three is what the Gonka Router currently serves.
-- **Comparing anchors is a token match, not semantic understanding.** Two models can describe the
-  same source in words that share nothing, and the overlap will read lower than it truly is. That
-  errs toward reporting *more* independence than there is, which is the direction that flatters a
-  verdict — so it is a real limit, not a conservative one.
-- **A verdict is evidence, never proof.** Nothing here reaches 0 or 100, and a Truth Score is a
-  reason to go and look at the load-bearing fact, not a reason to stop looking.
+- **Text only.** The Gonka Router rejects image content (`unsupported value "image_url"`), and the
+  brief makes Gonka mandatory for all reasoning — so there is no image path rather than a
+  non-Gonka one.
+- **No live web search.** Verification runs against the models' internal knowledge and the page you
+  paste. Anchors name *bodies of evidence*, never fabricated citations.
+- **Nothing is written to a chain.** On-chain proof is satisfied as the brief defines it
+  operationally — every inference shows its Gonka Request ID and serving node.
+- **`x.com` links cannot be read** server-side. Paste the post's text instead; it verifies the same.
 
-## How it uses Gonka
+<div align="center">
 
-Every piece of reasoning in this application runs on `api.gonkarouter.io`. There is no other
-inference provider in the codebase, not behind a flag and not commented out — `lib/gonka.ts` is the
-only module that talks to a model, and there is deliberately no provider abstraction that would let
-that change quietly. Details, including how the request ids are captured and what is *not* an
-inference, are in [`docs/GONKA.md`](docs/GONKA.md).
+**N_eff is how many independent voices are really behind an agreement.**
+Every inference routed through `api.gonkarouter.io`.
 
-Panel: `deepseek-ai/DeepSeek-V4-Flash-0731`, `MiniMaxAI/MiniMax-M2.7`, `moonshotai/Kimi-K2.6`.
-
-## Why this is not a reskin
-
-Decentralised multi-verifier fact checking has been built and has already won a hackathon, and
-confidence-weighted model consensus has too. Both ship the same statistical bug: they treat agreement
-as corroboration without ever checking whether the agreement is independent. NEFF inverts that
-primitive — it measures verifier independence at query time and prices the verdict by it, which
-produces an artifact none of them can produce: *"all three models agreed, that agreement is worth one
-witness, and here is the probe transcript that proves it."* The full search, the candidates found,
-and the argument were settled against a full prior-art search before the concept was locked.
-
-## Running it
-
-```bash
-cp .env.example .env       # then put your Gonka Router key in it
-./init.sh                  # installs, checks the router is reachable, starts on :3000
-./init.sh --check          # environment and connectivity only
-npm test                   # 50 unit tests over the scoring, parsing and URL guard
-npm run test:live          # 4 tests against the live Gonka Router
-npm run browser:check      # drives the real app in a browser and screenshots what it did
-```
-
-The key is read server-side only, from `.env`, which is git-ignored and has never been committed.
-
-For a public URL: `npm run share` tunnels the local app and prints one, with no account needed; for a
-real deployment it is four commands on Vercel. Both are in [`docs/DEPLOY.md`](docs/DEPLOY.md).
-
-## Where things are
-
-| Path | What it is |
-|---|---|
-| `lib/gonka.ts` | the only module that calls a model; captures request id, node id, usage |
-| `lib/score.ts` | the argument: discrimination, evidence overlap, Effective Witness Count, truth score |
-| `lib/prompts.ts` | the neutrality prompts, and why the mirror probe has to be blind |
-| `lib/verify.ts` | the 11-call run, streamed as each node answers |
-| `lib/extract.ts` | reading a pasted URL, and the SSRF guard that runs inside the connection |
-| `components/Report.tsx` | verdict card, panel, receipt ledger |
-| `tools/record-pitch.mjs` | records the pitch video by driving the real app through real runs |
-| `tools/browser-check.mjs` | drives the app in a browser and reports what it saw; how features get verified |
-| `METHOD.md` | every constant in the score, and where it came from |
+</div>
