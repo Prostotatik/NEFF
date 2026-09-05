@@ -534,3 +534,23 @@ Getting that frame was itself a problem worth solving. Three live runs in a row 
 now replays a stored run's own SSE events into the page with `/api/verify` stubbed. Everything above
 the network is real: the real component, the real stream parsing, the real state machine, the real
 sphere. It costs no inferences, and it makes the half-filled frame reproducible instead of lucky.
+
+### The 429 backoff, caught working
+
+A run made immediately after several back-to-back live passes hit the router's rate limit hard — and
+the receipts show exactly what the backoff is for:
+
+```
+mirror  Kimi-K2.6                attempts=2  19.6s  ok
+mirror  MiniMax-M2.7             attempts=3  18.0s  ok
+mirror  DeepSeek-V4-Flash-0731   attempts=3  18.6s  ok
+direct  MiniMax-M2.7             attempts=3   1.3s  error — rate limiting
+```
+
+Three probes rode out the window and came back; the ones that did not had spent their attempts
+before it cleared. Under the old 700 ms base every one of those would have failed inside three
+seconds. This is the same self-inflicted congestion recorded above — a judge clicking verify once
+does not produce it — but it is the first time the mechanism has been observed rescuing a probe
+rather than merely being argued for.
+
+The last measurement on a rested router remains the honest headline number: 36 probes, one failure.
