@@ -40,7 +40,8 @@ comes an **Effective Witness Count**, and the truth score is shrunk to match.
 **What that buys.** The screenshot above: three models unanimously agreeing, scored at **0.0 effective
 witnesses**, with the six answers that prove it. No vote can produce that sentence.
 
-**How to see it.** `./init.sh`, then click an example — or watch
+**How to see it.** `./init.sh`, then click an example, or pick one of the claims the landing
+page says have already been checked here — or watch
 [the recording](evidence/pitch/pitch.mp4). Every inference in a check — eleven of them, twelve if a
 node has to be replaced — runs on the Gonka Network, each listed with its request ID and serving node.
 
