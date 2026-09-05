@@ -664,3 +664,18 @@ match the code. The deadline-clipping fix is real and matches its description. 2
 maximum across twelve more runs than when it was first written. The idle rail is a clear improvement
 on a panel of em-dashes — by the component's own admission that the old state was "a report of a run
 that has not happened".
+
+### Checking the parser fix did not cost anything
+
+Requiring the probe's own key could in principle turn healthy answers into failures, so it was
+replayed over every captured 200 response from this session's raw harness — 62 of them, real
+router output — comparing the old path against the new:
+
+```
+captured 200-responses: 62   usable now: 59   unusable now: 3   newly failing: 0
+```
+
+Nothing that used to parse now fails. The three unusable ones are the truncated MiniMax responses
+that were already unusable and are now the retry-and-salvage path's problem rather than the parser's.
+The only behavioural change is the intended one: an object missing the field the probe asked for no
+longer arrives as a successful witness that "named no source".
