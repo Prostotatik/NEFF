@@ -233,6 +233,11 @@ function ThePanel({ run }: { run: VerificationRun }) {
                 <span className={s.witnessMetaLabel}>
                   {w.stance ? `confidence ${w.confidence.toFixed(2)}` : shortError(direct?.error)}
                 </span>
+                {/* A recovered stance counts toward the verdict, so where it came
+                    from belongs on the row, not only behind the disclosure. */}
+                {direct?.recovered ? (
+                  <span className={s.anchorRecovered}>recovered from its reasoning</span>
+                ) : null}
               </div>
 
               <div className={s.witnessCol}>

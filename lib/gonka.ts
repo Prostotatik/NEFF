@@ -268,8 +268,15 @@ export async function gonkaChat(options: GonkaCallOptions): Promise<GonkaCallRes
       // The deadline check at the top of the loop is what keeps any of these
       // from overrunning the phase the caller budgeted.
       if (!error.timedOut) {
-        const base = error.retryAfterMs || 700 * 2 ** (attempt - 1);
-        await sleep(base + Math.random() * 600);
+        const wait = (error.retryAfterMs || 700 * 2 ** (attempt - 1)) + Math.random() * 600;
+        // The wait is inside the phase budget too. Sleeping past the deadline
+        // and then discovering there is no time left overruns the phase by up to
+        // the whole backoff — which is exactly what `deadline` exists to stop,
+        // and a gateway asking for nine seconds makes that a real overrun rather
+        // than a rounding error. If the wait would not leave room to send, stop.
+        const left = deadline ? deadline - Date.now() : Number.POSITIVE_INFINITY;
+        if (wait + MIN_ATTEMPT_MS > left) break;
+        await sleep(wait);
       }
     }
   }

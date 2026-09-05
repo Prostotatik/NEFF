@@ -103,8 +103,19 @@ const PREP_BUDGET_MS = 42_000;
  */
 const ADJUDICATION_BUDGET_MS = 44_000;
 
-/** Per-send leash inside that phase: two of these per node, then the next node. */
-const ADJUDICATION_ATTEMPT_MS = 14_000;
+/**
+ * Per-node leash inside that phase, one send each, then the next node.
+ *
+ * The probe phase gets a short leash and a retry, because a cut-off probe leaves
+ * the router holding a finished completion that the re-send is answered from in
+ * seconds. That does not transfer here, and it was tried: at 14s with two sends
+ * per node, both sends timed out on three runs out of four and the closing note
+ * went missing. The difference is that the closing note is a long generation
+ * from a prompt no other request shares, so there is nothing warm to come back
+ * to — it simply needs the time. Twenty seconds covers MiniMax's measured 7.1s,
+ * 7.8s and 11.7s with margin, and the phase budget still fits two nodes.
+ */
+const ADJUDICATION_ATTEMPT_MS = 20_000;
 
 /**
  * Token ceiling for the closing note specifically.
@@ -585,20 +596,13 @@ export async function* verify(
         messages,
         purpose: "adjudicate",
         maxTokens: ADJUDICATION_MAX_TOKENS,
-        // Short leash, and one retry on the *same* node before failing over.
-        //
-        // Measured: the adjudicator timed out at 24s on every run of a four-claim
-        // suite, four times out of four, and each run then spent another 16s
-        // failing over. Waiting longer is not the fix and neither is moving on
-        // sooner — asking the same node again is, because the router finishes
-        // the generation whether or not the client waited and hands it to the
-        // next identical request. So: twelve seconds, then twelve more, then the
-        // next model.
+        // One send per node, then the next node. See ADJUDICATION_ATTEMPT_MS for
+        // why this phase does not get the probe phase's retry: there is nothing
+        // warm to retry into when the prompt is unique to this run.
         timeoutMs: Math.min(model.timeoutMs, ADJUDICATION_ATTEMPT_MS, remaining),
-        firstAttemptMs: Math.min(model.timeoutMs, ADJUDICATION_ATTEMPT_MS, remaining),
         deadline: adjudicationDeadline,
         chatTemplateKwargs: model.chatTemplateKwargs,
-        maxAttempts: 2,
+        maxAttempts: 1,
         signal,
       });
       const receiptIndex = pushReceipt(receipt);
