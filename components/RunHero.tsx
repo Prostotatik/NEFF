@@ -8,6 +8,13 @@ import { ArrowRight, Copy, ModelMark, ShieldCheck } from "./Icons";
 import { avatarStyle, hueFor } from "./palette";
 import s from "./neff.module.css";
 
+/**
+ * The id of the wrapper around the full report, further down the same page.
+ * Shared with `ClaimConsole`, which renders it, so the anchor and its target
+ * cannot drift apart.
+ */
+export const FULL_REPORT_ID = "full-report";
+
 export interface PanelStatus {
   ok: boolean;
   panel?: Array<{ id: string; label: string; online: boolean }>;
@@ -271,9 +278,13 @@ export function DetailsRail({
       </div>
 
       {run ? (
-        <a className={s.railButton} href={`/r/${run.id}`}>
+        // The full report is already on this page, below the fold — this used to
+        // link to `/r/<id>`, which reloaded the page to show the same thing and
+        // read as a dead button. The permalink is still offered under the
+        // report, where someone looking for a shareable link will be.
+        <a className={s.railButton} href={`#${FULL_REPORT_ID}`}>
           View Full Report
-          <ArrowRight size={17} />
+          <ArrowRight size={17} className={s.railButtonDown} />
         </a>
       ) : (
         <span className={s.railButton} aria-disabled="true">

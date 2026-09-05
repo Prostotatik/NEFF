@@ -80,6 +80,20 @@ body {
   padding: 0;
 }
 
+/* "View Full Report" is a link to a section of this same page rather than a
+   navigation, so the jump is animated: an instant teleport past the verdict card
+   reads as the page having been replaced. The reduced-motion block below turns
+   it back into a jump, which is the whole point of that setting. */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   background: var(--surface);
   color: var(--paper);

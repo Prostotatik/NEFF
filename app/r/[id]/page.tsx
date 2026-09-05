@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Report } from "@/components/Report";
 import { Masthead, Footer } from "@/components/Chrome";
-import { DetailsRail, OrbitalStage } from "@/components/RunHero";
+import { DetailsRail, FULL_REPORT_ID, OrbitalStage } from "@/components/RunHero";
 import { Mechanism } from "@/components/Mechanism";
 import { loadRun } from "@/lib/store";
 import s from "@/components/neff.module.css";
@@ -72,7 +72,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           what makes the numbers below mean anything. */}
       <Mechanism />
 
-      <Report run={run} />
+      {/* Same anchor as the console: this page renders the same hero rail, and
+          its "View Full Report" button scrolls rather than navigating. */}
+      <div id={FULL_REPORT_ID} className={s.reportAnchor}>
+        <Report run={run} />
+      </div>
       <Footer />
     </main>
   );

@@ -5,7 +5,7 @@ import { CALLS_PER_RUN, PANEL } from "@/lib/models";
 import type { ClaimPrep, ProbeResult, ReceiptView, RunEvent, VerificationRun } from "@/lib/types";
 import { Report } from "./Report";
 import { Mechanism } from "./Mechanism";
-import { DetailsRail, OrbitalStage, type PanelStatus } from "./RunHero";
+import { DetailsRail, FULL_REPORT_ID, OrbitalStage, type PanelStatus } from "./RunHero";
 import { IdleRail } from "./IdleRail";
 import { ArrowRight, ImageIcon, LinkIcon, TextIcon, XIcon } from "./Icons";
 import s from "./neff.module.css";
@@ -322,7 +322,12 @@ export function ClaimConsole() {
 
       {run ? (
         <>
-          <Report run={run} />
+          {/* The id is what "View Full Report" in the hero rail scrolls to. It
+              lives on a wrapper rather than inside Report so the anchor does not
+              depend on that component's markup. */}
+          <div id={FULL_REPORT_ID} className={s.reportAnchor}>
+            <Report run={run} />
+          </div>
           <p>
             <a className={s.permalink} href={`/r/${run.id}`}>
               permanent link to this report → /r/{run.id}

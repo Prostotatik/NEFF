@@ -711,6 +711,25 @@
   box-shadow: 0 0 18px rgba(0, 255, 163, 0.15);
 }
 
+/* The button moves the reader down this page, not across to another one, so the
+   arrow points where they are about to go. It leans a little further on hover —
+   the one place in this component where the motion says "keep going". */
+.railButtonDown {
+  transform: rotate(90deg);
+  transition: transform 160ms ease;
+}
+
+.railButton:hover .railButtonDown {
+  transform: rotate(90deg) translateX(2px);
+}
+
+/* The report should land under the masthead rather than flush with the top of
+   the viewport, and the heading it starts with is what the reader is looking
+   for. */
+.reportAnchor {
+  scroll-margin-top: 1.25rem;
+}
+
 /* --- S6 idle · what has already been checked ------------------------------ */
 
 /* A segmented control rather than two links: the two lists occupy the same slot
