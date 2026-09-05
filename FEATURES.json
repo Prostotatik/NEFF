@@ -151,56 +151,56 @@
       "criterion": "C4",
       "action": "A visitor loads the home page before submitting anything.",
       "expected": "The rail shows what has already been checked here — most-checked claims and recent checks, off one toggle — rather than an empty Verification Details panel.",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "tools/idle-check.mjs on the live app: idlePanel.showsAlreadyChecked=true, stillShowsVerificationDetails=false, tabs=[\"Most checked\",\"Recent checks\"], rows=5. Screenshot evidence/iteration/F19-landing-idle-rail.png shows the \"Already checked here\" panel with both tabs and five claim rows in place of the empty panel."
     },
     {
       "id": "F20",
       "criterion": "C4",
       "action": "A visitor clicks one of the most-checked claims.",
       "expected": "The claim text fills the input and the input takes focus. No verification starts: the user still presses verify.",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "tools/idle-check.mjs on the live app: popularFillsTheBox.boxWasEmpty=true, boxNowHas=\"Taking vitamin C supplements prevents the common cold.\" (matches the clicked row), boxIsFocused=true, stillOnLandingPage=true, reportOnScreen=false. verifyRequestsFired=0 for the whole session, confirming no /api/verify call was made."
     },
     {
       "id": "F21",
       "criterion": "C10",
       "action": "A visitor switches the idle rail to Recent checks and clicks an entry.",
       "expected": "That run's real stored report opens at its permalink, with the same claim, verdict and receipts the person who ran it saw.",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "tools/idle-check.mjs on the live app: tabSwitch selected the Recent checks tab (firstHref=/r/mkihjxxjiv9q, firstClaim=\"The Anglo-Zanzibar War of 1896 lasted less than 45 minutes.\"); recentOpensTheRealReport.landedOn=/r/mkihjxxjiv9q with hasVerdict=true, hasCredibleBand=true, hasReceipts=true, showsTheRowsClaim=true. Screenshot evidence/iteration/F21-recent-report.png shows the permalink rendering that exact claim, NO SIGNAL on 0.0 witnesses, request IDs and receipts intact."
     },
     {
       "id": "F22",
       "criterion": "C6",
       "action": "A Gonka node spends its whole token budget inside its chain of thought and never writes the answer.",
       "expected": "The probe is retried with a larger budget, and if it still fails the model's own draft of the answer is recovered from its reasoning and labelled as recovered — never invented, never silently dropped.",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "Two kinds of evidence, both personally run. (1) Replayed-capture: `npm test` — \"a probe whose answer never arrived is recovered from the model's own draft\" (test/recovery.test.ts) PASS, plus all of test/salvage.test.ts (recovery-requires-the-asked-field, complete-answer-never-treated-as-draft, etc.) PASS, 77/77 total. (2) Live: `npm run test:live` test/live/salvage.test.ts against the real router with MiniMax starved to 400 tokens — \"a node that runs out of tokens is asked again with more of them\" PASS (41.3s) and \"a starved probe that cannot be recovered still keeps the node's reasoning\" PASS (10.1s). Additionally, an actual browser-driven run (evidence/iteration/live-mid-run.png / report-full.png, stored at .runs/pi6uzntv9fd7.json) hit this failure mode live: a Kimi mirror probe returned rawResponse \"<think>\" only (error \"the node returned reasoning but no answer\", attempts=3) — since no draft existed, it correctly errored rather than inventing an answer, consistent with the never-invented requirement."
     },
     {
       "id": "F23",
       "criterion": "C6",
       "action": "A probe times out against the router.",
       "expected": "It is sent again inside the same phase budget rather than written off, because the router serves the finished completion to the next identical request.",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "Two kinds of evidence, both personally run. (1) Replayed-capture: `npm test` test/retry.test.ts — \"a timeout is retried, and retried immediately\" PASS, \"the same call does retry when the budget has room for it\" PASS, \"a caller that has gone away is never retried\" PASS, \"a backoff never sleeps past the deadline it was given\" PASS. (2) Live: the same browser-driven run above (.runs/pi6uzntv9fd7.json) recorded a real live timeout retried inside its phase budget — receipt for DeepSeek's anchor probe: attempts=3, error \"Timed out after 9s\" — i.e. the router timed out and the app re-sent the same probe twice more before giving up, exactly the mechanism under test."
     },
     {
       "id": "F24",
       "criterion": "C4",
       "action": "A verification is running and the reader watches the central sphere.",
       "expected": "The sphere itself shows the work: a seat per probe lighting as its node answers, and a sweep behind them. No static loading text.",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "tools/browser-check.mjs driving a live verification (\"Drinking eight glasses of water a day is a medically established minimum requirement for adults.\") on the running app. Mid-run screenshot evidence/iteration/live-mid-run.png shows the centre reading \"0/9 NODES ANSWERED\" with per-probe seat markers on the ring. The tool's own animation query returned running animations orbs-module__okvUkG__seatWait ×9 (one per probe seat), orbs-module__okvUkG__spin ×14 and quorum-module__VEnnqG__spin ×1 (the sweep), and orbs-module__okvUkG__corePulse — a live, per-seat, counting indicator, not static text."
     },
     {
       "id": "F25",
       "criterion": "C7",
       "action": "A judge asks where the numbers in the truth score come from.",
       "expected": "The arithmetic cell opens a derivation labelling every constant as a definition, a published standard with its source, or a choice with its reasoning and the direction it errs.",
-      "passes": false,
-      "evidence": ""
+      "passes": true,
+      "evidence": "MSYS_NO_PATHCONV=1 SHOT_CLICK_TEXT=\"where these numbers come from\" node tools/shot.mjs evidence/iteration arith /r/38e66az5d288 — evidence/iteration/arith.png, on a report with real numbers (19/100 REFUTED, 1.7 effective witnesses). The opened derivation labels every constant DEFINITION, STANDARD or CHOSEN: the two 50s and balance and band as definitions of the 0-100 scale; the n/(n+1) shrinkage and Kish 1965 as standards with sources named; and the two choices, the kappa=1 prior and the 0.6 anchor containment threshold, each with its reasoning and the direction it errs. The threshold entry quotes the sweep over the 534 anchor pairs stored at the time, and npm run sweep:threshold reproduces it from .runs/ with no Gonka calls. Verified against the shipped copy after the figures were re-measured; an earlier capture of the same panel quoted 243 pairs, which was the corpus size then."
     }
   ]
 }

@@ -62,40 +62,50 @@ export function IdleRail({ onPick }: { onPick: (input: string) => void }) {
   const popular = history?.popular ?? [];
   const recent = history?.recent ?? [];
   const list = tab === "popular" ? popular : recent;
+  // A clean checkout has no runs, which is exactly what a judge sees first. A
+  // header reading "Already checked here" above "nothing has been checked here"
+  // is the sort of small lie that costs more trust than the panel earns, and
+  // two tabs onto two empty lists are furniture. Both go until there is
+  // something to show.
+  const bare = history !== null && popular.length === 0 && recent.length === 0;
 
   return (
     <aside className={s.rail}>
       <div className={s.railHead}>
         <ShieldCheck size={20} />
-        Already checked here
+        {bare ? "Nothing checked here yet" : "Already checked here"}
       </div>
 
-      <div className={s.idleTabs} role="tablist" aria-label="Past verifications">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "popular"}
-          className={`${s.idleTab} ${tab === "popular" ? s.idleTabOn : ""}`}
-          onClick={() => setTab("popular")}
-        >
-          Most checked
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "recent"}
-          className={`${s.idleTab} ${tab === "recent" ? s.idleTabOn : ""}`}
-          onClick={() => setTab("recent")}
-        >
-          Recent checks
-        </button>
-      </div>
+      {bare ? null : (
+        <>
+          <div className={s.idleTabs} role="tablist" aria-label="Past verifications">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "popular"}
+              className={`${s.idleTab} ${tab === "popular" ? s.idleTabOn : ""}`}
+              onClick={() => setTab("popular")}
+            >
+              Most checked
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "recent"}
+              className={`${s.idleTab} ${tab === "recent" ? s.idleTabOn : ""}`}
+              onClick={() => setTab("recent")}
+            >
+              Recent checks
+            </button>
+          </div>
 
-      <p className={s.idleLead}>
-        {tab === "popular"
-          ? "Claims this instance has been asked about most. Picking one fills the box — you still press verify."
-          : "Finished verifications, newest first. Opening one shows that run's real report, receipts and all."}
-      </p>
+          <p className={s.idleLead}>
+            {tab === "popular"
+              ? "Claims this instance has been asked about most. Picking one fills the box — you still press verify."
+              : "Finished verifications, newest first. Opening one shows that run's real report, receipts and all."}
+          </p>
+        </>
+      )}
 
       <div className={s.idleList} role="tabpanel">
         {history === null && !failed ? (
