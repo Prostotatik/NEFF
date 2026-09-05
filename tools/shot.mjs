@@ -93,6 +93,37 @@ await send("Runtime.enable");
 const nav = await send("Page.navigate", { url: `http://localhost:3000${urlPath}` });
 if (nav?.errorText || !nav?.frameId) console.error("navigate:", JSON.stringify(nav));
 await sleep(settle);
+
+// Optional: open a disclosure before capturing. A collapsed panel screenshots as
+// nothing, and several of the things worth reviewing — the arithmetic
+// derivation, a witness's reasoning trace — only exist once something is
+// clicked. SHOT_CLICK takes a CSS selector; SHOT_CLICK_TEXT matches the visible
+// text of a button, which survives CSS-module class name hashing.
+const clickSelector = process.env.SHOT_CLICK || "";
+const clickText = process.env.SHOT_CLICK_TEXT || "";
+if (clickSelector || clickText) {
+  const clicked = (
+    await send("Runtime.evaluate", {
+      expression: `(() => {
+        const bySelector = ${JSON.stringify(clickSelector)}
+          ? document.querySelector(${JSON.stringify(clickSelector)})
+          : null;
+        const byText = ${JSON.stringify(clickText)}
+          ? [...document.querySelectorAll('button, a, summary')].find((el) =>
+              (el.innerText || '').toLowerCase().includes(${JSON.stringify(clickText.toLowerCase())}))
+          : null;
+        const target = bySelector || byText;
+        if (!target) return 'not found';
+        target.click();
+        return 'clicked: ' + (target.innerText || target.tagName).slice(0, 60);
+      })()`,
+      returnByValue: true,
+    })
+  )?.result?.value;
+  console.error("click:", clicked);
+  await sleep(900);
+}
+
 const shotHeight = Math.min(
   30000,
   Math.max(

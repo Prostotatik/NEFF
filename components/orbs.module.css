@@ -151,6 +151,91 @@
   transform-box: fill-box;
 }
 
+/* --- the working indicator ----------------------------------------------- */
+
+/* The sweep is fast enough to read as activity at a glance and slow enough not
+   to nag: one lap every 2.6s, which is roughly the beat of the probes landing
+   on a warm router. Same transform-origin trick as the cage above — an SVG
+   group needs fill-box or it rotates about the viewport origin. */
+.sweepRotor {
+  animation: spin 2.6s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* A seat with nothing in it yet. The stagger is per-seat, so the ring reads as
+   a set of independent things waiting rather than one thing blinking. */
+.seatWaiting {
+  animation: seatWait 1.9s ease-in-out infinite;
+}
+
+/* A seat that has just been filled by a node answering. */
+.seatFilled {
+  animation: seatLand 620ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.seatFlash {
+  animation: seatFlash 900ms ease-out both;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.corePulse {
+  animation: corePulse 3.1s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes seatWait {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+  50% {
+    opacity: 0.42;
+  }
+}
+
+@keyframes seatLand {
+  from {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.35);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+}
+
+@keyframes seatFlash {
+  from {
+    transform: scale(0.4);
+    opacity: 0.55;
+  }
+  to {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes corePulse {
+  0%,
+  100% {
+    transform: scale(0.86);
+    opacity: 0.18;
+  }
+  50% {
+    transform: scale(1.14);
+    opacity: 0.45;
+  }
+}
+
 .twinkle {
   animation: twinkle 3s ease-in-out infinite;
 }

@@ -21,6 +21,22 @@ export function stripThinking(text: string): string {
   return out.trim();
 }
 
+/**
+ * The chain of thought on its own, with the tags removed.
+ *
+ * MiniMax-M2.7 emits it inline in a `<think>` block; the router returns Kimi's
+ * in a separate `reasoning` field on the message. Either way this is the part of
+ * the answer the model actually did its work in, and the structured object it
+ * writes afterwards is a summary of it. When that summary drops something, this
+ * is where the dropped thing still exists.
+ */
+export function extractThinking(text: string): string {
+  const closed = [...text.matchAll(/<think>([\s\S]*?)<\/think>/gi)].map((m) => m[1]);
+  if (closed.length > 0) return closed.join("\n\n").trim();
+  const open = text.match(/<think>([\s\S]*)$/i);
+  return open ? open[1].trim() : "";
+}
+
 /** Strip a markdown code fence, with or without a language tag. */
 function stripFence(text: string): string {
   const fenced = text.match(/```(?:json|jsonc|javascript)?\s*([\s\S]*?)```/i);
@@ -32,10 +48,7 @@ function stripFence(text: string): string {
  * string literals. A regex cannot do this correctly and a greedy `{[\s\S]*}`
  * swallows trailing prose.
  */
-function firstBalancedObject(text: string): string | null {
-  const start = text.indexOf("{");
-  if (start === -1) return null;
-
+function balancedObjectAt(text: string, start: number): string | null {
   let depth = 0;
   let inString = false;
   let escaped = false;
@@ -64,6 +77,35 @@ function firstBalancedObject(text: string): string | null {
   return null;
 }
 
+function firstBalancedObject(text: string): string | null {
+  const start = text.indexOf("{");
+  return start === -1 ? null : balancedObjectAt(text, start);
+}
+
+/**
+ * Every balanced JSON object in a string, outermost first at each start point.
+ *
+ * Used only by the salvage path, which has to look inside a chain of thought
+ * where the object it wants is buried in prose and may be preceded by smaller
+ * example objects the model was talking about.
+ */
+function allBalancedObjects(text: string, limit = 24): string[] {
+  const out: string[] = [];
+  let from = 0;
+  while (out.length < limit) {
+    const start = text.indexOf("{", from);
+    if (start === -1) break;
+    const found = balancedObjectAt(text, start);
+    if (found) {
+      out.push(found);
+      from = start + found.length;
+    } else {
+      from = start + 1;
+    }
+  }
+  return out;
+}
+
 /**
  * Best-effort structured parse of a model response.
  * Returns null when nothing valid is present — callers must treat that as a
@@ -84,6 +126,65 @@ export function parseJsonObject<T>(raw: string): T | null {
     }
   }
   return null;
+}
+
+/** Where a structured answer came from. `draft` means it was recovered. */
+export type AnswerOrigin = "answer" | "draft";
+
+export interface ParsedAnswer<T> {
+  value: T;
+  origin: AnswerOrigin;
+}
+
+/**
+ * Parse a model response, and if the answer itself is unreadable, recover the
+ * model's own draft of it from inside its chain of thought.
+ *
+ * Measured on the Gonka panel: MiniMax-M2.7 writes the object it is about to
+ * return *inside* its `<think>` block first — "Let me structure this properly:
+ * ```json { "anchors": [ ... ] }```" — and only then repeats it after the block
+ * closes. When the token ceiling lands mid-thought, the block never closes, the
+ * repeat never happens, and everything the model found is discarded even though
+ * it had already written the answer out in full. That is the gap between what a
+ * model reasoned and what this app surfaced.
+ *
+ * The recovered object is the model's own JSON for this same request. Nothing is
+ * synthesised, inferred or merged: a candidate is used only if it parses and
+ * carries the field this probe asked for. `origin` is carried through to the
+ * report so a reader is told when an answer came from the working rather than
+ * from the conclusion — a recovered answer is a real answer, but the reader is
+ * entitled to know it was recovered.
+ */
+export function parseAnswer<T>(raw: string, requiredKey: string): ParsedAnswer<T> | null {
+  const direct = parseJsonObject<T>(raw);
+  if (direct && requiredKey in (direct as Record<string, unknown>)) {
+    return { value: direct, origin: "answer" };
+  }
+
+  const thinking = extractThinking(raw);
+  if (thinking) {
+    // Last first: a model that drafts twice has refined the later one, and the
+    // final draft is the one it was about to return.
+    for (const candidate of allBalancedObjects(thinking).reverse()) {
+      try {
+        const parsed = JSON.parse(candidate) as unknown;
+        if (
+          parsed &&
+          typeof parsed === "object" &&
+          !Array.isArray(parsed) &&
+          requiredKey in (parsed as Record<string, unknown>)
+        ) {
+          return { value: parsed as T, origin: "draft" };
+        }
+      } catch {
+        // A truncated draft is not a draft. Try the one before it.
+      }
+    }
+  }
+
+  // Nothing carried the required field. An object without it is still better
+  // than nothing for callers that only wanted prose, so hand back what parsed.
+  return direct ? { value: direct, origin: "answer" } : null;
 }
 
 /** Coerce a model's stance word onto our three-valued scale. */

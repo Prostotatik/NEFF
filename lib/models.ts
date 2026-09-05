@@ -24,6 +24,20 @@ export interface PanelModel {
    */
   timeoutMs: number;
   /**
+   * Ceiling on the first send only.
+   *
+   * The router's cold latency has a very long tail — MiniMax measured at 5.3,
+   * 6.4, 12.1, 13.2, 22.6, 41.7, 44.6, 47.2 and 64.0 seconds on ten
+   * cache-busted probes — but it finishes the generation whether or not the
+   * client is still waiting, and hands the result to the next identical
+   * request. Cutting the first send short and asking again therefore beats
+   * waiting: four probes cut off at 4s came back on the re-send in 1.5s, 7.1s,
+   * 9.6s and 15.1s. These values sit above the median cold response and well
+   * below the tail, so a normal probe is never cut and a stalled one is
+   * abandoned early enough for the second ask to fit inside the phase budget.
+   */
+  firstAttemptMs: number;
+  /**
    * Token ceiling per call. Chain of thought is billed against this on every
    * model in the panel — MiniMax emits it inline in a <think> block, Kimi
    * returns it in a separate `reasoning` field — so a budget sized for the
@@ -47,6 +61,7 @@ export const PANEL: PanelModel[] = [
     house: "deepseek-ai",
     sigil: "DS",
     timeoutMs: 45_000,
+    firstAttemptMs: 14_000,
     maxTokens: 1400,
   },
   {
@@ -55,6 +70,7 @@ export const PANEL: PanelModel[] = [
     house: "MiniMaxAI",
     sigil: "MM",
     timeoutMs: 70_000,
+    firstAttemptMs: 18_000,
     maxTokens: 3200,
   },
   {
@@ -63,6 +79,7 @@ export const PANEL: PanelModel[] = [
     house: "moonshotai",
     sigil: "KM",
     timeoutMs: 60_000,
+    firstAttemptMs: 20_000,
     maxTokens: 2000,
     chatTemplateKwargs: { thinking: false },
   },

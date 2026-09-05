@@ -6,6 +6,7 @@ import type { ClaimPrep, ProbeResult, ReceiptView, RunEvent, VerificationRun } f
 import { Report } from "./Report";
 import { Mechanism } from "./Mechanism";
 import { DetailsRail, OrbitalStage, type PanelStatus } from "./RunHero";
+import { IdleRail } from "./IdleRail";
 import { ArrowRight, ImageIcon, LinkIcon, TextIcon, XIcon } from "./Icons";
 import s from "./quorum.module.css";
 
@@ -70,9 +71,15 @@ export function ClaimConsole() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<PanelStatus | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   // `running` in state drives the UI; the ref is what guards re-entry, because
   // the state value captured in this callback is a render behind.
   const runningRef = useRef(false);
+
+  // Idle means nothing has been asked yet: no run in flight, no probes back, no
+  // report on screen. An error is still idle — the claim was not verified, so
+  // there is no verification to detail.
+  const idle = !running && !run && probes.length === 0;
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
@@ -210,6 +217,7 @@ export function ClaimConsole() {
           >
             <div className={s.field}>
               <textarea
+                ref={inputRef}
                 className={s.input}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -275,7 +283,22 @@ export function ClaimConsole() {
 
         <OrbitalStage run={run} probes={probes} running={running} status={status} />
 
-        <DetailsRail run={run} receipts={receipts} running={running} status={status} />
+        {/* Before anything has been asked there is no verification to detail, so
+            the rail shows what has actually been checked here instead of a
+            report shell with every field reading "—". The moment a run starts,
+            the details panel takes the slot back. */}
+        {idle ? (
+          <IdleRail
+            onPick={(value) => {
+              setInput(value);
+              // Deliberately not submitted. Eleven inferences are spent on the
+              // user's say-so, not on a click that was meant to read something.
+              inputRef.current?.focus();
+            }}
+          />
+        ) : (
+          <DetailsRail run={run} receipts={receipts} running={running} status={status} />
+        )}
       </div>
 
       {/* --- S2 : the probe cards --------------------------------------- */}

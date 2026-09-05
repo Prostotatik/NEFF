@@ -19,8 +19,10 @@ import { GonkaError, gonkaChat, type GonkaReceipt } from "./gonka.ts";
 import { ADJUDICATOR, PANEL, labelFor } from "./models.ts";
 import { fetchPage, looksLikeUrl } from "./extract.ts";
 import {
+  extractThinking,
   normaliseConfidence,
   normaliseStance,
+  parseAnswer,
   parseJsonObject,
   stringList,
   textField,
@@ -80,15 +82,18 @@ const MAX_IN_FLIGHT = 6;
  * is cut and reported as unreachable — which costs the panel a witness, visibly,
  * rather than costing the user the verdict.
  */
-const PROBE_PHASE_BUDGET_MS = 60_000;
+const PROBE_PHASE_BUDGET_MS = 50_000;
 
 /**
  * Ceiling on claim preparation, which is a single point of failure at the front
  * of every run: three attempts at the model's full timeout could spend more than
  * two minutes before a single probe was fired.
  */
-const PREP_TIMEOUT_MS = 30_000;
-const PREP_ATTEMPTS = 2;
+const PREP_TIMEOUT_MS = 18_000;
+const PREP_FIRST_ATTEMPT_MS = 12_000;
+const PREP_ATTEMPTS = 3;
+/** Ceiling on the whole preparation phase, retries included: 12 + 12 + 18. */
+const PREP_BUDGET_MS = 42_000;
 
 /**
  * Ceiling on the whole closing-note phase, failover included. Any one node gets
@@ -96,7 +101,7 @@ const PREP_ATTEMPTS = 2;
  * would add up to, because by this point the verdict is already decided and the
  * reader is waiting on prose.
  */
-const ADJUDICATION_BUDGET_MS = 55_000;
+const ADJUDICATION_BUDGET_MS = 40_000;
 
 /** Admission control for outbound Gonka calls. */
 function createGate(limit: number) {
@@ -169,11 +174,21 @@ async function runProbe(
       purpose: kind,
       maxTokens: model.maxTokens,
       timeoutMs,
+      firstAttemptMs: model.firstAttemptMs,
+      // Retries share the phase budget rather than extending it, so a probe that
+      // is asked twice still cannot hold the report open past the deadline.
+      deadline,
       chatTemplateKwargs: model.chatTemplateKwargs,
       signal,
     });
 
-    const parsed = parseJsonObject<Record<string, unknown>>(text);
+    // The model's own working, kept whatever happens to the structured answer.
+    // It is the only copy of anything the answer summarised away.
+    const thinking = extractThinking(text) || receipt.reasoning || "";
+    const parsed = parseAnswer<Record<string, unknown>>(
+      text,
+      kind === "anchor" ? "anchors" : "stance",
+    );
     if (!parsed) {
       return {
         probe: {
@@ -181,18 +196,34 @@ async function runProbe(
           modelId: model.id,
           status: "failed",
           error: "The node replied, but not with a structured answer this probe could read.",
+          // Failed for scoring, but the node did say something, and what it said
+          // is evidence the reader is entitled to. Showing an error where prose
+          // exists is the difference between "this node was silent" and "this
+          // node reasoned and we threw it away".
+          thinking: thinking.slice(0, 4000),
+        },
+        receipt,
+      };
+    }
+    const recovered = parsed.origin === "draft";
+
+    if (kind === "anchor") {
+      const anchors = stringList(parsed.value.anchors, 3);
+      return {
+        probe: {
+          kind,
+          modelId: model.id,
+          status: "ok",
+          anchors,
+          recovered,
+          thinking: thinking.slice(0, 4000),
         },
         receipt,
       };
     }
 
-    if (kind === "anchor") {
-      const anchors = stringList(parsed.anchors, 3);
-      return { probe: { kind, modelId: model.id, status: "ok", anchors }, receipt };
-    }
-
-    const stance = normaliseStance(parsed.stance);
-    const confidence = normaliseConfidence(parsed.confidence);
+    const stance = normaliseStance(parsed.value.stance);
+    const confidence = normaliseConfidence(parsed.value.confidence);
     if (!stance || confidence === null) {
       return {
         probe: {
@@ -200,13 +231,14 @@ async function runProbe(
           modelId: model.id,
           status: "failed",
           error: "The node answered without a readable stance or confidence.",
+          thinking: thinking.slice(0, 4000),
         },
         receipt,
       };
     }
 
-    const reasoning = textField(parsed.reasoning);
-    const evidence = textField(parsed.key_evidence, 300);
+    const reasoning = textField(parsed.value.reasoning);
+    const evidence = textField(parsed.value.key_evidence, 300);
     return {
       probe: {
         kind,
@@ -215,6 +247,8 @@ async function runProbe(
         stance,
         confidence,
         reasoning: evidence ? `${reasoning}\n\nDecisive evidence: ${evidence}` : reasoning,
+        recovered,
+        thinking: thinking.slice(0, 4000),
       },
       receipt,
     };
@@ -361,6 +395,8 @@ export async function* verify(
       purpose: "prep",
       maxTokens: 900,
       timeoutMs: PREP_TIMEOUT_MS,
+      firstAttemptMs: PREP_FIRST_ATTEMPT_MS,
+      deadline: Date.now() + PREP_BUDGET_MS,
       maxAttempts: PREP_ATTEMPTS,
       signal,
     });
@@ -471,7 +507,8 @@ export async function* verify(
         maxTokens: Math.max(900, model.maxTokens),
         // Short leash and no retry: the closing note has two more nodes behind
         // it, so waiting out one slow model costs more than moving on does.
-        timeoutMs: Math.min(model.timeoutMs, 30_000, remaining),
+        timeoutMs: Math.min(model.timeoutMs, 24_000, remaining),
+        deadline: adjudicationDeadline,
         chatTemplateKwargs: model.chatTemplateKwargs,
         maxAttempts: 1,
         signal,

@@ -18,6 +18,8 @@ export function WitnessDetail({
   note,
   anchors,
   stanceClassName,
+  thinking,
+  recovered,
 }: {
   reasoning: string;
   mirrorStance: string | null;
@@ -25,8 +27,13 @@ export function WitnessDetail({
   note: string;
   anchors: string[];
   stanceClassName: string;
+  /** The model's own chain of thought on the claim, when the node returned one. */
+  thinking?: string;
+  /** True when the structured answer had to be recovered from that working. */
+  recovered?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [showWorking, setShowWorking] = useState(false);
 
   return (
     <>
@@ -63,6 +70,29 @@ export function WitnessDetail({
                   — {anchor}
                 </p>
               ))}
+            </div>
+          ) : null}
+
+          {/* The working the answer was written from. A model's structured answer
+              is a summary of this, and a summary leaves things out — an evidence
+              base it weighed and then did not list, or, when the node's token
+              ceiling lands mid-thought, the whole answer. Kept out of the way,
+              but never discarded. */}
+          {thinking ? (
+            <div>
+              <span className={s.detailLabel}>
+                its working, before it answered
+                {recovered ? " · this is where its answer was recovered from" : ""}
+              </span>
+              <button
+                type="button"
+                className={s.workingToggle}
+                onClick={() => setShowWorking(!showWorking)}
+                aria-expanded={showWorking}
+              >
+                {showWorking ? "hide the reasoning trace" : "read the reasoning trace"}
+              </button>
+              {showWorking ? <pre className={s.working}>{thinking}</pre> : null}
             </div>
           ) : null}
 

@@ -23,6 +23,23 @@ export interface ProbeResult {
   anchors?: string[];
   /** What went wrong, when status is `failed`. Shown to the user, never hidden. */
   error?: string;
+  /**
+   * The model's chain of thought for this probe, tags removed.
+   *
+   * Kept for every probe, including failed ones, because it is where the
+   * evidence a model found actually lives. The structured answer is a summary
+   * the model writes afterwards, and a summary drops things — an evidence base
+   * it listed while thinking and then left out of its final three, or, when the
+   * token ceiling lands mid-thought, the entire answer.
+   */
+  thinking?: string;
+  /**
+   * True when the structured answer was recovered from the model's own draft of
+   * it inside its chain of thought, because the answer itself never arrived.
+   * Surfaced in the report: a recovered answer is a real answer, but the reader
+   * is told which it is.
+   */
+  recovered?: boolean;
   /** Index into the run's receipt ledger. */
   receiptIndex: number;
 }
@@ -99,6 +116,37 @@ export interface Consensus {
   contested: boolean;
   /** Models on the minority side, when contested. */
   dissenters: string[];
+}
+
+/**
+ * One finished run, reduced to what a list of past checks needs. Deliberately
+ * small: the idle page shows several of these, and a landing page should not be
+ * shipping whole probe transcripts to draw six rows.
+ */
+export interface RunSummary {
+  id: string;
+  /** What the user actually submitted — a sentence, or a URL. */
+  input: string;
+  inputKind: "url" | "text";
+  /** The single checkable proposition the panel was asked about. */
+  claim: string;
+  createdAt: number;
+  truthScore: number;
+  label: VerdictLabel;
+  effectiveWitnesses: number;
+  nominalAgree: number;
+  respondents: number;
+}
+
+/** A claim that has been checked more than once, and how its last run went. */
+export interface PopularClaim {
+  input: string;
+  inputKind: "url" | "text";
+  claim: string;
+  count: number;
+  latestId: string;
+  latestLabel: VerdictLabel;
+  latestScore: number;
 }
 
 export interface Verdict {

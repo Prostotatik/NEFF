@@ -50,7 +50,16 @@ export function OrbitalStage({
         <OrbitTrails />
 
         <div className={s.orbHolder}>
-        <VerdictOrb size={318} hue={orbHue} idle={!run}>
+        <VerdictOrb
+          size={318}
+          hue={orbHue}
+          idle={!run && !running}
+          // While probes are out, the sphere is the loading state: a seat for
+          // each of the nine, lighting as its node answers, with a sweep behind
+          // them. A static "Probing the panel" told a reader nothing that the
+          // ring does not now show them happening.
+          working={running && !run ? { landed: probes.length, total: PANEL.length * 3 } : undefined}
+        >
           {run ? (
             <>
               <span className={s.orbCaption}>Overall truth score</span>
@@ -58,13 +67,13 @@ export function OrbitalStage({
               <span className={s.orbLabel}>{run.verdict.label}</span>
             </>
           ) : running ? (
-            <>
-              <span className={s.orbCaption}>Probing the panel</span>
-              <span className={s.orbScore}>{probes.length}</span>
-              <span className={s.orbHint}>
-                of {PANEL.length * 3} probes returned from Gonka nodes
+            <span className={s.orbWorking}>
+              <span className={s.orbWorkingCount}>
+                {probes.length}
+                <span className={s.orbWorkingOf}>/{PANEL.length * 3}</span>
               </span>
-            </>
+              <span className={s.orbWorkingLabel}>nodes answered</span>
+            </span>
           ) : (
             <>
               <span className={s.orbCaption}>Overall truth score</span>

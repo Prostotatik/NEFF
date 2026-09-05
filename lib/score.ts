@@ -115,9 +115,33 @@ function stem(word: string): string {
  * would penalise the longer description for being more specific about the very
  * same source.
  */
+/**
+ * How much of the shorter anchor's content has to appear in the longer one
+ * before the two are called the same evidence base.
+ *
+ * This is the one number in this file that is a judgement call rather than
+ * something derived, and it is worth being exact about which way it errs.
+ *
+ * Measured over the 243 distinct cross-model anchor pairs in `.runs/`, the
+ * containment score does not separate into two clean clusters: 169 pairs score
+ * below 0.4 and are plainly different evidence, 74 score above, and the region
+ * from 0.5 to 0.8 contains pairs that a reader would call the same source —
+ * "British Admiralty and Colonial Office records of the 1896 Zanzibar
+ * expedition" against "British Admiralty and Foreign Office records from 1896
+ * (The National Archives, Kew)" scores 0.57 and is obviously one archive.
+ *
+ * So 0.6 misses real matches. That matters, and it matters in a specific
+ * direction: a missed match lowers rho, and a lower rho *raises* the Effective
+ * Witness Count, which makes the verdict more confident and makes this
+ * project's whole argument — that panel agreement is inflated — harder to
+ * demonstrate, not easier. The threshold is set against our own thesis. Lowering
+ * it to 0.5 would produce more echo findings and more striking demos; that is
+ * exactly why it is not lowered. `test/threshold.test.ts` pins that direction so
+ * a future edit cannot quietly tune it the other way.
+ */
 export const ANCHOR_MATCH_THRESHOLD = 0.6;
 
-export function anchorsMatch(a: string, b: string): boolean {
+export function anchorsMatch(a: string, b: string, threshold = ANCHOR_MATCH_THRESHOLD): boolean {
   const ta = anchorTokens(a);
   const tb = anchorTokens(b);
   // Two content words is the floor for a claim of sameness; below that an
@@ -125,17 +149,17 @@ export function anchorsMatch(a: string, b: string): boolean {
   if (ta.size < 2 || tb.size < 2) return false;
   let shared = 0;
   for (const t of ta) if (tb.has(t)) shared++;
-  return shared / Math.min(ta.size, tb.size) >= ANCHOR_MATCH_THRESHOLD;
+  return shared / Math.min(ta.size, tb.size) >= threshold;
 }
 
-export function anchorOverlap(a: string[], b: string[]): number {
+export function anchorOverlap(a: string[], b: string[], threshold = ANCHOR_MATCH_THRESHOLD): number {
   if (a.length === 0 || b.length === 0) return 0;
   const used = new Set<number>();
   let matched = 0;
   for (const x of a) {
     for (let j = 0; j < b.length; j++) {
       if (used.has(j)) continue;
-      if (anchorsMatch(x, b[j])) {
+      if (anchorsMatch(x, b[j], threshold)) {
         used.add(j);
         matched++;
         break;

@@ -74,6 +74,10 @@ function alongEllipse(seed: number, count: number, rx: number, ry: number) {
   });
 }
 
+/** How wide the working sweep's wedge is, in radians. 55° reads as a sweep
+    rather than as a half-lit disc, and leaves the seats behind it visible. */
+const SWEEP_ARC = fixed((55 * Math.PI) / 180, 5);
+
 const CORE_STARS = scatter(20260905, 46, 100);
 const FIELD_STARS = scatter(77123, 120, 300, 1);
 
@@ -85,14 +89,21 @@ export function VerdictOrb({
   size = 320,
   hue = "#00ffa3",
   idle = false,
+  working,
   children,
 }: {
   size?: number;
   hue?: string;
   idle?: boolean;
+  /**
+   * While probes are in flight, the sphere itself becomes the progress
+   * indicator: `landed` of `total` seats light up as nodes answer. Omitted at
+   * every other moment, so the orb only moves when something is really running.
+   */
+  working?: { landed: number; total: number };
   children?: React.ReactNode;
 }) {
-  const id = idle ? "orb-idle" : "orb-live";
+  const id = idle ? "orb-idle" : working ? "orb-working" : "orb-live";
   const R = 100;
 
   return (
@@ -201,9 +212,151 @@ export function VerdictOrb({
             filter={`url(#${id}-soft)`}
           />
         </g>
+
+        {working ? <ProbeSweep hue={hue} R={R} soft={`url(#${id}-soft)`} {...working} /> : null}
       </svg>
       <div className={s.orbFace}>{children}</div>
     </div>
+  );
+}
+
+/**
+ * What the sphere does while the panel is being probed.
+ *
+ * The obvious thing here is a spinner, and a spinner would be a lie about what
+ * is happening: nine requests are out to independent nodes and they come back in
+ * an order nobody controls. So the indicator is the run itself. A seat on the
+ * inner ring for every probe, dark until its node answers and lit afterwards,
+ * and a sweep going round behind them that never waits for anything — the
+ * sweep says "working", the seats say "how far", and the gaps between lit seats
+ * say the thing this whole product is about, which is that these answers are
+ * arriving from places that are not talking to each other.
+ *
+ * Drawn from the same primitives as the rest of the orb — thin strokes, the
+ * same hue, the same soft-blur filter — so it belongs to the sphere rather than
+ * sitting on top of it.
+ */
+function ProbeSweep({
+  hue,
+  R,
+  soft,
+  landed,
+  total,
+}: {
+  hue: string;
+  R: number;
+  soft: string;
+  landed: number;
+  total: number;
+}) {
+  const seatRadius = R * 0.74;
+  const sweepRadius = fixed(seatRadius + 7);
+  // The wedge is an annulus, not a pie: a pie slice cuts straight across the
+  // count in the middle of the sphere every 2.6 seconds, which is unreadable.
+  const sweepInner = fixed(R * 0.38);
+  const sweepId = "orb-sweep";
+  const seats = Array.from({ length: total }, (_, i) => {
+    // Start at twelve o'clock and run clockwise, so the ring fills the way a
+    // reader expects a dial to fill.
+    const angle = (i / total) * Math.PI * 2 - Math.PI / 2;
+    return {
+      x: fixed(Math.cos(angle) * seatRadius),
+      y: fixed(Math.sin(angle) * seatRadius),
+    };
+  });
+
+  return (
+    <g className={s.probeSweep}>
+      {/* The sphere's cage and point lights are dense enough to swallow anything
+          thin drawn on top of them. This veil sits under the indicator and over
+          the cage, so the seats have something to be legible against without the
+          rim — the part that makes it a sphere — losing any brightness. */}
+      <circle r={R * 0.92} fill="#000" opacity="0.42" />
+
+      {/* the track the seats sit on */}
+      <circle r={seatRadius} fill="none" stroke={hue} strokeWidth="0.8" opacity="0.3" />
+
+      {/* The sweep. A radar wedge rather than a travelling dot, because a still
+          frame of a dot is just a dot — the wedge reads as a direction of travel
+          even in a screenshot, and its leading edge is what passes over each
+          seat. Fading along the wedge is approximated with a linear gradient
+          laid along the chord from its trailing corner to its leading one;
+          exact angular falloff would need a conic gradient, which SVG has no
+          native form of and which is not worth a filter chain here. */}
+      <defs>
+        <linearGradient
+          id={sweepId}
+          gradientUnits="userSpaceOnUse"
+          x1={fixed(Math.cos(-SWEEP_ARC) * sweepRadius)}
+          y1={fixed(Math.sin(-SWEEP_ARC) * sweepRadius)}
+          x2={sweepRadius}
+          y2="0"
+        >
+          <stop offset="0%" stopColor={hue} stopOpacity="0" />
+          <stop offset="72%" stopColor={hue} stopOpacity="0.16" />
+          <stop offset="100%" stopColor={hue} stopOpacity="0.42" />
+        </linearGradient>
+      </defs>
+
+      <g className={s.sweepRotor}>
+        <path
+          d={
+            `M ${fixed(Math.cos(-SWEEP_ARC) * sweepRadius)} ${fixed(Math.sin(-SWEEP_ARC) * sweepRadius)}` +
+            ` A ${sweepRadius} ${sweepRadius} 0 0 1 ${sweepRadius} 0` +
+            ` L ${sweepInner} 0` +
+            ` A ${sweepInner} ${sweepInner} 0 0 0 ${fixed(Math.cos(-SWEEP_ARC) * sweepInner)} ${fixed(Math.sin(-SWEEP_ARC) * sweepInner)}` +
+            " Z"
+          }
+          fill={`url(#${sweepId})`}
+        />
+        <line
+          x1={sweepInner}
+          y1="0"
+          x2={sweepRadius}
+          y2="0"
+          stroke={hue}
+          strokeWidth="1.4"
+          opacity="0.6"
+        />
+        <circle cx={seatRadius} cy="0" r="5" fill={hue} opacity="0.5" filter={soft} />
+        <circle cx={seatRadius} cy="0" r="1.9" fill="#ffffff" opacity="0.95" />
+      </g>
+
+      {seats.map((seat, i) => {
+        const lit = i < landed;
+        return (
+          <g key={i} transform={`translate(${seat.x} ${seat.y})`}>
+            {lit ? (
+              <circle r="9" fill={hue} opacity="0.3" filter={soft} className={s.seatFlash} />
+            ) : null}
+            {/* a punched-out well, so a seat is a socket in the surface rather
+                than one more point light among the forty-six already there */}
+            <circle r={lit ? 5.2 : 3.9} fill="#02100a" opacity="0.8" />
+            <circle
+              r={lit ? 5.2 : 3.9}
+              fill="none"
+              stroke={hue}
+              strokeWidth={lit ? 1.6 : 1.1}
+              opacity={lit ? 0.95 : 0.5}
+              className={lit ? s.seatFilled : s.seatWaiting}
+              style={lit ? undefined : { animationDelay: `${fixed((i % total) * 0.16, 2)}s` }}
+            />
+            {lit ? <circle r="2.2" fill={hue} opacity="0.98" /> : null}
+          </g>
+        );
+      })}
+
+      {/* a breathing core, so the middle of the sphere is not dead while the
+          numbers above it are waiting on a node */}
+      <circle
+        r={R * 0.28}
+        fill="none"
+        stroke={hue}
+        strokeWidth="0.8"
+        opacity="0.3"
+        className={s.corePulse}
+      />
+    </g>
   );
 }
 

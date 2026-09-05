@@ -11,7 +11,7 @@
 import "server-only";
 import { mkdir, readFile, readdir, stat, writeFile, unlink } from "node:fs/promises";
 import path from "node:path";
-import type { VerificationRun } from "./types.ts";
+import type { PopularClaim, RunSummary, VerificationRun } from "./types.ts";
 
 const RUN_DIR = path.join(process.cwd(), ".runs");
 const MAX_RUNS = 200;
@@ -49,6 +49,100 @@ export async function loadRun(id: string): Promise<VerificationRun | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * Everything the idle page needs about the runs already on disk.
+ *
+ * Re-read at most once every few seconds: the directory is small, but the
+ * landing page asks for this on every load and a demo day is a lot of loads.
+ * The cache is per-process and deliberately short — a run finished ten seconds
+ * ago should show up in the recent list without a restart.
+ */
+const HISTORY_TTL_MS = 5_000;
+let historyCache: { at: number; runs: RunSummary[] } | null = null;
+
+async function summaries(): Promise<RunSummary[]> {
+  if (historyCache && Date.now() - historyCache.at < HISTORY_TTL_MS) return historyCache.runs;
+
+  let files: string[];
+  try {
+    files = await readdir(RUN_DIR);
+  } catch {
+    // No runs yet. An empty history is a state the UI has to handle anyway.
+    historyCache = { at: Date.now(), runs: [] };
+    return [];
+  }
+
+  const runs: RunSummary[] = [];
+  for (const file of files) {
+    if (!file.endsWith(".json")) continue;
+    const run = await loadRun(file.slice(0, -5));
+    // loadRun already rejects a run written by an older schema, which is what
+    // keeps a stale file out of a list whose entries all have to be openable.
+    if (!run) continue;
+    runs.push({
+      id: run.id,
+      input: run.input,
+      inputKind: run.inputKind,
+      claim: run.prep.claim,
+      createdAt: run.createdAt,
+      truthScore: run.verdict.truthScore,
+      label: run.verdict.label,
+      effectiveWitnesses: run.consensus.effectiveWitnesses,
+      nominalAgree: run.consensus.nominalAgree,
+      respondents: run.consensus.respondents,
+    });
+  }
+
+  runs.sort((a, b) => b.createdAt - a.createdAt);
+  historyCache = { at: Date.now(), runs };
+  return runs;
+}
+
+/** The most recently finished verifications, newest first. */
+export async function recentRuns(limit = 6): Promise<RunSummary[]> {
+  return (await summaries()).slice(0, limit);
+}
+
+/**
+ * What has been checked most often.
+ *
+ * Grouped by the input as submitted rather than by the extracted claim: two
+ * people pasting the same sentence are checking the same thing, whereas the
+ * extracted claim can differ run to run — claim preparation is itself an
+ * inference — and grouping on it would split one popular claim into near
+ * duplicates. The most recent run of each group carries the label shown, and its
+ * id is what a reader opens if they want the report rather than a re-run.
+ */
+export async function popularClaims(limit = 5): Promise<PopularClaim[]> {
+  const groups = new Map<string, PopularClaim>();
+
+  for (const run of await summaries()) {
+    const key = run.input.trim().toLowerCase();
+    const existing = groups.get(key);
+    if (existing) {
+      existing.count += 1;
+      continue;
+    }
+    // `summaries()` is newest first, so the first sighting of a key is also the
+    // latest run of it, which is the one whose verdict is worth showing.
+    groups.set(key, {
+      input: run.input,
+      inputKind: run.inputKind,
+      claim: run.claim,
+      count: 1,
+      latestId: run.id,
+      latestLabel: run.label,
+      latestScore: run.truthScore,
+    });
+  }
+
+  return [...groups.values()]
+    // Ties broken by nothing in particular would reshuffle the list on every
+    // load, so a stable second key: the claim text.
+    .sort((a, b) => b.count - a.count || a.claim.localeCompare(b.claim))
+    .slice(0, limit);
 }
 
 /** Keep the run directory from growing without bound during a long demo day. */

@@ -1,7 +1,8 @@
 import { labelFor, modelByHouse } from "@/lib/models";
-import type { Stance, VerdictLabel, VerificationRun, WitnessAssessment } from "@/lib/types";
+import type { Stance, VerificationRun, WitnessAssessment } from "@/lib/types";
 import { ReceiptLedger } from "./ReceiptLedger";
-import { Balance, Icosahedron, Ridge, Spiral } from "./Orbs";
+import { MetricsStrip } from "./MetricsStrip";
+import { Ridge, Spiral } from "./Orbs";
 import {
   CheckCircle,
   DocIcon,
@@ -18,15 +19,6 @@ import { avatarStyle } from "./palette";
 import { WitnessDetail } from "./WitnessDetail";
 import { HingeText } from "./HingeText";
 import s from "./quorum.module.css";
-
-const LABEL_CLASS: Record<VerdictLabel, string> = {
-  SUPPORTED: s.labelSupported,
-  "LEANS TRUE": s.labelLeansTrue,
-  UNRESOLVED: s.labelUnresolved,
-  "LEANS FALSE": s.labelLeansFalse,
-  REFUTED: s.labelRefuted,
-  "NO SIGNAL": s.labelNoSignal,
-};
 
 const STANCE_CLASS: Record<Stance, string> = {
   SUPPORTED: s.stanceSupported,
@@ -168,141 +160,6 @@ export function Report({ run }: { run: VerificationRun }) {
 }
 
 /**
- * S5 — the metrics strip, and the hero moment of the whole product: a high
- * nominal consensus sitting immediately beside a low Effective Witness Count.
- * The two are deliberately in the same band, at the same size, so the gap
- * between them is the thing you cannot avoid reading.
- */
-function MetricsStrip({ run }: { run: VerificationRun }) {
-  const { verdict, consensus } = run;
-  const survived = consensus.effectiveWitnesses;
-  const lost = consensus.nominalAgree - survived;
-
-  return (
-    <section className={s.metrics}>
-      <div className={s.metricCell}>
-        <div className={s.metricBody}>
-          <span className="eyebrow">Effective witnesses</span>
-          <span className={`${s.metricValue} ${s.metricValueSodium}`}>{survived.toFixed(1)}</span>
-          <span className={s.metricNote}>
-            of {consensus.nominalAgree} that agreed,
-            <br />
-            out of {consensus.respondents} that answered
-          </span>
-        </div>
-        <span className={s.metricArt}>
-          <Icosahedron size={124} />
-        </span>
-      </div>
-
-      <div className={s.metricCell}>
-        <div className={s.metricBody}>
-          <span className={`eyebrow ${s.eyebrowSplit}`}>
-            Truth <strong>score</strong>
-          </span>
-          <span className={s.metricValue}>
-            {verdict.truthScore}
-            <span className={s.metricSlash}>/</span>
-            <span className={s.metricUnit}>100</span>
-          </span>
-          <span className={s.metricNote}>± {verdict.band} credible band</span>
-          <span className={`${s.verdictPill} ${LABEL_CLASS[verdict.label]}`}>{verdict.label}</span>
-        </div>
-      </div>
-
-      <div className={s.metricCell}>
-        <div className={s.metricBody}>
-          <span className="eyebrow">Its own arithmetic</span>
-          <p className={s.formula}>
-            50 + 50 × balance × weight = {verdict.truthScore}
-          </p>
-          <div className={s.meter}>
-            <span className={s.meterHead}>
-              <span>stance balance</span>
-              <strong>
-                {verdict.balance >= 0
-                  ? `+${verdict.balance.toFixed(2)}`
-                  : verdict.balance.toFixed(2)}
-              </strong>
-            </span>
-            <span className={s.meterTrack}>
-              <span
-                className={`${s.meterFill} ${verdict.balance >= 0 ? s.meterFillVerify : s.meterFillRefute}`}
-                style={{ width: `${Math.abs(verdict.balance) * 100}%` }}
-              />
-            </span>
-          </div>
-          <div className={s.meter}>
-            <span className={s.meterHead}>
-              <span>
-                evidence weight, {survived.toFixed(1)} / ({survived.toFixed(1)} + 1)
-              </span>
-              <strong>{verdict.shrink.toFixed(2)}</strong>
-            </span>
-            <span className={s.meterTrack}>
-              <span
-                className={`${s.meterFill} ${s.meterFillVerify}`}
-                style={{ width: `${verdict.shrink * 100}%` }}
-              />
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className={s.metricCell}>
-        <span className={s.metricScan} aria-hidden="true" />
-        <div className={`${s.metricBody} ${s.metricStack}`}>
-          <span className={s.metricReading}>
-            <span className="eyebrow">Nominal consensus — what a vote would show</span>
-            <span className={`${s.metricSmall} ${s.metricSmallSteel}`}>
-              {consensus.nominalAgree}/{consensus.respondents}
-            </span>
-          </span>
-          <span className={s.metricReading}>
-            <span className="eyebrow">Effective witnesses — what it is actually worth</span>
-            <span className={`${s.metricSmall} ${s.metricSmallSodium}`}>
-              {survived.toFixed(1)}
-            </span>
-          </span>
-          {lost > 0.05 ? (
-            <span className={s.metricNoteSmall}>{lostSentence(run)}</span>
-          ) : null}
-        </div>
-        <span className={s.metricArt}>
-          <Balance size={132} />
-        </span>
-      </div>
-    </section>
-  );
-}
-
-/** The one sentence that says where the missing witnesses went. */
-function lostSentence(run: VerificationRun): string {
-  const { consensus } = run;
-  const lost = consensus.nominalAgree - consensus.effectiveWitnesses;
-  const reasons = [
-    consensus.lostToEcho > 0.05 &&
-      `${consensus.lostToEcho.toFixed(1)} to echo${
-        consensus.lostToEcho > 1.05
-          ? ", models that answered the claim and its negation the same way"
-          : ", a model that answered the claim and its negation the same way"
-      }`,
-    consensus.lostToUnmeasured > 0.05 &&
-      `${consensus.lostToUnmeasured.toFixed(1)} to a mirror probe that never came back, so that independence could not be tested`,
-    consensus.lostToPartial > 0.05 &&
-      `${consensus.lostToPartial.toFixed(1)} to a model that was decisive one way and uncertain the other`,
-    consensus.lostToRedundancy > 0.05 &&
-      `${consensus.lostToRedundancy.toFixed(1)} to redundancy, ${Math.round(
-        consensus.meanAnchorOverlap * 100,
-      )}% ${consensus.overlapMeasured ? "measured" : "assumed"} overlap in the evidence the agreeing models lean on${
-        consensus.overlapMeasured ? "" : ", because at least one named no source"
-      }`,
-  ].filter(Boolean);
-
-  return `${lost.toFixed(1)} of ${consensus.nominalAgree} apparent witnesses did not survive: ${reasons.join("; ")}`;
-}
-
-/**
  * S4 — the panel, witness by witness. One row per model, columns exactly as the
  * reference lays them out: who, what its vote was worth, what it said, whether
  * it survived the mirror probe, and what it leaned on.
@@ -310,7 +167,7 @@ function lostSentence(run: VerificationRun): string {
 function ThePanel({ run }: { run: VerificationRun }) {
   const { witnesses, consensus } = run;
   const echoed = witnesses.filter((w) => w.discriminationVerdict === "echo");
-  const probeFor = (modelId: string, kind: "direct" | "mirror") =>
+  const probeFor = (modelId: string, kind: "direct" | "mirror" | "anchor") =>
     run.probes.find((p) => p.modelId === modelId && p.kind === kind);
 
   return (
@@ -409,6 +266,12 @@ function ThePanel({ run }: { run: VerificationRun }) {
                         shares evidence with {w.echoesWith.map(labelFor).join(", ")}
                       </span>
                     ) : null}
+                    {probeFor(w.modelId, "anchor")?.recovered ? (
+                      <span className={s.anchorRecovered}>
+                        recovered from its own reasoning — the node ran out of tokens before
+                        repeating this list as its answer
+                      </span>
+                    ) : null}
                   </>
                 ) : (
                   <>
@@ -426,6 +289,8 @@ function ThePanel({ run }: { run: VerificationRun }) {
                 reasoning={
                   direct?.reasoning || direct?.error || "This Gonka node did not return an answer."
                 }
+                thinking={direct?.thinking || probeFor(w.modelId, "anchor")?.thinking}
+                recovered={Boolean(direct?.recovered)}
                 mirrorStance={w.mirrorStance}
                 mirrorReasoning={
                   probeFor(w.modelId, "mirror")?.reasoning ||

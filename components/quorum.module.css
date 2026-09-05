@@ -436,6 +436,43 @@
   line-height: 1.45;
 }
 
+/* The centre of the sphere while probes are out. Deliberately quiet: the ring
+   around it is doing the work of saying "running", so the middle only has to
+   carry the one fact the ring cannot, which is how many of the nine are back. */
+.orbWorking {
+  display: grid;
+  gap: 0.1rem;
+  justify-items: center;
+}
+
+.orbWorkingCount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.1rem;
+  font-family: var(--ui);
+  font-size: 3.25rem;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  text-shadow: 0 0 26px rgba(0, 255, 163, 0.32);
+  font-variant-numeric: tabular-nums;
+}
+
+.orbWorkingOf {
+  font-size: 1.5rem;
+  color: var(--paper-faint);
+  text-shadow: none;
+}
+
+.orbWorkingLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: #3ee89f;
+}
+
 /* Satellites are absolutely placed around the centre, each with its label on the
    side that keeps it inside the stage. */
 .satWrap {
@@ -708,6 +745,188 @@
   border-color: rgba(0, 255, 163, 0.45);
   background: rgba(0, 255, 163, 0.06);
   box-shadow: 0 0 18px rgba(0, 255, 163, 0.15);
+}
+
+/* --- S6 idle · what has already been checked ------------------------------ */
+
+/* A segmented control rather than two links: the two lists occupy the same slot
+   and answer the same question from different ends, so the affordance should
+   say "one or the other", not "go somewhere". */
+.idleTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  padding: 0.22rem;
+  border: 1px solid var(--outline);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.idleTab {
+  padding: 0.38rem 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--paper-faint);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.idleTab:hover {
+  color: var(--paper-dim);
+}
+
+.idleTabOn,
+.idleTabOn:hover {
+  background: rgba(0, 255, 163, 0.1);
+  color: var(--primary-container);
+  box-shadow: inset 0 0 0 1px rgba(0, 255, 163, 0.28);
+}
+
+.idleLead {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--paper-faint);
+}
+
+.idleList {
+  display: grid;
+  gap: 0.4rem;
+  min-height: 15.5rem;
+  align-content: start;
+}
+
+/* One row shape for both lists, because they are the same gesture from the
+   reader's side — pick a thing from a list — even though one fills the box and
+   the other opens a report. */
+.idleRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--paper);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+
+.idleRow:hover {
+  border-color: rgba(0, 255, 163, 0.4);
+  background: rgba(0, 255, 163, 0.05);
+  box-shadow: 0 0 16px rgba(0, 255, 163, 0.12);
+}
+
+.idleRowIcon {
+  display: flex;
+  color: var(--paper-faint);
+}
+
+.idleRow:hover .idleRowIcon {
+  color: var(--primary-container);
+}
+
+.idleRowMain {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+/* Two lines, then an ellipsis. A claim is a whole sentence and the rail is
+   narrow; cutting at one line loses the subject of half of them. */
+.idleRowClaim {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--paper);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.idleRowMeta {
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--paper-faint);
+}
+
+/* The verdict word in a list row is a word, not a chip. Reusing the report's
+   pill classes here boxed each label and wrapped "NO SIGNAL" onto two lines
+   inside a 0.6875rem meta line, so these carry the colour only. */
+.idleVerdict {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.idleVerdictTrue {
+  color: var(--verify);
+}
+
+.idleVerdictNeutral {
+  color: var(--neutral);
+}
+
+.idleVerdictFalse {
+  color: var(--refute);
+}
+
+.idleRowAction {
+  display: flex;
+  color: #3a4441;
+  transition: color 140ms ease, transform 140ms ease;
+}
+
+.idleRow:hover .idleRowAction {
+  color: var(--primary-container);
+  transform: translateX(2px);
+}
+
+.idleEmpty {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--paper-faint);
+}
+
+/* Placeholder rows while the list is being read, sized like the real ones so
+   the rail does not jump when they arrive. */
+.idleSkeleton {
+  height: 3.05rem;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.015),
+    rgba(0, 255, 163, 0.06),
+    rgba(255, 255, 255, 0.015)
+  );
+  background-size: 220% 100%;
+  animation: idleShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes idleShimmer {
+  from {
+    background-position: 130% 0;
+  }
+  to {
+    background-position: -30% 0;
+  }
+}
+
+.idleFoot {
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: #4a5350;
+  border-top: 1px solid var(--outline);
+  padding-top: 0.7rem;
 }
 
 /* --- S2 · probe cards ----------------------------------------------------- */
@@ -1013,6 +1232,126 @@
   }
 }
 
+/* --- the arithmetic disclosure ------------------------------------------- */
+
+/* A formula with unexplained coefficients is worth nothing in a fact checker,
+   so the derivation is one click from the number rather than only in a doc. */
+.arithmeticToggle {
+  justify-self: start;
+  margin-top: 0.6rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #5d6462;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.16s ease;
+}
+
+.arithmeticToggle:hover {
+  color: var(--primary-container);
+}
+
+/* A row of the metrics grid rather than a box inside one cell: the derivation
+   is about the whole strip, and squeezed into a quarter of it nothing reads. */
+.arithmetic {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--outline);
+  padding: 1.1rem 1.15rem 1.25rem;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.arithmeticLead {
+  max-width: 62rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--paper-dim);
+  margin-bottom: 0.9rem;
+}
+
+.arithmeticDim {
+  color: var(--paper-faint);
+}
+
+.arithmeticList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 2rem;
+  margin: 0;
+}
+
+.arithmeticRow {
+  display: grid;
+  gap: 0.3rem;
+  align-content: start;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--outline);
+}
+
+.arithmeticTerm {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.arithmeticCode {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--paper);
+}
+
+.arithmeticBody {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--paper-dim);
+}
+
+.arithmeticBody code {
+  font-family: var(--mono);
+  font-size: 0.78em;
+  color: var(--paper);
+}
+
+.arithmeticBody a {
+  color: var(--sodium);
+}
+
+/* The three honest labels. Colour carries the distinction that matters most —
+   which of these numbers somebody actually picked. */
+.originTag {
+  flex: none;
+  padding: 0.08rem 0.42rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.originDefinition {
+  color: #5d6462;
+}
+
+.originStandard {
+  color: var(--steel);
+}
+
+.originChosen {
+  color: var(--sodium);
+}
+
+@media (max-width: 900px) {
+  .arithmeticList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .metricScan {
   position: absolute;
   inset: 0;
@@ -1293,6 +1632,15 @@
   margin-top: 0.2rem;
 }
 
+/* Says the anchors are the model's own, and where they were read from. Steel
+   rather than sodium: this is a provenance note, not a lost witness. */
+.anchorRecovered {
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--steel);
+  margin-top: 0.2rem;
+}
+
 /* The full answer text no longer fits a reference row, so it lives in a
    disclosure under the panel rather than being deleted. */
 .witnessDetail {
@@ -1355,6 +1703,46 @@
 .mirrorNote {
   font-size: 0.8125rem;
   color: var(--paper-faint);
+}
+
+/* The model's chain of thought, one more click down again. It is long and
+   unedited, so it is collapsed by default — but it is the only place an
+   evidence base the model weighed and then left out of its answer survives. */
+.workingToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding: 0.22rem 0.55rem;
+  border: 1px solid var(--outline);
+  border-radius: 999px;
+  background: transparent;
+  color: #5d6462;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease;
+}
+
+.workingToggle:hover {
+  color: var(--primary-container);
+  border-color: var(--outline-strong);
+}
+
+.working {
+  margin: 0.45rem 0 0;
+  padding: 0.6rem 0.7rem;
+  max-height: 16rem;
+  overflow: auto;
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  background: #000;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--paper-faint);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 /* --- S3 · receipts ledger ------------------------------------------------- */
