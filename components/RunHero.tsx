@@ -6,7 +6,7 @@ import type { ProbeResult, ReceiptView, VerificationRun } from "@/lib/types";
 import { OrbitTrails, SatelliteOrb, Shard, StarField, VerdictOrb } from "./Orbs";
 import { ArrowRight, Copy, ModelMark, ShieldCheck } from "./Icons";
 import { avatarStyle, hueFor } from "./palette";
-import s from "./quorum.module.css";
+import s from "./neff.module.css";
 
 export interface PanelStatus {
   ok: boolean;

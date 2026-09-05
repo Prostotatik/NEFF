@@ -213,7 +213,7 @@ function open(url: URL): Promise<IncomingMessage> {
         lookup: guardedLookup,
         timeout: FETCH_TIMEOUT_MS,
         headers: {
-          "User-Agent": "QuorumFactCheck/0.1 (+https://github.com/quorum-factcheck)",
+          "User-Agent": "NEFFFactCheck/0.1 (+https://github.com/neff-factcheck)",
           Accept: "text/html,application/xhtml+xml,text/plain;q=0.9",
         },
       },

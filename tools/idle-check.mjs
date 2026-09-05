@@ -29,7 +29,7 @@ const chrome = spawn(CHROME, [
   "--headless=new",
   "--hide-scrollbars",
   `--remote-debugging-port=${port}`,
-  `--user-data-dir=${process.env.TEMP || "/tmp"}/quorum-idle-${Date.now()}`,
+  `--user-data-dir=${process.env.TEMP || "/tmp"}/neff-idle-${Date.now()}`,
   `--window-size=${width},1000`,
   "about:blank",
 ]);

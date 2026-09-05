@@ -1,5 +1,5 @@
 {
-  "project": "Quorum — independence-weighted fact verification on Gonka",
+  "project": "NEFF — independence-weighted fact verification on Gonka",
   "rule": "passes flips to true ONLY after qa-tester exercises the capability end-to-end against the running app. Never on code review alone.",
   "features": [
     {
@@ -192,7 +192,7 @@
       "action": "A verification is running and the reader watches the central sphere.",
       "expected": "The sphere itself shows the work: a seat per probe lighting as its node answers, and a sweep behind them. No static loading text.",
       "passes": true,
-      "evidence": "tools/browser-check.mjs driving a live verification (\"Drinking eight glasses of water a day is a medically established minimum requirement for adults.\") on the running app. Mid-run screenshot evidence/iteration/live-mid-run.png shows the centre reading \"0/9 NODES ANSWERED\" with per-probe seat markers on the ring. The tool's own animation query returned running animations orbs-module__okvUkG__seatWait ×9 (one per probe seat), orbs-module__okvUkG__spin ×14 and quorum-module__VEnnqG__spin ×1 (the sweep), and orbs-module__okvUkG__corePulse — a live, per-seat, counting indicator, not static text."
+      "evidence": "tools/live-ui-check.mjs replaying a stored run into the running app (no Gonka calls), plus tools/browser-check.mjs on a live verification. Screenshot evidence/iteration/live-half-filled.png at four of nine probes landed: four seats lit with white cores, five dark, in the out-of-order positions the real arrival order produced. The animation query reports orbs-module__seatWait x5 (one per waiting seat), orbs-module__coreBody, coreHalo and corePulse — and the centre of the sphere reads null, i.e. no text at all while probes are out."
     },
     {
       "id": "F25",

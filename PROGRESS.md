@@ -76,7 +76,7 @@ reports the working indicator's live animation list.
 
 ### Built
 
-Quorum is a working Next.js app. `./init.sh` brings it up; a verification is 11 inferences on the
+NEFF is a working Next.js app. `./init.sh` brings it up; a verification is 11 inferences on the
 Gonka Router, streamed to the browser as each node answers. `lib/score.ts` holds the argument;
 everything else serves it. Commits `a3eda87`, `e64e3a9`, `030ba9c`, `b6541f4`.
 
@@ -132,7 +132,7 @@ changed the product:
    quoting a number.**
 2. **Compound claims broke the mirror probe.** On the Streisand-effect URL the extracted claim was
    four assertions joined together, and MiniMax refuted both it and its negation *coherently* — it
-   accepted the lawsuit and disputed the $50M. Quorum threw its vote out and told the user it was
+   accepted the lawsuit and disputed the $50M. NEFF threw its vote out and told the user it was
    "reading the shape of the sentence". Claim preparation now demands an atomic claim.
 3. **Kish's formula misbehaves below k = 1**, reporting more effective witnesses than nominal ones.
 4. **SSRF was check-then-fetch**, splittable by a DNS answer that differs between the two lookups.

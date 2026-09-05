@@ -55,7 +55,7 @@ git push origin main
 > *"A 2-minute video showing a 'Live Fact-Check' in action."*
 
 **Already recorded: `evidence/pitch/pitch.mp4`** — 1 minute 45, two live fact-checks against the
-Gonka Router, ending on a unanimous panel that Quorum scores at zero effective witnesses.
+Gonka Router, ending on a unanimous panel that NEFF scores at zero effective witnesses.
 
 To record a fresh take:
 

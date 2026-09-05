@@ -1,6 +1,6 @@
 import { ClaimConsole } from "@/components/ClaimConsole";
 import { Masthead, Footer } from "@/components/Chrome";
-import s from "@/components/quorum.module.css";
+import s from "@/components/neff.module.css";
 
 export default function Home() {
   return (

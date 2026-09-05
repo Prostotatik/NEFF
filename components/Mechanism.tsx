@@ -1,5 +1,5 @@
 import { ClaimScene, EvidenceScene, MirrorScene } from "./Scenes";
-import s from "./quorum.module.css";
+import s from "./neff.module.css";
 
 /**
  * S2 — the mechanism, three probe cards. A visitor who never runs a check should

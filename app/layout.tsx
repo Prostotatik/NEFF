@@ -27,9 +27,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quorum — how independent is your fact check?",
+  title: "NEFF — how independent is your fact check?",
   description:
-    "Three models agreeing is one witness if they all read the same page. Quorum measures how independent its verifiers actually are, and prices the truth score by it. Every inference runs on the Gonka Network.",
+    "Nine models agreeing is not nine opinions. NEFF measures the effective number of independent voices behind an AI consensus — N_eff, Kish's effective sample size — and prices the truth score by it. Every inference runs on the Gonka Network.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,6 +1,6 @@
 # Where every number in the score comes from
 
-Quorum prints a truth score out of 100 and an Effective Witness Count. Both are built out of a
+NEFF prints a truth score out of 100 and an Effective Witness Count. Both are built out of a
 handful of constants, and a fact checker that will not say where its own constants came from has no
 business asking anyone to trust its arithmetic.
 
@@ -31,7 +31,7 @@ scale, not coefficients: change either one and the output stops being a 0–100 
 version of this formula in which 40 would have been an alternative.
 
 The consequence is deliberate: the score can reach 0 or 100 only if `balance × weight = ±1`, and
-`weight` is strictly below 1 for any finite number of witnesses. **No verdict Quorum can produce is
+`weight` is strictly below 1 for any finite number of witnesses. **No verdict NEFF can produce is
 ever 0 or 100.** A panel of language models is evidence, never proof.
 
 ### `balance` — **Definition**
@@ -245,6 +245,6 @@ judgement: below that an anchor is too vague to be evidence of anything, shared 
 
 - No weighting by model, vendor or size. Every model on the panel enters at the same weight, and the
   only things that move its weight are measurements of its own answers.
-- No tuning against a labelled set of claims. There is no held-out benchmark here and Quorum does
+- No tuning against a labelled set of claims. There is no held-out benchmark here and NEFF does
   not claim accuracy figures it has not measured.
 - No term anywhere whose only justification is the shape of the output.

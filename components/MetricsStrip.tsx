@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { VerdictLabel, VerificationRun } from "@/lib/types";
 import { Balance, Icosahedron } from "./Orbs";
 import { ArithmeticPanel } from "./Arithmetic";
-import s from "./quorum.module.css";
+import s from "./neff.module.css";
 
 const LABEL_CLASS: Record<VerdictLabel, string> = {
   SUPPORTED: s.labelSupported,

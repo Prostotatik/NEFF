@@ -1,6 +1,6 @@
-# Deploying Quorum
+# Deploying NEFF
 
-Quorum is a standard Next.js app with no database and no build-time secrets. Anywhere that runs
+NEFF is a standard Next.js app with no database and no build-time secrets. Anywhere that runs
 Node 20+ will serve it; the paths below are the ones that have been prepared for.
 
 ## The fastest live URL, with no account at all

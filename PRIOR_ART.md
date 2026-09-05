@@ -55,29 +55,29 @@ has been built on it.
 
 The already-won build (Flare Fact Checker, NFT Deep Appraisal) and every product above treat model
 agreement as *evidence*: N verifiers answer, their scores are averaged or confidence-weighted, and a
-higher agreement rate produces a higher truth score. **Quorum inverts the primitive.** It treats
+higher agreement rate produces a higher truth score. **NEFF inverts the primitive.** It treats
 agreement as a *claim that itself has to be verified*, because agreement between models trained on
 overlapping corpora is correlated error, not corroboration — one witness reading one page, counted
-three times. So Quorum does not just poll the models: for every claim it runs a **three-probe
+three times. So NEFF does not just poll the models: for every claim it runs a **three-probe
 adversarial battery** against each model — the claim as stated, the claim *negated* and presented as
 if it were the original (a model that affirms both is pattern-matching, and its vote is discounted
 toward zero), and a forced *evidence-anchor* probe that names the concrete sources each model is
 leaning on (models converging on the same anchor are counted as one witness, not three). Those probes
 produce a measured **Effective Witness Count** — the number of genuinely independent verifiers behind
 a verdict, which is routinely 1.x when the nominal vote is 3/3 — and the truth score is discounted by
-it. Which means Quorum can output the one thing no other fact checker on this list can: *"all three
+it. Which means NEFF can output the one thing no other fact checker on this list can: *"all three
 models agreed, and that agreement is worthless, here is the probe transcript that proves it."*
 That is a different mechanism producing a different, falsifiable artifact — not a nicer UI over
 averaged verdicts. It is also, precisely, the organizers' "successor of a previously failed idea":
 the decentralized multi-verifier fact checker already won a hackathon and still shipped the
-statistical bug that makes its score meaningless; Quorum is that idea with the bug fixed.
+statistical bug that makes its score meaningless; NEFF is that idea with the bug fixed.
 
 ## Standing risk (re-check before completion)
 - If a judge asks "isn't this just multi-agent debate?" — no. Debate (Du et al., *AI Safety via
-  Debate*) pits models against each other to reach a *better verdict*. Quorum's probes are not a
+  Debate*) pits models against each other to reach a *better verdict*. NEFF's probes are not a
   debate and do not aim at a better verdict; they measure a *property of the panel itself*
   (independence) and use it to price the verdict's confidence. Debate produces an answer;
-  Quorum produces an answer plus a defensible uncertainty on it.
+  NEFF produces an answer plus a defensible uncertainty on it.
 
 ---
 
@@ -106,8 +106,8 @@ an LLM panel, "models agree for the same reason", multi-model consensus fact che
   → **DISTINCT.** The score is *nominal* concordance; nothing discounts it. Fetched page confirms no
   correlation adjustment, no negation probe, no source-overlap term, no effective-model count. Its FAQ
   asserts "different models from different labs have different failure modes; combining them
-  de-correlates errors" — the precise assumption Quorum measures and routinely falsifies. This is the
-  strongest *market* example of the naive build, and it argues for Quorum rather than against it.
+  de-correlates errors" — the precise assumption NEFF measures and routinely falsifies. This is the
+  strongest *market* example of the naive build, and it argues for NEFF rather than against it.
 - **Consensus AI** — <https://www.useconsensus.ai/> — isolated answers from ChatGPT/Claude/Gemini
   reconciled into one confidence-scored verdict. → **DISTINCT.** Same primitive: agreement raises
   confidence; independence never measured.
@@ -128,8 +128,8 @@ an LLM panel, "models agree for the same reason", multi-model consensus fact che
   *architecturally disqualifies wire-service reports, aggregator sites and same-event coverage as
   independent corroboration*, returning "unverifiable" rather than a false consensus.
   → **DISTINCT — but this is the nearest conceptual neighbour found anywhere**, because it ships the
-  same slogan Quorum is built on ("many copies of one witness is still one witness"). The difference
-  is the axis: Arc-Hives de-duplicates *documents in a news graph*; Quorum de-duplicates *verifiers in
+  same slogan NEFF is built on ("many copies of one witness is still one witness"). The difference
+  is the axis: Arc-Hives de-duplicates *documents in a news graph*; NEFF de-duplicates *verifiers in
   a model panel*, and does it at query time from the models' own answers. No model panel, no negation
   probe, no effective-witness number. If a judge raises it, this is the answer.
 - **Cleanlab Trustworthy Language Model** — <https://cleanlab.ai/blog/trustworthy-language-model/>,
@@ -138,9 +138,9 @@ an LLM panel, "models agree for the same reason", multi-model consensus fact che
   responses*.
   → **DISTINCT, and the closest shipped mechanism to the mirror probe** — record it honestly. TLM
   measures one model's self-consistency across resamples of *its own answer* to *the same question*;
-  Quorum's mirror probe asks a *different question* (the negation, presented blind) and uses the
+  NEFF's mirror probe asks a *different question* (the negation, presented blind) and uses the
   result as a gate on that model's vote, then combines it with a *cross-model* evidence-overlap term.
-  TLM prices one model's uncertainty; Quorum prices a panel's redundancy. TLM produces no count of
+  TLM prices one model's uncertainty; NEFF prices a panel's redundancy. TLM produces no count of
   independent verifiers and has no cross-model term at all.
 - **Originality.ai Automated Fact Checker, Full Fact AI, ClaimBuster, Logically, NewsGuard, Google
   Fact Check Explorer** — single verdict plus sources. → **DISTINCT** (unchanged from Phase 0).
@@ -152,7 +152,7 @@ an LLM panel, "models agree for the same reason", multi-model consensus fact che
   confidence score shown under the answer. No prize recorded on the page.
   → **DISTINCT, and instructive.** It is the naive build in miniature: it resamples *one* model, so it
   measures decoding variance, not verifier independence, and it treats agreement as confidence — the
-  exact inversion Quorum exists to correct. Its existence at a hackathon is prior art for
+  exact inversion NEFF exists to correct. Its existence at a hackathon is prior art for
   "multi-sample agreement = confidence bar", not for independence measurement.
 - **VeriFact AI** — <https://devpost.com/software/verifact-ai> — LLM + Google grounding, per-claim
   TRUE/FALSE/UNSURE with explanations and grounding indices. → **DISTINCT.** Single verifier, external
@@ -187,11 +187,11 @@ an LLM panel, "models agree for the same reason", multi-model consensus fact che
 ### Research (already-productised-by-a-group check)
 
 - **Nine Judges, Two Effective Votes: Correlated Errors Undermine LLM Evaluation Panels** —
-  <https://arxiv.org/abs/2605.29800> — **uses exactly Quorum's formula**: pairwise phi between judges,
+  <https://arxiv.org/abs/2605.29800> — **uses exactly NEFF's formula**: pairwise phi between judges,
   then Kish `n_eff = k / (1 + (k−1)·ρ̄)`; 9 frontier judges from 7 families yield ≈2 effective votes.
   → **DISTINCT as a product, but this must be stated plainly: the arithmetic in `lib/score.ts` is not
-  novel and Quorum should not claim it is.** The paper measures ρ *offline, post hoc, from a labelled
-  benchmark* over many items, to advise eval-pipeline designers. Quorum estimates independence
+  novel and NEFF should not claim it is.** The paper measures ρ *offline, post hoc, from a labelled
+  benchmark* over many items, to advise eval-pipeline designers. NEFF estimates independence
   *per claim, at query time, from the models' own probe answers, with no labels and no ground truth*,
   and renders it to an end user as a verdict discount with the transcript that justifies it. No code,
   demo, product or hackathon entry attached to the paper was found.
@@ -211,12 +211,12 @@ an LLM panel, "models agree for the same reason", multi-model consensus fact che
   "the three models function as a single oracle". → **DISTINCT** (research), and both are strong
   supporting citations for the premise.
 - **Probing the Geometry of Truth** — <https://arxiv.org/pdf/2506.00823> — whether truth directions
-  hold under negation. → **DISTINCT.** White-box activation probing; Quorum's mirror probe is a
+  hold under negation. → **DISTINCT.** White-box activation probing; NEFF's mirror probe is a
   black-box behavioural test usable through a router API.
 - **When LLM judges agree, should we believe them?** (Amazon Science) and **orq.ai LLM juries** —
   both explicitly recommend "report confidence adjusted for judge correlation" and note "three
   correlated judges are one judge with 3× more requests". → **DISTINCT — but note the exposure:** the
-  recommendation is now public and unimplemented. It is guidance in a blog, not a product; Quorum is
+  recommendation is now public and unimplemented. It is guidance in a blog, not a product; NEFF is
   the implementation. This narrows the novelty window rather than closing it.
 - **digitalapplied.com, "Three Models Agreed. It Was Still Wrong"** —
   <https://www.digitalapplied.com/blog/cross-model-review-consensus-verification-2026> — fetched and
@@ -237,7 +237,7 @@ independent witnesses, and no one shows the probe transcript that justifies the 
 ## Standing risks to answer before completion (new since Phase 0)
 
 1. **Do not claim the estimator is novel.** `n_eff = k / (1 + (k−1)ρ)` applied to an LLM panel is
-   published in arXiv 2605.29800. Quorum's contribution is per-query, label-free, user-facing
+   published in arXiv 2605.29800. NEFF's contribution is per-query, label-free, user-facing
    measurement, not the formula. Cite the paper rather than let a judge find it.
 2. **README overclaim.** "No other fact checker can tell you that one of its verifiers wasn't actually
    reading" is stronger than this audit supports — Cleanlab TLM flags a low-trust response per query,
@@ -280,7 +280,17 @@ showing how many independent sources an answer really has, an effective-witness 
 
 ## New candidates found this pass
 
-### Name collisions — shipped or near-shipped products already called "Quorum" in this exact space
+### Name collisions — resolved by the rename to NEFF (2026-09-05)
+
+This section was written when the product was called Quorum, and it is kept because the finding
+that forced the rename is part of the record. Four shipped or near-shipped products in this exact
+space are called some form of "Quorum": a judge searching the old name landed on them before it
+landed on us, and one of them — `qinnovates/quorum` — also reports an independence score.
+
+**NEFF collides with none of them.** The name is taken from `N_eff`, the effective sample size,
+which is the quantity this product actually reports; searching it does not lead to a committee-of-
+models tool by another author. The entries below stand as written, describing the products, with
+their own names restored.
 
 This is new since the first pass and is recorded here because a judge searching the product name lands
 on these before it lands on us. None is a mechanism lookalike; all are a submission risk.
@@ -293,8 +303,8 @@ on these before it lands on us. None is a mechanism lookalike; all are a submiss
   → **DISTINCT.** Fetched and confirmed: confidence weights come from *capability benchmarks*, not
   from measured dependence. No negation probe, no evidence-anchor probe, no cross-model source-overlap
   term, no effective-sample-size correction, no count of independent models. Its headline is 5/5 models
-  agreeing — the nominal number Quorum exists to discount. It is the naive build at 25× the panel size,
-  wearing our name.
+  agreeing — the nominal number NEFF exists to discount. It is the naive build at 25× the panel size,
+  and it wore the name this project used to have.
 - **Quorum (aiquorum.app)** — <https://www.aiquorum.app/> — "every decision deserves a committee";
   Democratic / Deliberative / Evidence-Based modes over several models, verdict plus agreement and
   disagreement. → **DISTINCT.** Fetched: no correlation or independence metric, no negation probe, no
@@ -310,22 +320,22 @@ on these before it lands on us. None is a mechanism lookalike; all are a submiss
   agents to debate a question with mandatory adversarial critics, and reports a verdict carrying a
   **convergence score**, an **"INDEPENDENCE SCORE: 0.81 (HIGH)"**, bias flags, a **cross-model
   agreement %**, an **evidence scorecard with source deduplication**, and a disagreement register.
-  → **DISTINCT — but this is the nearest lookalike found anywhere, it shares our name, and the
-  difference has to be stated precisely rather than waved at.** Fetched the repo page and the raw
+  → **DISTINCT — but this is the nearest lookalike found anywhere, it shared the name this project
+  used to have, and the difference has to be stated precisely rather than waved at.** Fetched the repo page and the raw
   README. Four separable differences:
   1. **Different object measured.** Its independence score grades how far agents *diverged during a
-     debate* — groupthink detection over a shared transcript. Quorum's agents never see each other;
+     debate* — groupthink detection over a shared transcript. NEFF's agents never see each other;
      the number is a statistical dependence estimate between blind, isolated verifiers.
   2. **Diversity is manufactured, not measured.** It *assigns* each agent a cognitive-diversity
-     profile (risk tolerance, skepticism, abstraction) to create tension. Quorum assigns nothing and
+     profile (risk tolerance, skepticism, abstraction) to create tension. NEFF assigns nothing and
      measures what the panel actually did on this claim.
   3. **No estimator, no probe, no witness count.** The README publishes no formula; there is no Kish
      / design-effect correction, no blind-negation probe, no vote set to zero, and the output is a
      0–1 quality grade, not a count of independent witnesses that shrinks a truth score.
   4. **Not a fact checker.** It is a deliberation tool for hard questions; fact-checking is one
-     validation layer inside it. It produces a better answer; Quorum produces an answer plus a
+     validation layer inside it. It produces a better answer; NEFF produces an answer plus a
      defensible number for how much of the panel's agreement was real.
-  Its own docs concede the point Quorum is built on: "the validation gate is not truly independent…
+  Its own docs concede the point NEFF is built on: "the validation gate is not truly independent…
   that's prompt-level independence, not structural independence." Unmeasured, and admitted.
 - **karpathy/llm-council** — <https://github.com/karpathy/llm-council> — models answer, then rank each
   other's answers, then a chairman synthesises. → **DISTINCT.** Peer ranking; no dependence term.
@@ -346,7 +356,7 @@ overlap" *is* shipped software today.
   → **DISTINCT, and the difference is the purpose, not the arithmetic.** These are GEO/AEO marketing
   tools: they measure overlap so a brand can buy visibility across engines. They compare *which web
   pages each engine cited*, aggregated over many prompts, and no output of theirs discounts a verdict,
-  gates a vote, or tells a reader how much a given answer should be believed. Quorum measures overlap
+  gates a vote, or tells a reader how much a given answer should be believed. NEFF measures overlap
   between *verifiers on one claim, at query time*, and spends it as confidence. Worth knowing that the
   number exists commercially; nobody is using it for epistemics.
 
@@ -411,8 +421,8 @@ overlap" *is* shipped software today.
 
 ## Standing risks to answer before completion (revised)
 
-1. **Naming.** Four separate things in this exact market are called Quorum, including a beta product
-   whose headline feature is literally a "Quorum Verdict" over 25+ models. This is not an originality
+1. **Naming.** Four separate things in this exact market are called NEFF, including a beta product
+   whose headline feature is literally a "NEFF Verdict" over 25+ models. This is not an originality
    problem — none of them measures independence — but the demo and the README must land the inversion
    before a judge pattern-matches us onto them. Carrying risk knowingly; not a gate failure.
 2. **Two of the three ingredients are published, and the repo must not claim otherwise.** The Kish
@@ -424,7 +434,7 @@ overlap" *is* shipped software today.
 3. **New: an aggregate `n_eff` has a published critic (2608.06940).** The honest answer, and it is
    already half-written in the README's limits section, is that the Effective Witness Count is a
    *floor on the discount*, a reason to distrust a unanimous card, not a per-decision utility
-   estimate — and that Quorum shows the transcript precisely so a reader can go and check the pivotal
+   estimate — and that NEFF shows the transcript precisely so a reader can go and check the pivotal
    case themselves. If that answer is not in the README's "what this does not do", put it there.
 4. **The 0.44 assumed prior is the softest number in the product.** It is derived by inverting one
    paper's result. It is labelled as assumed on screen, which is the right behaviour; keep it labelled
@@ -434,10 +444,10 @@ overlap" *is* shipped software today.
 
 ## Verdict
 
-Nothing found on any surface delivers Quorum's user-visible artifact by Quorum's mechanism. The
-closest neighbours are, in order: **qinnovates/quorum** (same name, an independence score, evidence
+Nothing found on any surface delivers NEFF's user-visible artifact by NEFF's mechanism. The
+closest neighbours are, in order: **qinnovates/quorum** (an independence score, evidence
 deduplication — but it grades divergence inside a debate it manufactured, publishes no estimator, runs
-no negation probe, zeroes no vote, and prints no witness count); **PromptQuorum** (same name, 25+
+no negation probe, zeroes no vote, and prints no witness count); **PromptQuorum** (25+
 models, agreement mapping — capability-weighted, dependence never measured); the **citation-overlap
 tools** (real overlap measurement, shipped, but for brand visibility rather than to discount a
 verdict); and **2605.29800** (our exact estimator, still paper-only, still no artifact). Each fails the

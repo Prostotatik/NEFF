@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import type { Consensus, Verdict } from "@/lib/types";
-import s from "./quorum.module.css";
+import s from "./neff.module.css";
 
 /**
  * Where every number in the score came from. Rendered as a full-width row of the
@@ -53,7 +53,7 @@ export function ArithmeticPanel({
           The brief asks for a score out of 100. On that scale 50 is &ldquo;the evidence points
           neither way&rdquo;, and 50 is the largest excursion that stays inside it. Change either and
           the output stops being a 0–100 score, which is why 40 was never an alternative. The
-          consequence is deliberate: since <code>weight</code> is always below 1, no verdict Quorum
+          consequence is deliberate: since <code>weight</code> is always below 1, no verdict NEFF
           can produce is ever 0 or 100.
         </>
       ),

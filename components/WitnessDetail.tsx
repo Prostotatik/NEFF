@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import s from "./quorum.module.css";
+import s from "./neff.module.css";
 
 /**
  * The full answer behind one panel row.

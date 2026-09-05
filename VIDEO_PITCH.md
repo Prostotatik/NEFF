@@ -51,7 +51,7 @@ show the Authorization header.
 
 **The mechanism** — *scroll to the three probe columns*
 
-> So Quorum does not count votes. It asks every model three questions. The claim. The claim negated,
+> So NEFF does not count votes. It asks every model three questions. The claim. The claim negated,
 > put back blind. And what evidence it is leaning on.
 
 **A live check from a link** — *paste `https://en.wikipedia.org/wiki/Streisand_effect`, run it; let
@@ -59,7 +59,7 @@ the probe grid fill, do not cut away*
 
 > Here is a live check, from a link.
 >
-> Quorum reads the page, pulls out the one checkable claim, and probes the panel. Eleven inferences,
+> NEFF reads the page, pulls out the one checkable claim, and probes the panel. Eleven inferences,
 > every one of them on the Gonka Network, streaming back from independent nodes as they land.
 
 **What the score means** — *the verdict card, then the derivation in the left column*
@@ -86,7 +86,7 @@ the probe grid fill, do not cut away*
 
 **The close** — *back to the landing headline*
 
-> Consensus is not evidence. Quorum tells you how many witnesses it actually had, and shows you the
+> Consensus is not evidence. NEFF tells you how many witnesses it actually had, and shows you the
 > ones it had to throw out.
 
 ## Numbers quoted, and where they come from

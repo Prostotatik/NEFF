@@ -573,7 +573,8 @@ of us were measuring; only one of us was measuring the right thing first time.
 Its one open item — every report-route capture on hand predated the `devIndicators` fix, so the badge
 was only *proven* gone on two routes — is now closed. `/r/g9v4y253arnw` re-shot three ways
 (`report-full.png`, `arith.png`, `witness-reasoning-trace.png`), and in all three the closing
-tagline reads "**a** quorum is the number of independent witnesses…" with its leading "a" intact and
+tagline (then "a quorum is the number of independent witnesses…", since replaced by the NEFF one)
+reads with its leading "a" intact and
 nothing over it.
 
 Two watch items recorded, neither a defect and neither actioned:

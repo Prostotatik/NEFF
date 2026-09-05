@@ -1,5 +1,5 @@
 /**
- * The panel: every model Quorum uses as a witness, all hosted on the Gonka Network.
+ * The panel: every model NEFF uses as a witness, all hosted on the Gonka Network.
  *
  * Short labels are what the UI shows; they need to fit in a column header and
  * still be recognisable to a judge who knows the model families.

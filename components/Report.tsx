@@ -18,7 +18,7 @@ import {
 import { avatarStyle } from "./palette";
 import { WitnessDetail } from "./WitnessDetail";
 import { HingeText } from "./HingeText";
-import s from "./quorum.module.css";
+import s from "./neff.module.css";
 
 const STANCE_CLASS: Record<Stance, string> = {
   SUPPORTED: s.stanceSupported,

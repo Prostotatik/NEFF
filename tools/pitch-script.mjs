@@ -48,7 +48,7 @@ export const SEGMENTS = [
     id: "mechanism",
     act: "scrollTo",
     arg: "mechanism",
-    say: "So Quorum does not count votes. It asks every model three questions. The claim. The claim negated, put back blind. And what evidence it is leaning on.",
+    say: "So NEFF does not count votes. It asks every model three questions. The claim. The claim negated, put back blind. And what evidence it is leaning on.",
     hold: 0.6,
   },
   {
@@ -60,7 +60,7 @@ export const SEGMENTS = [
   {
     id: "wait",
     act: "awaitVerdict",
-    say: "Quorum reads the page, pulls out the one checkable claim, and probes the panel. Eleven inferences, every one of them on the Gonka Network, streaming back from independent nodes as they land.",
+    say: "NEFF reads the page, pulls out the one checkable claim, and probes the panel. Eleven inferences, every one of them on the Gonka Network, streaming back from independent nodes as they land.",
   },
   {
     id: "payoff",
@@ -98,7 +98,7 @@ export const SEGMENTS = [
     id: "close",
     act: "goto",
     arg: "/",
-    say: "Consensus is not evidence. Quorum tells you how many witnesses it actually had, and shows you the ones it had to throw out.",
+    say: "Consensus is not evidence. NEFF tells you how many witnesses it actually had, and shows you the ones it had to throw out.",
     hold: 1.5,
   },
 ];

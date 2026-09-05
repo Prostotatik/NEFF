@@ -1,5 +1,5 @@
 /**
- * The one and only place in Quorum that talks to an inference provider.
+ * The one and only place in NEFF that talks to an inference provider.
  *
  * Every AI call in this application goes through the Gonka Router
  * (https://api.gonkarouter.io/v1), as required by the challenge brief. There is

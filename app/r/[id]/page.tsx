@@ -5,7 +5,7 @@ import { Masthead, Footer } from "@/components/Chrome";
 import { DetailsRail, OrbitalStage } from "@/components/RunHero";
 import { Mechanism } from "@/components/Mechanism";
 import { loadRun } from "@/lib/store";
-import s from "@/components/quorum.module.css";
+import s from "@/components/neff.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +16,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const run = await loadRun(id);
-  if (!run) return { title: "Quorum — report not found" };
+  if (!run) return { title: "NEFF — report not found" };
   return {
-    title: `${run.verdict.truthScore}/100 · ${run.verdict.label} — Quorum`,
+    title: `${run.verdict.truthScore}/100 · ${run.verdict.label} — NEFF`,
     description: run.verdict.headline,
   };
 }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { labelFor } from "@/lib/models";
 import type { ReceiptView } from "@/lib/types";
 import { hueFor } from "./palette";
-import s from "./quorum.module.css";
+import s from "./neff.module.css";
 
 const PURPOSE_TITLE: Record<string, string> = {
   prep: "claim preparation",

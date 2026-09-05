@@ -35,11 +35,11 @@ const dataUri = `data:image/png;base64,${readFileSync(src).toString("base64")}`;
 const html = `<style>html,body{margin:0;background:#000;overflow:hidden}
 img{position:absolute;image-rendering:auto;transform-origin:0 0;
 transform:scale(${scale}) translate(${-x}px,${-y}px)}</style><img src="${dataUri}">`;
-const htmlFile = `${process.env.TEMP || "/tmp"}/quorum-crop-${Date.now()}.html`;
+const htmlFile = `${process.env.TEMP || "/tmp"}/neff-crop-${Date.now()}.html`;
 writeFileSync(htmlFile, html, "utf8");
 
 const port = 9800 + Math.floor(Math.random() * 150);
-const profile = `${process.env.TEMP || "/tmp"}/quorum-crop-${Date.now()}`;
+const profile = `${process.env.TEMP || "/tmp"}/neff-crop-${Date.now()}`;
 const chrome = spawn(CHROME, [
   "--headless=new",
   "--hide-scrollbars",

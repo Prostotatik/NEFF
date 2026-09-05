@@ -8,7 +8,7 @@ import { Mechanism } from "./Mechanism";
 import { DetailsRail, OrbitalStage, type PanelStatus } from "./RunHero";
 import { IdleRail } from "./IdleRail";
 import { ArrowRight, ImageIcon, LinkIcon, TextIcon, XIcon } from "./Icons";
-import s from "./quorum.module.css";
+import s from "./neff.module.css";
 
 /**
  * The examples are ordered by how sharply each one exercises the mechanism, not
@@ -276,7 +276,7 @@ export function ClaimConsole() {
               so it sits under the console at label size rather than competing
               with the headline. */}
           <p className={s.subthesis}>
-            Three models agreeing is one witness if they all read the same page — Quorum measures
+            Three models agreeing is one witness if they all read the same page — NEFF measures
             how independent its verifiers actually are and prices the truth score by it.
           </p>
         </div>

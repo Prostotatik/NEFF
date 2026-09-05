@@ -1,4 +1,4 @@
-# Judge feedback — Quorum (second pass)
+# Judge feedback — NEFF (second pass)
 
 **Date:** 2026-09-04
 **Judged against:** `JUDGING_CRITERIA.md` (organizers' verbatim words)
@@ -125,7 +125,7 @@ bound stated in the UI rather than an open-ended spinner.
 ## Remaining findings
 
 - **MINOR — Tweet extraction still doesn't exist**, though it is now honestly declined. The
-  organizers name "tweet" as one of three explicit input types; Quorum handles two of the three and
+  organizers name "tweet" as one of three explicit input types; NEFF handles two of the three and
   gives a clear, actionable message on the third rather than failing silently. This is a real
   improvement from a fabrication-adjacent finding to a documented gap, but it remains a gap.
   **Fix:** an oEmbed/syndication fallback for x.com would close it entirely; if that's out of scope,

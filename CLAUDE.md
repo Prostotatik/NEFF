@@ -1,6 +1,6 @@
-# Quorum — durable rules for every session
+# NEFF — durable rules for every session
 
-**Project:** Quorum. Independence-weighted fact verification running entirely on the Gonka Router.
+**Project:** NEFF. Independence-weighted fact verification running entirely on the Gonka Router.
 **Win condition:** win the "AI for Society" hackathon (see `JUDGING_CRITERIA.md`, verbatim).
 
 ## Start every session with this, in order
@@ -13,7 +13,7 @@
 
 ## The one-sentence pitch (keep this exact)
 
-Three models agreeing is one witness if they all read the same page — Quorum measures how
+Three models agreeing is one witness if they all read the same page — NEFF measures how
 independent its verifiers actually are and prices the truth score by it.
 
 ## Non-negotiables

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { PopularClaim, RunSummary, VerdictLabel } from "@/lib/types";
 import { ArrowRight, LinkIcon, ShieldCheck, TextIcon } from "./Icons";
-import s from "./quorum.module.css";
+import s from "./neff.module.css";
 
 /**
  * What the rail shows before anything has been asked.

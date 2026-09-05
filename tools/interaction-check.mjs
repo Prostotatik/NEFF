@@ -27,7 +27,7 @@ const chrome = spawn(CHROME, [
   "--headless=new",
   "--hide-scrollbars",
   `--remote-debugging-port=${port}`,
-  `--user-data-dir=${process.env.TEMP || "/tmp"}/quorum-ix-${Date.now()}`,
+  `--user-data-dir=${process.env.TEMP || "/tmp"}/neff-ix-${Date.now()}`,
   `--window-size=${width},1000`,
   "about:blank",
 ]);

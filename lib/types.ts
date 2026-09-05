@@ -44,7 +44,7 @@ export interface ProbeResult {
   receiptIndex: number;
 }
 
-/** Everything Quorum concluded about one model as a witness. */
+/** Everything NEFF concluded about one model as a witness. */
 export interface WitnessAssessment {
   modelId: string;
   /** Stance on the claim as actually asked. */
@@ -186,7 +186,7 @@ export interface Adjudication {
 }
 
 export interface ClaimPrep {
-  /** The checkable proposition Quorum actually verified. */
+  /** The checkable proposition NEFF actually verified. */
   claim: string;
   /** Faithful logical negation, used blind in the mirror probe. */
   negation: string;

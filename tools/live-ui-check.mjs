@@ -63,7 +63,7 @@ const chrome = spawn(CHROME, [
   "--hide-scrollbars",
   "--force-device-scale-factor=1",
   `--remote-debugging-port=${port}`,
-  `--user-data-dir=${process.env.TEMP || "/tmp"}/quorum-liveui-${Date.now()}`,
+  `--user-data-dir=${process.env.TEMP || "/tmp"}/neff-liveui-${Date.now()}`,
   `--window-size=${width},1000`,
   "about:blank",
 ]);

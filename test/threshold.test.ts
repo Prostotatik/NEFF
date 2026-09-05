@@ -60,7 +60,7 @@ test("a looser threshold never reports less overlap than a stricter one", () => 
 });
 
 test("0.6 is not the value that would flatter this project's own thesis", () => {
-  // Quorum's argument is that agreeing models are worth fewer witnesses than
+  // NEFF's argument is that agreeing models are worth fewer witnesses than
   // they look. A lower threshold finds more shared evidence, which raises rho,
   // which lowers the Effective Witness Count — a more striking demo every time.
   // If 0.6 had been chosen for effect it would be at the bottom of this range,

@@ -1,11 +1,11 @@
 /**
- * The scoring core: how Quorum turns nine probe answers into a truth score.
+ * The scoring core: how NEFF turns nine probe answers into a truth score.
  *
  * The whole argument of this project lives in this file. Every other fact
  * checker treats model agreement as evidence and averages it. Agreement between
  * models trained on overlapping corpora is correlated error, so averaging it
  * inflates confidence exactly when the panel is most likely to be wrong
- * together. So Quorum measures two things before it lets a model vote:
+ * together. So NEFF measures two things before it lets a model vote:
  *
  *   1. Does the model distinguish the claim from its own negation? A model that
  *      affirms both is pattern-matching the surface form of the sentence, and

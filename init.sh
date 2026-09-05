@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Quorum — clean checkout to running demo.
+# NEFF — clean checkout to running demo.
 # Usage: ./init.sh            start the dev server
 #        ./init.sh --check    verify environment + Gonka connectivity, then exit
 set -euo pipefail
@@ -9,12 +9,12 @@ say()  { printf '\033[36m│\033[0m %s\n' "$*"; }
 ok()   { printf '\033[32m│ ok\033[0m %s\n' "$*"; }
 die()  { printf '\033[31m│ !!\033[0m %s\n' "$*" >&2; exit 1; }
 
-printf '\033[36m┌─ Quorum ───────────────────────────────────────\033[0m\n'
+printf '\033[36m┌─ NEFF ───────────────────────────────────────\033[0m\n'
 
 # 1. toolchain
 command -v node >/dev/null || die "node not found. Install Node.js 20 or newer."
 NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
-[ "$NODE_MAJOR" -ge 20 ] || die "Node $NODE_MAJOR found; Quorum needs Node 20+."
+[ "$NODE_MAJOR" -ge 20 ] || die "Node $NODE_MAJOR found; NEFF needs Node 20+."
 ok "node $(node -v)"
 
 # 2. secrets
@@ -41,7 +41,7 @@ MODELS="$(curl -sS --max-time 30 "${GONKA_BASE_URL}/models" -H "Authorization: B
   || die "could not reach ${GONKA_BASE_URL}/models"
 echo "$MODELS" | grep -q '"data"' || die "unexpected response from Gonka Router: ${MODELS:0:200}"
 COUNT="$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).data.length)}catch(e){console.log(0)}})' <<<"$MODELS")"
-[ "$COUNT" -ge 2 ] || die "Gonka Router returned $COUNT model(s); Quorum needs at least 2."
+[ "$COUNT" -ge 2 ] || die "Gonka Router returned $COUNT model(s); NEFF needs at least 2."
 ok "Gonka Router reachable — $COUNT models available"
 
 if [ "${1:-}" = "--check" ]; then

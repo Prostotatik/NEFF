@@ -33,7 +33,7 @@ const height = Number(process.env.SHOT_HEIGHT || 1000);
 mkdirSync(outDir, { recursive: true });
 
 const port = 9400 + Math.floor(Math.random() * 400);
-const profile = `${process.env.TEMP || "/tmp"}/quorum-shot-${Date.now()}`;
+const profile = `${process.env.TEMP || "/tmp"}/neff-shot-${Date.now()}`;
 const chrome = spawn(CHROME, [
   "--headless=new",
   "--hide-scrollbars",

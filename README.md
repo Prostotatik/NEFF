@@ -1,15 +1,15 @@
-# Quorum
+# NEFF
 
 **Three models agreeing is one witness if they all read the same page.**
 
-Quorum is a fact checker that treats model agreement as a claim to be verified rather than as
+NEFF is a fact checker that treats model agreement as a claim to be verified rather than as
 evidence. Every inference runs on the [Gonka Network](https://gonkarouter.io) — eleven per check, each
 traceable to the node that served it.
 
 ![The verdict card: three models agreed, and the agreement is worth zero witnesses](evidence/verdict-card.png)
 
 *A real report, unedited. Three of three models said the claim was true — and every one of them also
-said its negation was true. A vote would have called this unanimous. Quorum calls it **NO SIGNAL on
+said its negation was true. A vote would have called this unanimous. NEFF calls it **NO SIGNAL on
 0.0 witnesses**, and shows you the transcripts.*
 
 **[Watch the 1:45 pitch](evidence/pitch/pitch.mp4)** — two live fact-checks, recorded from the real
@@ -20,6 +20,25 @@ app. · **[SUBMISSION.md](SUBMISSION.md)** — how to get a live URL in thirty s
 ```
 
 ---
+
+## Why NEFF
+
+**N_eff** is the effective sample size: how much independent information a set of correlated
+observations actually carries. Ask nine models to check a claim and you do not have nine opinions —
+they share training data, reasoning habits, biases, and failure modes. The estimator that prices
+that is Kish's, and it has already been applied to an LLM panel in
+[*Nine Judges, Two Effective Votes*](https://arxiv.org/abs/2605.29800), which measures nine frontier
+models as carrying about **two** independent votes.
+
+So instead of counting how many models agree, NEFF asks the question that decides what the agreement
+is worth:
+
+
+
+That is the whole identity of the product. **NEFF does not claim to know the truth. It measures how
+much the consensus is worth.** And because every inference runs on Gonka, the parts compose:
+decentralized inference, several independent judges, an effective-independence measurement, the
+evidence each judge named, and a Gonka Request ID for every call so the provenance is checkable.
 
 ## In ninety seconds
 
@@ -74,7 +93,7 @@ panel of LLMs violates.
 So the naive design fails in the worst possible direction: it is *most* confident precisely when the
 models are wrong together. A unanimous panel prints 95% and moves on.
 
-## What Quorum does instead
+## What NEFF does instead
 
 For every claim, each model on the panel is asked three separate, isolated questions:
 
@@ -130,7 +149,7 @@ actually did that time, not a fixed opinion about the claim.
 
 - *"Taking vitamin C supplements prevents the common cold."* — **3 of 3 models agreed it is false.**
   All three named the same Cochrane systematic reviews: 89% measured evidence overlap, **1.1
-  effective witnesses**. The naive build reports unanimity. Quorum reports one witness, quoted three
+  effective witnesses**. The naive build reports unanimity. NEFF reports one witness, quoted three
   times. (Reproducible from the first example button; observed at 1.08 across separate runs.)
 
 - *"The Anglo-Zanzibar War of 1896 lasted under forty-five minutes."* — **all three models answered
@@ -145,7 +164,7 @@ actually did that time, not a fixed opinion about the claim.
   effective witnesses**; another had them overlapping and it fell to 1.7. A metric that only ever said
   "echo" would be worthless, and this one does not.
 
-- *A Wikipedia article on the Streisand effect* — pasted as a link. Quorum fetches the page, reduces
+- *A Wikipedia article on the Streisand effect* — pasted as a link. NEFF fetches the page, reduces
   it to one atomic checkable claim, and verifies that: 3 of 3 coherent, **1.8 effective witnesses**
   after their partial evidence overlap is priced in.
 
@@ -171,7 +190,7 @@ discarded and why.
 A tool whose whole argument is "your confidence is overstated" has no business overstating its own.
 
 - **The evidence anchors are self-reported.** A model can name a source it never read, or confabulate
-  one outright. Quorum does not treat an anchor as evidence *for the claim* — it never scores a
+  one outright. NEFF does not treat an anchor as evidence *for the claim* — it never scores a
   source's reliability — it uses anchors only as a **dependence signal**: two models describing the
   same evidence base are behaving alike, which is informative about correlation whether or not the
   base is real. They are requested in English even when the claim is not, because comparing them
@@ -212,7 +231,7 @@ Panel: `deepseek-ai/DeepSeek-V4-Flash-0731`, `MiniMaxAI/MiniMax-M2.7`, `moonshot
 
 Decentralised multi-verifier fact checking has been built and has already won a hackathon, and
 confidence-weighted model consensus has too. Both ship the same statistical bug: they treat agreement
-as corroboration without ever checking whether the agreement is independent. Quorum inverts that
+as corroboration without ever checking whether the agreement is independent. NEFF inverts that
 primitive — it measures verifier independence at query time and prices the verdict by it, which
 produces an artifact none of them can produce: *"all three models agreed, that agreement is worth one
 witness, and here is the probe transcript that proves it."* The full search, the candidates found,

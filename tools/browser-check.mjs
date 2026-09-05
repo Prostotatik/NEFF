@@ -1,7 +1,7 @@
 /**
  * Browser check: drives the real app in headless Chrome and reports what it saw.
  *
- * Quorum's verification standard is that a feature is not verified until it has
+ * NEFF's verification standard is that a feature is not verified until it has
  * been exercised in the running app, so this clicks the actual buttons, watches
  * the stream arrive, records console errors, and screenshots the result — rather
  * than asserting against the source.
@@ -31,7 +31,7 @@ const width = Number(process.argv[3] || 1440);
 const height = Number(process.argv[4] || 1000);
 mkdirSync(outDir, { recursive: true });
 
-const profile = `${process.env.TEMP}/quorum-cdp-${Date.now()}`;
+const profile = `${process.env.TEMP}/neff-cdp-${Date.now()}`;
 const chrome = spawn(CHROME, [
   "--headless=new",
   "--disable-gpu",

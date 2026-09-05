@@ -110,7 +110,7 @@ console.log(`narration total: ${narrated.toFixed(1)}s`);
 
 // --- 2. drive the app and capture frames -----------------------------------
 
-const profile = `${process.env.TEMP || "/tmp"}/quorum-pitch-${Date.now()}`;
+const profile = `${process.env.TEMP || "/tmp"}/neff-pitch-${Date.now()}`;
 const chrome = spawn(CHROME, [
   "--headless=new",
   "--disable-gpu",
