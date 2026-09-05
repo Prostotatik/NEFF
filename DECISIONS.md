@@ -138,3 +138,32 @@ its request id, its serving devshard node and its engine build — and writes no
 own. Doing so would need a wallet and keys this build does not have, and would add a trust surface
 without adding evidence. `docs/GONKA.md` states the distinction rather than letting the word
 "on-chain" imply something untrue.
+
+## D19 — Past checks are public on the landing page, and the page says so (2026-09-05)
+The idle rail lists what this instance has been asked about most and what it finished most recently,
+and `GET /api/history` will hand those run ids to anyone. Report ids are still drawn from the system
+CSPRNG and are not guessable, but the newest are now published by design, so an unguessable id is no
+longer a privacy control for a recent run.
+
+That is the feature — a shared instance that shows what it has been asked is the point of the panel —
+but it changes what a user should assume, so the panel says "Every verification run here is stored and
+listed. Nothing you paste into this demo is private" under the list rather than leaving them to work
+it out. The alternative, keeping the list but not saying so, was rejected: this is a project whose
+entire argument is about not letting a reader assume more than the evidence supports.
+
+## D20 — The closing note is written by MiniMax, not by the claim-preparation model (2026-09-05)
+`ADJUDICATOR` was `PANEL[0]` and its comment called DeepSeek "fastest of the panel". Measured against
+the router with three cold adjudication-shaped calls per model, unique nonce so none could be a cache
+hit, that was false by a wide margin:
+
+| model | latencies | completion tokens |
+|---|---|---|
+| DeepSeek V4 Flash | 21.2 s, 15.7 s, 19.2 s | 163–202 |
+| MiniMax M2.7 | 11.7 s, 7.8 s, 7.1 s | 557–1247 |
+| Kimi K2.6 | 5.9 s, 6.4 s, 28.8 s | 475–538 |
+
+About ten tokens a second against MiniMax's eighty. Every run of a four-claim suite was timing out on
+the closing note and then paying again to fail over. `CLOSING_ORDER` now leads with MiniMax, which is
+both the quickest and the most consistent, then Kimi, then DeepSeek. Claim preparation stays with
+DeepSeek, which writes the shortest output of the three and is quick on it. Two roles, two
+measurements, rather than one constant doing both jobs on an assumption nobody had rechecked.

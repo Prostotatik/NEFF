@@ -274,7 +274,15 @@ export async function gonkaChat(options: GonkaCallOptions): Promise<GonkaCallRes
     }
   }
 
-  throw lastError ?? new Error("Gonka call failed without a receipt");
+  if (lastError) throw lastError;
+  // Only reachable when the deadline had already passed, or the caller had gone
+  // away, before a single send could be made. Say which; "failed without a
+  // receipt" told a reader nothing they could act on.
+  throw new Error(
+    signal?.aborted
+      ? "Cancelled before this Gonka call was sent"
+      : "No time left in this phase to send this Gonka call",
+  );
 }
 
 async function attemptChat(

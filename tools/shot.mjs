@@ -90,6 +90,15 @@ const send = (method, params = {}) =>
 
 await send("Page.enable");
 await send("Runtime.enable");
+// SHOT_REDUCED_MOTION=1 renders the page as a visitor who has asked their system
+// to stop animations. The global rule that honours that is a wildcard, so it
+// covers animations added later automatically — which is exactly the kind of
+// claim that should be checked against the browser rather than trusted.
+if (process.env.SHOT_REDUCED_MOTION) {
+  await send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-reduced-motion", value: "reduce" }],
+  });
+}
 const nav = await send("Page.navigate", { url: `http://localhost:3000${urlPath}` });
 if (nav?.errorText || !nav?.frameId) console.error("navigate:", JSON.stringify(nav));
 await sleep(settle);

@@ -101,10 +101,21 @@ const PREP_BUDGET_MS = 42_000;
  * would add up to, because by this point the verdict is already decided and the
  * reader is waiting on prose.
  */
-const ADJUDICATION_BUDGET_MS = 38_000;
+const ADJUDICATION_BUDGET_MS = 44_000;
 
 /** Per-send leash inside that phase: two of these per node, then the next node. */
-const ADJUDICATION_ATTEMPT_MS = 15_000;
+const ADJUDICATION_ATTEMPT_MS = 14_000;
+
+/**
+ * Token ceiling for the closing note specifically.
+ *
+ * It used to be the model's own probe budget, which for MiniMax is 3200 — far
+ * more room than four short prose fields need, and a reasoning model will use
+ * whatever it is given. Measured on cold adjudication calls: 557, 727 and 1247
+ * completion tokens, so 1600 leaves headroom over the worst observed while
+ * capping the tail that was costing the phase its budget.
+ */
+const ADJUDICATION_MAX_TOKENS = 1_600;
 
 /** Admission control for outbound Gonka calls. */
 function createGate(limit: number) {
@@ -573,7 +584,7 @@ export async function* verify(
         model: model.id,
         messages,
         purpose: "adjudicate",
-        maxTokens: Math.max(900, model.maxTokens),
+        maxTokens: ADJUDICATION_MAX_TOKENS,
         // Short leash, and one retry on the *same* node before failing over.
         //
         // Measured: the adjudicator timed out at 24s on every run of a four-claim
@@ -645,10 +656,16 @@ export async function* verify(
 }
 
 /**
- * Report ids address unauthenticated pages that echo whatever the user pasted,
- * so they must not be guessable. `Math.random()` is a predictable PRNG whose
- * state can be recovered from a handful of outputs; this is drawn from the
- * system CSPRNG instead.
+ * Report ids address unauthenticated pages that echo whatever the user pasted.
+ * `Math.random()` is a predictable PRNG whose state can be recovered from a
+ * handful of outputs, so ids are drawn from the system CSPRNG instead.
+ *
+ * Note what this does and does not buy since the idle page started listing past
+ * checks: an id is still not guessable, but the newest ones are now published on
+ * the landing page by design, and `GET /api/history` will hand them to anyone.
+ * That is deliberate — a shared instance showing what it has been asked is the
+ * feature — and the idle panel says so in as many words rather than leaving a
+ * reader to assume a link they were never given is private.
  */
 function newRunId(): string {
   const alphabet = "abcdefghijkmnpqrstuvwxyz23456789";

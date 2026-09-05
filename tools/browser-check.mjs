@@ -142,6 +142,22 @@ console.log(
   await evaluate(`document.querySelectorAll('[class*="probeCell"]:not([class*="Pending"])').length`),
 );
 
+// What the sphere is doing while it waits. A declared @keyframes that never
+// attaches proves nothing, so this is the browser's own list of animations it is
+// currently ticking, filtered to the working indicator's own names — and the
+// seat count, which is what the reader is actually reading off the ring.
+console.log(
+  "working indicator:",
+  await evaluate(`JSON.stringify({
+    running: document.getAnimations()
+      .filter(a => a.playState === 'running')
+      .map(a => a.animationName || '')
+      .filter(n => /spin|seatWait|seatLand|seatFlash|corePulse/.test(n))
+      .reduce((acc, n) => { acc[n] = (acc[n] || 0) + 1; return acc; }, {}),
+    centreReads: (document.querySelector('[class*="orbWorking"]')||{}).innerText || null,
+  })`),
+);
+
 // Wait for the verdict to appear.
 let waited = 0;
 while (waited < 180) {

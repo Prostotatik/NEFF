@@ -222,3 +222,65 @@ Three passes against live runs, each looking at the rendered pixels:
 3. The wedge is now an annulus between `0.38R` and the seat ring, so it never crosses the count.
 
 Console errors in every capture: none. Reduced motion is handled by the existing global rule.
+
+---
+
+## Second pass — two things the first pass got wrong
+
+### The salvage branch could never run
+
+`gonkaChat` treats a response that is nothing but an unterminated `<think>` block as no answer.
+That is what makes the truncation retry possible, and it is also why `runProbe` never reached the
+draft recovery: the call threw first. A branch nobody has ever run is not a fix.
+
+Moved into `runProbe`'s catch, where the last failed attempt's receipt still carries the text, so the
+order is now: ask again with a bigger budget, and only then look for the model's own draft.
+
+Covered two ways, because neither is enough alone:
+
+- `test/recovery.test.ts` runs the whole path — `runProbe`, `gonkaChat`, the retry ladder, the
+  receipt, the parse — against a local server replaying a **captured** truncated Gonka response
+  (`finish_reason: "length"`, `completion_tokens` equal to `max_tokens`). It asserts the retry
+  raised the budget *before* the salvage ran, and that every recovered anchor appears verbatim in
+  what the node returned.
+- `test/live/salvage.test.ts` starves a real probe against the real router and asserts the same
+  escalation happens there. First attempt at 900 tokens: skipped, because the node simply answered.
+  Lowered to 400 — below the 600–780 completion tokens a full anchor response costs — and it
+  reproduces every time.
+
+### The closing note was being asked of the slowest node first
+
+Every run of the four-claim suite showed `receipt adjudicate DeepSeek attempts=1 24.0s error —
+Timed out after 24s`, four times out of four, and then spent another 16s failing over to MiniMax.
+Three cold adjudication-shaped calls per model, unique nonce so none could be a cache hit:
+
+| model | latencies | completion tokens |
+|---|---|---|
+| DeepSeek V4 Flash | 21.2 s, 15.7 s, 19.2 s | 163–202 |
+| MiniMax M2.7 | 11.7 s, 7.8 s, 7.1 s | 557–1247 |
+| Kimi K2.6 | 5.9 s, 6.4 s, 28.8 s | 475–538 |
+
+About ten tokens a second against MiniMax's eighty. `ADJUDICATOR`'s comment had said "fastest of the
+panel" and that had stopped being true. `CLOSING_ORDER` now leads with MiniMax — quickest and by far
+the most consistent — then Kimi, then DeepSeek; claim preparation stays with DeepSeek, which writes
+the shortest output of the three.
+
+### Wall clock, same four claims, same afternoon
+
+| claim | before | after |
+|---|---|---|
+| vitamin C | 55.3 s | 9.2 s |
+| Great Wall | 82.0 s | 46.1 s |
+| Norway's fund | 84.5 s | 60.8 s |
+| Anglo-Zanzibar | 78.1 s | 48.5 s |
+
+No adjudication failover in any of the four after the change — 11 inferences per run, the nominal
+count.
+
+### And Kimi came back
+
+Partway through this session `moonshotai/Kimi-K2.6` stopped returning HTTP 400 and started
+answering. Nothing in this repo changed to cause that, which is the strongest possible confirmation
+of finding A: the identifier was never wrong, the router's chat endpoint had simply stopped serving
+a model its own `/v1/models` advertised. Suite passes since then show `3/3 nominal` where they
+previously showed `2/2`, and one pass recorded **36 probes, 0 failures**.
