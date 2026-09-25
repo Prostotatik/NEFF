@@ -206,19 +206,6 @@ app/api/verify   the SSE endpoint      components/  the dashboard
 
 ---
 
-## What this does not do
-
-Stated plainly, because a fact checker that hides its limits has no business asking for trust.
-
-- **Text only.** The Gonka Router rejects image content (`unsupported value "image_url"`), and the
-  brief makes Gonka mandatory for all reasoning — so there is no image path rather than a
-  non-Gonka one.
-- **No live web search.** Verification runs against the models' internal knowledge and the page you
-  paste. Anchors name *bodies of evidence*, never fabricated citations.
-- **Nothing is written to a chain.** On-chain proof is satisfied as the brief defines it
-  operationally — every inference shows its Gonka Request ID and serving node.
-- **`x.com` links cannot be read** server-side. Paste the post's text instead; it verifies the same.
-
 <div align="center">
 
 **N_eff is how many independent voices are really behind an agreement.**
